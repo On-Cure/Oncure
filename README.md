@@ -1,267 +1,292 @@
-# Soshi - Social Network Platform
+# onCare
 
-A comprehensive Facebook-like social network built with modern web technologies, featuring real-time communication, user profiles, groups, and advanced privacy controls.
+A **social support network** for cancer patients, survivors, caregivers, and health coaches&#x20;
+onCare blends **community connection, mentorship, and blockchain-powered rewards** (via Hedera) to create a safe, stigma-free, and motivating environment for healing and resilience.
+
+---
 
 ## 🚀 Features
 
-### Core Functionality
-- **User Authentication**: Secure registration and login with sessions and cookies
-- **User Profiles**: Public and private profile options with customizable information
-- **Posts & Comments**: Create posts with privacy settings (public, almost private, private)
-- **Media Support**: Upload and display images (JPEG, PNG, GIF)
-- **Follow System**: Follow/unfollow users with request-based following for private profiles
+### 💙 Core Support Features
 
-### Social Features
-- **Groups**: Create and join groups with invitation system
-- **Events**: Group members can create and manage events with RSVP functionality
-- **Real-time Chat**: Private messaging and group chat rooms using WebSockets
-- **Notifications**: Real-time notifications for follow requests, group invitations, and events
-- **Privacy Controls**: Granular privacy settings for posts and profiles
+* **User Profiles**: Patients, survivors, caregivers, and coaches with role-based profile customization.
+* **Community Feed**: Share stories, encouragement, and resources in a personalized timeline.
+* **Groups & Topics**: Join groups based on cancer type, nutrition, caregivers, or general wellness.
+* **Anonymous Mode**: Patients can post, comment, or seek help privately.
+
+### 🎁 Reward System (Hedera Integration)
+
+* **Tipping with Hedera Tokens**: Patients/families can send micro-rewards to supporters.
+* **Weekly Rewards**: Automatic distribution of Hedera tokens to top contributors.
+* **NFT Badges**: Recognition for mentors, supporters, and milestone achievers (e.g., “Community Hero”).
+
+### 🧑‍🤝‍🧑 Mentorship & Coaching
+
+* **1-on-1 & Group Mentorship**: Survivors and certified coaches can guide patients.
+* **Secure Chat & Resource Sharing**: Built-in private and group chat powered by WebSockets.
+
+### 🔔 Engagement & Interaction
+
+* **Notifications**: Real-time updates on tips, badges, mentorship invitations, and milestones.
+* **Events & Workshops**: Group members can organize health webinars and support events.
+* **Privacy Controls**: Granular visibility options for posts, milestones, and profiles.
+
+---
 
 ## 🛠️ Tech Stack
 
 ### Frontend
-- **Framework**: Next.js 14+ with App Router
-- **Styling**: Tailwind CSS
-- **UI Components**: shadcn/ui
-- **Real-time**: WebSockets for chat and notifications
+
+* **Framework**: Next.js 14+ (App Router)
+* **Styling**: Tailwind CSS + shadcn/ui
+* **Real-time**: WebSockets for chat & notifications
 
 ### Backend
-- **Runtime**: Go 1.21+
-- **Database**: SQLite with migrations
-- **Authentication**: Sessions and cookies
-- **File Storage**: Local file system for media uploads
-- **WebSocket**: Gorilla WebSocket for real-time features
+
+* **Runtime**: Go 1.21+
+* **Database**: SQLite with migrations
+* **Authentication**: Sessions & cookies
+* **File Storage**: Local filesystem for media uploads
+* **WebSocket**: Gorilla WebSocket
+
+### Blockchain Layer
+
+* **Hedera Token Service (HTS)**: Micro-rewards & tipping
+* **Hedera Consensus Service (HCS)**: Transparent, immutable reward tracking
+* **NFT Layer**: Achievement badges
 
 ### DevOps
-- **Containerization**: Docker & Docker Compose
-- **Database Migrations**: golang-migrate
-- **Security**: bcrypt for password hashing
+
+* **Containerization**: Docker & Docker Compose
+* **Database Migrations**: golang-migrate
+* **Security**: bcrypt for password hashing + HIPAA/GDPR-aligned data handling
+
+---
 
 ## 📋 Prerequisites
 
-- Node.js 18+
-- Go 1.21+
-- Docker & Docker Compose
-- Git
+* Node.js 18+
+* Go 1.21+
+* Docker & Docker Compose
+* Git
+* Hedera Testnet Account (for blockchain features in dev mode)
+
+---
 
 ## 🚀 Getting Started
 
 ### Option 1: Docker (Recommended)
 
-1. **Clone the repository**
-   ```bash
-   git clone https://learn.zone01kisumu.ke/git/skisenge/social-network.git soshi
-   cd soshi
-   ```
+```bash
+# Clone repository
+git clone https://github.com/On-Cure/Oncure.git
+cd oncare
 
-2. **Build and run with Docker**
-   ```bash
-   # Make scripts executable
-   chmod +x build.sh dev.sh
-   
-   # Build and start all services
-   ./build.sh
-   ```
+# Make scripts executable
+chmod +x build.sh dev.sh
 
-3. **Access the application**
-   - Frontend: http://localhost:3000
-   - Backend API: http://localhost:8080
+# Build and run all services
+./build.sh
+```
+
+Access the app:
+
+* Frontend → [http://localhost:3000](http://localhost:3000)
+* Backend API → [http://localhost:8080](http://localhost:8080)
 
 ### Option 2: Local Development
 
-1. **Setup Frontend**
-   ```bash
-   cd frontend
-   npm install
-   npm run dev
-   ```
+#### Frontend
 
-2. **Setup Backend**
-   ```bash
-   cd backend
-   go mod download
-   go run main.go
-   ```
+```bash
+cd frontend
+npm install
+npm run dev
+```
+
+#### Backend
+
+```bash
+cd backend
+go mod download
+go run main.go
+```
+
+---
 
 ## 📁 Project Structure
 
 ```
-soshi/
-├── frontend/                   # Next.js frontend application
-│   ├── src/
-│   │   ├── app/               # App router pages
-│   │   ├── components/        # Reusable UI components
-│   │   ├── lib/               # Utility functions
-│   │   └── types/             # TypeScript type definitions
-│   ├── public/                # Static assets
+soshicare/
+├── frontend/                   
+│   ├── src/                    
+│   │   ├── app/                # Pages & routes
+│   │   ├── components/         # UI components
+│   │   ├── lib/                # Utilities
+│   │   └── types/              # TypeScript types
+│   ├── public/                 # Static assets
 │   └── package.json
-├── backend/                   # Go backend application
-│   ├── pkg/
-│   │   ├── db/
-│   │   │   ├── migrations/    # Database migrations
-│   │   │   └── sqlite/        # SQLite connection
-│   │   ├── handlers/          # HTTP handlers
-│   │   ├── middleware/        # Authentication & other middleware
-│   │   ├── models/            # Database models
-│   │   └── websocket/         # WebSocket handlers
-│   ├── uploads/               # File uploads directory
+├── backend/                    
+│   ├── pkg/                    
+│   │   ├── db/                 # Database & migrations
+│   │   ├── handlers/           # API handlers
+│   │   ├── middleware/         # Auth & validation
+│   │   ├── models/             # Data models
+│   │   └── websocket/          # WebSocket features
+│   ├── uploads/                # Media uploads
 │   └── server.go
-├── data/                      # SQLite database storage
-├── docker-compose.yml         # Docker orchestration
-├── build.sh                   # Build script
-├── dev.sh                     # Development helper script
+├── blockchain/                 # Hedera integration layer
+│   ├── tokens/                 # HTS utilities
+│   ├── rewards/                # Reward distribution
+│   └── nfts/                   # NFT achievements
+├── data/                       # SQLite DB storage
+├── docker-compose.yml
+├── build.sh
+├── dev.sh
 └── README.md
 ```
 
-## 🔧 Development Scripts
+---
 
-### Docker Commands
-```bash
-# Build and start all services
-./dev.sh build
+## 🗃️ Database Schema (Key Entities)
 
-# View logs
-./dev.sh logs
+* **Users**: Patients, survivors, caregivers, coaches
+* **Posts**: Community stories & updates
+* **Groups**: Support groups by topic
+* **Events**: Community events & webinars
+* **Messages**: Private & group chats
+* **Notifications**: Alerts for tips, badges, milestones
+* **Rewards**: Hedera token transactions
+* **Badges**: NFT achievements
 
-# Stop services
-./dev.sh stop
-
-# Access backend shell
-./dev.sh shell-be
-
-# Access frontend shell
-./dev.sh shell-fe
-
-# Clean all containers and images
-./dev.sh clean
-```
-
-### Local Development
-```bash
-# Frontend development
-cd frontend
-npm run dev          # Start development server
-npm run build        # Build for production
-npm run lint         # Run ESLint
-
-# Backend development
-cd backend
-go run server.go       # Start development server
-go build             # Build binary
-```
-
-## 🗃️ Database Schema
-
-The application uses SQLite with a migration system. Key entities include:
-
-- **Users**: Authentication and profile information
-- **Posts**: User-generated content with privacy settings
-- **Groups**: Community spaces with membership management
-- **Events**: Group events with RSVP functionality
-- **Messages**: Private and group messaging
-- **Notifications**: Real-time user notifications
-- **Followers**: User relationship management
+---
 
 ## 🔐 Authentication & Security
 
-- **Password Security**: bcrypt hashing with salt rounds
-- **Session Management**: Secure session cookies with expiration
-- **Privacy Controls**: Multiple privacy levels for posts and profiles
-- **Input Validation**: Comprehensive validation on both frontend and backend
-- **CORS Configuration**: Proper cross-origin resource sharing setup
+* **Password Security**: bcrypt + salted hashing
+* **HIPAA/GDPR Alignment**: Data handling and anonymization features
+* **Role-based Access**: Patient, survivor, caregiver, coach
+* **Secure Sessions**: Expiring cookies with server validation
+* **Blockchain Transparency**: All rewards traceable on Hedera ledger
+
+---
 
 ## 🌐 API Endpoints
+### Authentication 
+* `POST /api/auth/register`- User registration 
+* `POST /api/auth/login`- User login 
+* `POST /api/auth/logout`- User logout 
+* `GET /api/auth/session`- Check session status
 
-### Authentication
-- `POST /api/auth/register` - User registration
-- `POST /api/auth/login` - User login
-- `POST /api/auth/logout` - User logout
-- `GET /api/auth/session` - Check session status
+### Users & Profiles 
+* `GET /api/users/profile`- Get user profile 
+- `PUT /api/users/profile`- Update profile 
+- `POST /api/users/follow`- Follow/unfollow user 
+- `GET /api/users/followers`- Get followers list
 
-### Users & Profiles
-- `GET /api/users/profile` - Get user profile
-- `PUT /api/users/profile` - Update profile
-- `POST /api/users/follow` - Follow/unfollow user
-- `GET /api/users/followers` - Get followers list
+### Posts 
+- `GET /api/posts ` - Get posts feed 
+- `POST /api/posts` - Create new post 
+- `POST /api/posts/:id/comments`- Add comment 
+- `GET /api/posts/:id`- Get specific post 
 
-### Posts
-- `GET /api/posts` - Get posts feed
-- `POST /api/posts` - Create new post
-- `POST /api/posts/:id/comments` - Add comment
-- `GET /api/posts/:id` - Get specific post
+### Groups 
+- `GET /api/groups`- List all groups 
+- `POST /api/groups`- Create new group 
+- `POST /api/groups/:id/join` - Join group 
+- `POST /api/groups/:id/events` - Create group event 
+### Real-time Features 
+-` WebSocket/ws/chat` - Private messaging 
+-  `WebSocket/ws/notifications` - Real-time notifications 
+- `WebSocket/ws/groups/:id` - Group chat
 
-### Groups
-- `GET /api/groups` - List all groups
-- `POST /api/groups` - Create new group
-- `POST /api/groups/:id/join` - Join group
-- `POST /api/groups/:id/events` - Create group event
+### Rewards
 
-### Real-time Features
-- `WebSocket /ws/chat` - Private messaging
-- `WebSocket /ws/notifications` - Real-time notifications
-- `WebSocket /ws/groups/:id` - Group chat
+* `POST /api/rewards/tip` → Tip a user with Hedera tokens
+* `GET /api/rewards/leaderboard` → Weekly contributors ranking
+* `GET /api/rewards/badges` → User NFT badges
 
+### Healing Journey
+
+* `POST /api/journey/milestone` → Add milestone
+* `GET /api/journey/:userId` → Get user journey timeline
+
+(Other endpoints remain same as base Soshi features: users, posts, groups, chat, etc.)
+
+---
 
 ## 📝 Environment Variables
 
 ### Backend (.env)
+
 ```env
 PORT=8080
-DB_PATH=./data/soshi.db
+DB_PATH=./data/soshicare.db
 MIGRATIONS_PATH=file://pkg/db/migrations/sqlite
 JWT_SECRET=your-secret-key
 UPLOAD_PATH=./uploads
+
+# Hedera Integration
+HEDERA_ACCOUNT_ID=your-hedera-id
+HEDERA_PRIVATE_KEY=your-private-key
+HEDERA_NETWORK=testnet
 ```
 
 ### Frontend (.env.local)
+
 ```env
 NEXT_PUBLIC_API_URL=http://localhost:8080
+NEXT_PUBLIC_HEDERA_NETWORK=testnet
 ```
-
-## 🚢 Deployment
-
-### Production Build
-```bash
-# Build Docker images for production
-docker-compose -f docker-compose.prod.yml up --build -d
-```
-
-### Environment Setup
-1. Set appropriate environment variables
-2. Configure database path for persistence
-3. Set up reverse proxy (nginx/caddy) if needed
-4. Configure SSL certificates
-
-## 🤝 Contributing
-
-1. Fork the repository
-2. Create a feature branch (`git checkout -b feature/amazing-feature`)
-3. Commit your changes (`git commit -m 'Add amazing feature'`)
-4. Push to the branch (`git push origin feature/amazing-feature`)
-5. Open a Pull Request
-
-## 📄 License
-
-This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
-
-## 🙏 Acknowledgments
-
-- Built as part of a comprehensive full-stack development project
-- Inspired by modern social media platforms
-- Uses industry-standard technologies and best practices
-
-## 📞 Support
-
-For support, please open an issue in the GitHub repository or contact the development team.
-
-
-## Authors
-[Stephen Kisengese](https://www.github.com/stkisengese)
-[Hezron Okwatch](https://www.github.com/hezronokwach)
-[Philip Ochieng](https://www.github.com/philip38-hub)
-[Brian Shisia](https://www.github.com/bshisia)
 
 ---
 
-**Built with ❤️ using Next.js, Go, and modern web technologies**
+## 🚢 Deployment
+
+```bash
+docker-compose -f docker-compose.prod.yml up --build -d
+```
+
+* Configure reverse proxy (nginx/caddy)
+* Add SSL certificates
+* Set Hedera mainnet credentials for production
+
+---
+
+## 🤝 Contributing
+
+1. Fork repo
+2. Create branch (`git checkout -b feature/amazing-feature`)
+3. Commit (`git commit -m 'Add amazing feature'`)
+4. Push (`git push origin feature/amazing-feature`)
+5. Open Pull Request
+
+---
+
+## 📄 License
+
+MIT License – see [LICENSE](LICENSE).
+
+---
+
+## 🙏 Acknowledgments
+
+* Inspired by cancer survivors, caregivers, and medical coaches worldwide
+* Built on **Soshi** (a social networking base project)
+* Enhanced with **Hedera blockchain** for transparent and fair rewards
+
+---
+
+## 📞 Support
+
+For issues, open a GitHub issue or contact the dev team.
+
+---
+
+## 👥 Authors
+
+[Philip Ochieng](https://www.github.com/philip38-hub)
+
+---
+
+**Built with ❤️ using Next.js, Go, Hedera, and modern web technologies**
