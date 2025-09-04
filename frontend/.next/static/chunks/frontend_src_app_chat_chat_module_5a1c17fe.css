@@ -1,0 +1,62 @@
+/* [project]/frontend/src/app/chat/chat.module.css [app-client] (css) */
+.chat-module__xCzTYq__chat-page-container {
+  flex-direction: column;
+  width: 100%;
+  height: 100%;
+  display: flex;
+  overflow: hidden;
+}
+
+.chat-module__xCzTYq__chat-page-title {
+  color: #fff;
+  flex-shrink: 0;
+  margin: 0;
+  padding: 1.5rem 2rem 1rem;
+  font-family: Outfit, sans-serif;
+  font-size: 2rem;
+  font-weight: bold;
+}
+
+.chat-module__xCzTYq__chat-page-content {
+  flex: 1;
+  justify-content: center;
+  min-height: 0;
+  padding: 0 1rem 1.5rem;
+  display: flex;
+  overflow: hidden;
+}
+
+.chat-module__xCzTYq__chat-page-inner {
+  justify-content: center;
+  width: 100%;
+  max-width: 100%;
+  height: 100%;
+  display: flex;
+}
+
+@media (width >= 900px) {
+  .chat-module__xCzTYq__chat-page-inner {
+    max-width: 1400px;
+    height: 100%;
+  }
+}
+
+@media (width <= 600px) {
+  .chat-module__xCzTYq__chat-page-title {
+    padding: 1rem .5rem .5rem;
+    font-size: 1.2rem;
+  }
+
+  .chat-module__xCzTYq__chat-page-content {
+    padding: 0 .1rem .5rem;
+  }
+
+  .chat-module__xCzTYq__chat-page-inner {
+    max-width: 100vw;
+    height: 100%;
+    padding: 0;
+  }
+}
+
+
+/*# sourceMappingURL=frontend_src_app_chat_chat_module_5a1c17fe.css.map*/

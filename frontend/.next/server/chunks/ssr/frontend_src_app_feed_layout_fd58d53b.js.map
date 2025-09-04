@@ -1,0 +1,6 @@
+{
+  "version": 3,
+  "sources": [],
+  "sections": [
+    {"offset": {"line": 4, "column": 0}, "map": {"version":3,"sources":["file:///home/bigman/Desktop/Oncure/frontend/src/app/feed/layout.js"],"sourcesContent":["// Main layout with navbar, footer, and sidebars\nimport Layout from \"../../components/layout/Layout\";\n\nexport default function MainLayout({ children }) {\n  return <Layout>{children}</Layout>;\n}\n"],"names":[],"mappings":"AAAA,gDAAgD;;;;;;AAChD;;;AAEe,SAAS,WAAW,EAAE,QAAQ,EAAE;IAC7C,qBAAO,0PAAC,6JAAM;kBAAE;;;;;;AAClB","debugId":null}}]
+}

@@ -1,0 +1,22 @@
+{
+  "pages": {
+    "/settings/page": [
+      "static/chunks/c3a80_next_dist_89e9601d._.js",
+      "static/chunks/frontend_src_app_favicon_ico_mjs_52103ffd._.js",
+      "static/chunks/[root-of-the-server]__b2bdec22._.css",
+      "static/chunks/frontend_src_7bfd96d0._.js",
+      "static/chunks/c3a80_a2984b33._.js",
+      "static/chunks/frontend_src_app_layout_80ff79f3.js",
+      "static/chunks/c3a80_ec9e0abd._.js",
+      "static/chunks/frontend_src_df2f7377._.js",
+      "static/chunks/frontend_src_app_settings_page_13315127.js",
+      "static/chunks/[turbopack]_browser_dev_hmr-client_hmr-client_ts_9f651b38._.js",
+      "static/chunks/c3a80_next_dist_compiled_0fc08198._.js",
+      "static/chunks/c3a80_next_dist_client_22779cb3._.js",
+      "static/chunks/c3a80_next_dist_637a0145._.js",
+      "static/chunks/c3a80_@swc_helpers_cjs_3a7c8655._.js",
+      "static/chunks/frontend_e69f0d32._.js",
+      "static/chunks/frontend_f373ac37._.js"
+    ]
+  }
+}

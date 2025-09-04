@@ -1,0 +1,6 @@
+{
+  "version": 3,
+  "sources": [],
+  "sections": [
+    {"offset": {"line": 7, "column": 0}, "map": {"version":3,"sources":["file:///home/bigman/Desktop/soshi/frontend/src/app/posts/liked/layout.js"],"sourcesContent":["import Layout from \"../../../components/layout/Layout\";\n\nexport default function LikedPostsLayout({ children }) {\n  return <Layout>{children}</Layout>;\n}\n\n"],"names":[],"mappings":";;;;AAAA;;;AAEe,SAAS,iBAAiB,EAAE,QAAQ,EAAE;IACnD,qBAAO,0PAAC,kJAAA,CAAA,UAAM;kBAAE;;;;;;AAClB","debugId":null}}]
+}

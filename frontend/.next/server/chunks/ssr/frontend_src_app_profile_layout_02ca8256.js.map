@@ -1,0 +1,6 @@
+{
+  "version": 3,
+  "sources": [],
+  "sections": [
+    {"offset": {"line": 7, "column": 0}, "map": {"version":3,"sources":["file:///home/bigman/Desktop/soshi/frontend/src/app/profile/layout.js"],"sourcesContent":["// Profile layout with sidebar navigation\nimport Layout from \"../../components/layout/Layout\";\n\nexport default function ProfileLayout({ children }) {\n  return <Layout>{children}</Layout>;\n}\n"],"names":[],"mappings":"AAAA,yCAAyC;;;;;AACzC;;;AAEe,SAAS,cAAc,EAAE,QAAQ,EAAE;IAChD,qBAAO,0PAAC,kJAAA,CAAA,UAAM;kBAAE;;;;;;AAClB","debugId":null}}]
+}

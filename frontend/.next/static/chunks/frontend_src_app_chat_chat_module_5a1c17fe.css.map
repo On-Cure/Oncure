@@ -1,0 +1,6 @@
+{
+  "version": 3,
+  "sources": [],
+  "sections": [
+    {"offset": {"line": 1, "column": 0}, "map": {"version":3,"sources":["file:///home/bigman/Desktop/soshi/frontend/src/app/chat/chat.module.css"],"sourcesContent":[".chat-page-container {\n  width: 100%;\n  height: 100%;\n  display: flex;\n  flex-direction: column;\n  overflow: hidden;\n}\n\n.chat-page-title {\n  font-size: 2rem;\n  font-weight: bold;\n  color: #fff;\n  padding: 1.5rem 2rem 1rem 2rem;\n  font-family: 'Outfit', sans-serif;\n  margin: 0;\n  flex-shrink: 0;\n}\n\n.chat-page-content {\n  flex: 1;\n  padding: 0 1rem 1.5rem 1rem;\n  overflow: hidden;\n  min-height: 0;\n  display: flex;\n  justify-content: center;\n}\n\n.chat-page-inner {\n  width: 100%;\n  max-width: 100%;\n  height: 100%;\n  display: flex;\n  justify-content: center;\n}\n\n@media (min-width: 900px) {\n  .chat-page-inner {\n    max-width: 1400px;\n    height: 100%;\n  }\n}\n\n@media (max-width: 600px) {\n  .chat-page-title {\n    font-size: 1.2rem;\n    padding: 1rem 0.5rem 0.5rem 0.5rem;\n  }\n  .chat-page-content {\n    padding: 0 0.1rem 0.5rem 0.1rem;\n  }\n  .chat-page-inner {\n    max-width: 100vw;\n    height: 100%;\n    padding: 0;\n  }\n}\n"],"names":[],"mappings":"AAAA;;;;;;;;AAQA;;;;;;;;;;AAUA;;;;;;;;;AASA;;;;;;;;AAQA;EACE;;;;;;AAMF;EACE;;;;;EAIA;;;;EAGA","debugId":null}}]
+}
