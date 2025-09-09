@@ -9,7 +9,7 @@ services:
       - key: PORT
         value: 8080
       - key: DB_PATH
-        value: /opt/render/project/src/backend/data/soshi.db
+        value: /data/soshi.db
       - key: MIGRATIONS_PATH
         value: file://pkg/db/migrations/sqlite
       - key: UPLOAD_PATH
@@ -18,5 +18,5 @@ services:
         value: 1
     disk:
       name: oncure-data
-      mountPath: /opt/render/project/src/backend/data
+      mountPath: /data
       sizeGB: 1
