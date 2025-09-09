@@ -89,14 +89,25 @@ func (h *AuthHandler) Login(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	// Debug: Check if user exists
+	user, err := models.GetUserByEmail(h.db, req.Email)
+	if err != nil {
+		utils.RespondWithError(w, http.StatusInternalServerError, "Database error")
+		return
+	}
+	if user == nil {
+		utils.RespondWithError(w, http.StatusUnauthorized, "User not found")
+		return
+	}
+
 	// Authenticate user
-	user, err := models.AuthenticateUser(h.db, req.Email, req.Password)
+	user, err = models.AuthenticateUser(h.db, req.Email, req.Password)
 	if err != nil {
 		utils.RespondWithError(w, http.StatusInternalServerError, "Authentication error")
 		return
 	}
 	if user == nil {
-		utils.RespondWithError(w, http.StatusUnauthorized, "Invalid email or password")
+		utils.RespondWithError(w, http.StatusUnauthorized, "Invalid password")
 		return
 	}
 
