@@ -68,34 +68,12 @@ export function AuthProvider({ children }) {
   // Login function
   const login = async (email, password) => {
     try {
-      // const response = await fetch('/api/auth/login', {
-      //   method: 'POST',
-      //   headers: {
-      //     'Content-Type': 'application/json',
-      //   },
-      //   body: JSON.stringify({ email, password }),
-      // });
+      const userData = await auth.login({ email, password });
 
-      // const data = await response.json();
-      
-
-      // if (!response.ok) {
-      //   throw new Error(data.error || 'Login failed');
-      // }
-      const data = await auth.login({ email, password });
-
-      // Reload user data
-      // const userResponse = await fetch('/api/auth/session');
-      // const userData = await userResponse.json();
-      const userData = await auth.getSession();
-
-      if (userData.user) {
-        setUser(userData.user);
-        router.replace('/feed');
-        return true;
-      } else if (userData.id) {
-        // If userData has an id, it's likely the user object itself
-        setUser(userData);
+      // Use the user data returned from login directly
+      if (userData && (userData.id || userData.user)) {
+        const user = userData.user || userData;
+        setUser(user);
         router.replace('/feed');
         return true;
       }
