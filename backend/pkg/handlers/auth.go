@@ -89,25 +89,14 @@ func (h *AuthHandler) Login(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	// Debug: Check if user exists
-	user, err := models.GetUserByEmail(h.db, req.Email)
-	if err != nil {
-		utils.RespondWithError(w, http.StatusInternalServerError, "Database error")
-		return
-	}
-	if user == nil {
-		utils.RespondWithError(w, http.StatusUnauthorized, "User not found")
-		return
-	}
-
 	// Authenticate user
-	user, err = models.AuthenticateUser(h.db, req.Email, req.Password)
+	user, err := models.AuthenticateUser(h.db, req.Email, req.Password)
 	if err != nil {
 		utils.RespondWithError(w, http.StatusInternalServerError, "Authentication error")
 		return
 	}
 	if user == nil {
-		utils.RespondWithError(w, http.StatusUnauthorized, "Invalid password")
+		utils.RespondWithError(w, http.StatusUnauthorized, "Invalid email or password")
 		return
 	}
 
@@ -119,8 +108,8 @@ func (h *AuthHandler) Login(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	// Set session cookie
-	http.SetCookie(w, &http.Cookie{
+	// Set session cookie with debug logging
+	cookie := &http.Cookie{
 		Name:     "session_token",
 		Value:    sessionToken,
 		Path:     "/",
@@ -128,7 +117,11 @@ func (h *AuthHandler) Login(w http.ResponseWriter, r *http.Request) {
 		HttpOnly: true,
 		SameSite: http.SameSiteNoneMode,
 		Secure:   true,
-	})
+	}
+	http.SetCookie(w, cookie)
+	
+	// Also set in response header for debugging
+	w.Header().Set("X-Session-Token", sessionToken)
 
 	utils.RespondWithJSON(w, http.StatusOK, user)
 }
