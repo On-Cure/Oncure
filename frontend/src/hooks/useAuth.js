@@ -68,24 +68,19 @@ export function AuthProvider({ children }) {
   // Login function
   const login = async (email, password) => {
     try {
-      console.log('Login attempt for:', email);
       const userData = await auth.login({ email, password });
-      console.log('Login response:', userData);
 
       // Use the user data returned from login directly
       if (userData && (userData.id || userData.user)) {
         const user = userData.user || userData;
-        console.log('Setting user:', user);
         setUser(user);
-        console.log('Redirecting to /feed');
-        router.replace('/feed');
+        // Force a hard redirect to ensure it works
+        window.location.href = '/feed';
         return true;
       }
 
-      console.log('No valid user data received');
       return false;
     } catch (error) {
-      console.error('Login error:', error);
       throw error;
     }
   };
