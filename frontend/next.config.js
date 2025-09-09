@@ -1,22 +1,15 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
-  // Enable output standalone for Docker
-  output: 'standalone',
-
-  // Configure image domains if needed
+  // Enable static export for Netlify
+  output: 'export',
+  trailingSlash: true,
   images: {
-    domains: ['localhost'],
+    unoptimized: true,
   },
 
-  // API rewrites to proxy to Go backend
-  async rewrites() {
-    return [
-      {
-        source: '/api/:path*',
-        destination: 'http://localhost:8080/api/:path*',
-      },
-    ]
-  },
+
+
+
 
   // Configure WebSocket if needed
   webpack: (config, { isServer }) => {
