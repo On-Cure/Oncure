@@ -1,10 +1,8 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
-  // Enable static export for Netlify
-  output: 'export',
-  trailingSlash: true,
+  // Remove static export for dynamic content
   images: {
-    unoptimized: true,
+    domains: ['localhost'],
   },
 
 
