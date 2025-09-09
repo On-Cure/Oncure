@@ -27,9 +27,13 @@ func InitDB() (*sql.DB, error) {
 		dbPath = "soshi.db"
 	}
 
+	// Log database path for debugging
+	log.Printf("Database path: %s", dbPath)
+
 	// Ensure directory exists
 	dir := filepath.Dir(dbPath)
 	if dir != "." && dir != "" {
+		log.Printf("Creating directory: %s", dir)
 		if err := os.MkdirAll(dir, 0o755); err != nil {
 			return nil, fmt.Errorf("failed to create directory for database: %w", err)
 		}
