@@ -22,60 +22,7 @@ async function validateSession(sessionToken) {
 }
 
 export async function middleware(request) {
-  const { pathname } = request.nextUrl
-
-  // Get the session cookie
-  const sessionCookie = request.cookies.get("session_token")
-
-  // Auth pages that should redirect to feed if already logged in
-  const authPages = ["/login", "/register"]
-
-  // Protected pages that require authentication
-  const protectedPages = ["/feed", "/profile", "/groups", "/notifications", "/chat", "/posts"]
-
-  // Public pages that don't need authentication
-  const publicPages = ["/about", "/contact", "/terms", "/privacy"]
-
-  // Skip validation for public pages and static assets
-  if (publicPages.some((page) => pathname.startsWith(page)) ||
-    pathname.startsWith("/_next") ||
-    pathname.startsWith("/api") ||
-    pathname.includes(".")) {
-    return NextResponse.next()
-  }
-
-  // Validate session with backend if cookie exists
-  let isAuthenticated = false
-  if (sessionCookie) {
-    isAuthenticated = await validateSession(sessionCookie.value)
-
-    // If session is invalid, clear the cookie
-    if (!isAuthenticated) {
-      const response = NextResponse.redirect(new URL("/login", request.url))
-      response.cookies.delete("session_token")
-      return response
-    }
-  }
-
-  // Handle root path
-  if (pathname === "/") {
-    if (isAuthenticated) {
-      return NextResponse.redirect(new URL("/feed", request.url))
-    } else {
-      return NextResponse.redirect(new URL("/login", request.url))
-    }
-  }
-
-  // Redirect authenticated users away from auth pages
-  if (authPages.some((page) => pathname.startsWith(page)) && isAuthenticated) {
-    return NextResponse.redirect(new URL("/feed", request.url))
-  }
-
-  // Redirect unauthenticated users to login for protected pages
-  if (protectedPages.some((page) => pathname.startsWith(page)) && !isAuthenticated) {
-    return NextResponse.redirect(new URL("/login", request.url))
-  }
-
+  // Temporarily disable middleware for testing
   return NextResponse.next()
 }
 
