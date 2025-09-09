@@ -1,0 +1,365 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Outfit:wght@300;400;500;600;700&family=Fira+Code:wght@400;500&display=swap');
+
+@import "tailwindcss";
+@import "tw-animate-css";
+
+/* Animated Background Gradient */
+@keyframes gradientAnimation {
+  0% {
+    background-position: 0% 50%;
+  }
+  50% {
+    background-position: 100% 50%;
+  }
+  100% {
+    background-position: 0% 50%;
+  }
+}
+
+@layer base {
+  :root {
+    /* Light theme (Compassionate Bloom) - Default */
+    --color-primary: 199 125 255; /* #C77DFF */
+    --color-primary-hover: 179 102 255; /* #B366FF */
+    --color-primary-focus: 159 79 255; /* #9F4FFF */
+    --color-primary-light: 209 148 255; /* #D194FF */
+
+    --color-secondary: 255 180 162; /* #FFB4A2 */
+    --color-secondary-hover: 255 157 133; /* #FF9D85 */
+    --color-secondary-focus: 255 134 104; /* #FF8668 */
+    --color-secondary-light: 255 203 185; /* #FFCBB9 */
+
+    --color-tertiary: 229 152 155; /* #E5989B */
+    --color-tertiary-hover: 224 129 138; /* #E0818A */
+    --color-tertiary-focus: 219 106 121; /* #DB6A79 */
+    --color-tertiary-light: 234 175 172; /* #EAAFAC */
+
+    /* Light theme backgrounds */
+    --color-background: 255 249 249; /* #FFF9F9 */
+    --color-background-lighter: 255 255 255; /* #FFFFFF */
+    --color-background-light: 255 245 245; /* #FFF5F5 */
+
+    --color-surface: 255 255 255; /* #FFFFFF */
+    --color-border: 240 230 230; /* #F0E6E6 */
+
+    /* Light theme text */
+    --color-text-primary: 51 51 51; /* #333333 */
+    --color-text-secondary: 107 107 107; /* #6B6B6B */
+    --color-text-disabled: 156 163 175; /* #9CA3AF */
+  }
+
+  .dark {
+    /* Dark theme colors (original theme) */
+    --color-primary: 58 134 255; /* #3A86FF */
+    --color-primary-hover: 45 111 217; /* #2D6FD9 */
+    --color-primary-focus: 26 93 192; /* #1A5DC0 */
+    --color-primary-light: 106 165 255; /* #6AA5FF */
+
+    --color-secondary: 131 56 236; /* #8338EC */
+    --color-secondary-hover: 108 45 198; /* #6C2DC6 */
+    --color-secondary-focus: 86 34 160; /* #5622A0 */
+    --color-secondary-light: 166 111 244; /* #A66FF4 */
+
+    --color-tertiary: 255 0 110; /* #FF006E */
+    --color-tertiary-hover: 209 57 99; /* #D13963 */
+    --color-tertiary-focus: 176 32 74; /* #B0204A */
+    --color-tertiary-light: 255 77 148; /* #FF4D94 */
+
+    /* Dark theme backgrounds */
+    --color-background: 15 22 36; /* #0F1624 */
+    --color-background-lighter: 26 35 51; /* #1A2333 */
+    --color-background-light: 42 51 67; /* #2A3343 */
+
+    --color-surface: 26 35 51; /* #1A2333 */
+    --color-border: 42 51 67; /* #2A3343 */
+
+    /* Dark theme text */
+    --color-text-primary: 255 255 255; /* #FFFFFF */
+    --color-text-secondary: 184 193 207; /* #B8C1CF */
+    --color-text-disabled: 108 122 137; /* #6C7A89 */
+
+    /* Status colors */
+    --color-success: 6 214 160; /* #06D6A0 */
+    --color-success-light: 77 232 190; /* #4DE8BE */
+    --color-success-dark: 5 179 134; /* #05B386 */
+
+    --color-warning: 255 209 102; /* #FFD166 */
+    --color-warning-light: 255 223 140; /* #FFDF8C */
+    --color-warning-dark: 230 188 92; /* #E6BC5C */
+
+    --color-error: 239 71 111; /* #EF476F */
+    --color-error-light: 244 122 151; /* #F47A97 */
+    --color-error-dark: 214 61 98; /* #D63D62 */
+
+    --color-info: 17 138 178; /* #118AB2 */
+    --color-info-light: 77 172 208; /* #4DACD0 */
+    --color-info-dark: 14 119 153; /* #0E7799 */
+
+    /* Radius values */
+    --radius-xs: 0.125rem; /* 2px */
+    --radius-sm: 0.25rem; /* 4px */
+    --radius-md: 0.5rem; /* 8px */
+    --radius-lg: 1rem; /* 16px */
+    --radius-xl: 1.5rem; /* 24px */
+  }
+}
+
+@layer base {
+  * {
+    border-color: rgb(var(--color-border));
+  }
+
+  html {
+    scroll-behavior: smooth;
+  }
+
+  body {
+    background-color: rgb(var(--color-background));
+    color: rgb(var(--color-text-primary));
+    font-family: 'Inter', sans-serif;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+  }
+
+  h1, h2, h3, h4, h5, h6 {
+    font-family: 'Outfit', sans-serif;
+    font-weight: 600;
+  }
+
+  h1 {
+    font-size: 2.25rem;
+  }
+
+  @media (min-width: 768px) {
+    h1 {
+      font-size: 3rem;
+    }
+  }
+
+  h2 {
+    font-size: 1.875rem;
+  }
+
+  @media (min-width: 768px) {
+    h2 {
+      font-size: 2.25rem;
+    }
+  }
+
+  h3 {
+    font-size: 1.5rem;
+  }
+
+  @media (min-width: 768px) {
+    h3 {
+      font-size: 1.875rem;
+    }
+  }
+
+  h4 {
+    font-size: 1.25rem;
+  }
+
+  @media (min-width: 768px) {
+    h4 {
+      font-size: 1.5rem;
+    }
+  }
+
+  h5 {
+    font-size: 1.125rem;
+  }
+
+  @media (min-width: 768px) {
+    h5 {
+      font-size: 1.25rem;
+    }
+  }
+
+  h6 {
+    font-size: 1rem;
+  }
+
+  @media (min-width: 768px) {
+    h6 {
+      font-size: 1.125rem;
+    }
+  }
+
+  a {
+    color: rgb(var(--color-primary));
+    transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+  }
+
+  a:hover {
+    color: rgb(var(--color-primary-hover));
+    transform: translateY(-1px);
+  }
+
+  a:focus {
+    color: rgb(var(--color-primary-focus));
+    outline: 2px solid rgb(var(--color-primary));
+    outline-offset: 2px;
+  }
+
+  button {
+    transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+  }
+
+  button:hover:not(:disabled) {
+    transform: translateY(-1px);
+  }
+
+  button:active:not(:disabled) {
+    transform: translateY(0);
+  }
+
+  button:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+  }
+
+  code {
+    font-family: 'Fira Code', monospace;
+    font-size: 0.875rem;
+    background-color: rgb(var(--color-surface));
+    padding: 0.125rem 0.25rem;
+    border-radius: 0.5rem;
+  }
+}
+
+/* Custom utility classes */
+@layer utilities {
+  .glassmorphism {
+    background-color: rgba(var(--color-surface), 0.7);
+    backdrop-filter: blur(10px);
+    border: 1px solid rgba(var(--color-border), 0.3);
+  }
+
+  .text-gradient {
+    background-clip: text;
+    -webkit-background-clip: text;
+    color: transparent;
+    background-image: linear-gradient(135deg, rgb(var(--color-primary)) 0%, rgb(var(--color-secondary)) 100%);
+  }
+
+  .animate-hover {
+    transition: all 0.25s;
+    transform: scale(1);
+  }
+
+  .animate-hover:hover {
+    transform: scale(1.02);
+    box-shadow: 0 0 15px rgba(58, 134, 255, 0.5);
+  }
+
+  .hover\:scale-102:hover {
+    transform: scale(1.02);
+  }
+
+  .hover\:scale-105:hover {
+    transform: scale(1.05);
+  }
+
+  .transition-normal {
+    transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+  }
+
+  .bg-primary-gradient {
+    background-image: linear-gradient(135deg, rgb(var(--color-primary)) 0%, rgb(var(--color-secondary)) 100%);
+  }
+
+  .bg-accent-gradient {
+    background-image: linear-gradient(135deg, rgb(var(--color-tertiary)) 0%, rgb(var(--color-secondary)) 100%);
+  }
+
+  .bg-dark-gradient {
+    background-image: linear-gradient(135deg, rgb(var(--color-background)) 0%, rgb(var(--color-surface)) 100%);
+  }
+
+  /* Text overflow and word wrapping utilities */
+  .overflow-wrap-anywhere {
+    overflow-wrap: anywhere;
+  }
+
+  .word-wrap {
+    word-wrap: break-word;
+  }
+
+  .break-word {
+    word-break: break-word;
+    overflow-wrap: break-word;
+    hyphens: auto;
+  }
+
+  .break-all {
+    word-break: break-all;
+  }
+
+  .text-overflow-safe {
+    word-break: break-word;
+    overflow-wrap: anywhere;
+    hyphens: auto;
+    max-width: 100%;
+  }
+}
+
+/* Custom Scrollbar Styles */
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: rgb(var(--color-background));
+  border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb {
+  background: rgb(var(--color-border));
+  border-radius: 4px;
+  transition: background 0.2s ease;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: rgb(var(--color-primary));
+}
+
+/* Firefox scrollbar */
+* {
+  scrollbar-width: thin;
+  scrollbar-color: rgb(var(--color-border)) rgb(var(--color-background));
+}
+
+/* Hide scrollbar in specific elements but keep functionality */
+.hide-scrollbar::-webkit-scrollbar {
+  display: none;
+}
+
+.hide-scrollbar {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+
+/* Chat specific scrolling styles */
+.messages-scroll-container {
+  scrollbar-width: thin;
+  scrollbar-color: rgb(var(--color-border)) transparent;
+}
+
+.messages-scroll-container::-webkit-scrollbar {
+  width: 6px;
+}
+
+.messages-scroll-container::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.messages-scroll-container::-webkit-scrollbar-thumb {
+  background-color: rgb(var(--color-border));
+  border-radius: 3px;
+}
+
+.messages-scroll-container::-webkit-scrollbar-thumb:hover {
+  background-color: rgb(var(--color-primary));
+}

@@ -1,0 +1,22 @@
+services:
+  - type: web
+    name: oncure-backend
+    runtime: go
+    buildCommand: go build -o main .
+    startCommand: ./main
+    rootDir: backend
+    envVars:
+      - key: PORT
+        value: 8080
+      - key: DB_PATH
+        value: ./data/soshi.db
+      - key: MIGRATIONS_PATH
+        value: file://pkg/db/migrations/sqlite
+      - key: UPLOAD_PATH
+        value: ./uploads
+      - key: CGO_ENABLED
+        value: 1
+    disk:
+      name: oncure-data
+      mountPath: /opt/render/project/src/backend/data
+      sizeGB: 1
