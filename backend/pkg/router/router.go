@@ -55,7 +55,19 @@ func (r *Router) AddRoute(method, pattern string, handler http.HandlerFunc) {
 // ServeHTTP implements http.Handler
 func (r *Router) ServeHTTP(w http.ResponseWriter, req *http.Request) {
 	// Add CORS headers
-	w.Header().Set("Access-Control-Allow-Origin", "http://localhost:3000")
+	allowedOrigins := []string{
+		"http://localhost:3000",
+		"https://oncare19.netlify.app",
+	}
+	origin := req.Header.Get("Origin")
+	allowedOrigin := "http://localhost:3000" // default
+	for _, allowed := range allowedOrigins {
+		if origin == allowed {
+			allowedOrigin = origin
+			break
+		}
+	}
+	w.Header().Set("Access-Control-Allow-Origin", allowedOrigin)
 	w.Header().Set("Access-Control-Allow-Methods", "GET, POST, PUT, DELETE, OPTIONS")
 	w.Header().Set("Access-Control-Allow-Headers", "Accept, Authorization, Content-Type, X-CSRF-Token, Cookie")
 	w.Header().Set("Access-Control-Expose-Headers", "Link, Set-Cookie")
