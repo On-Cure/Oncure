@@ -1,5 +1,6 @@
 // API client for communicating with the Go backend
 const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8080"
+console.log('API_URL being used:', API_URL)
 
 // Helper function for making API requests
 async function fetchAPI(endpoint, options = {}) {
