@@ -91,7 +91,7 @@ export default function ProfileComponent({ userId = null, isOwnProfile = false }
         <div className="rounded-lg p-8 shadow-xl text-center max-w-md" style={{backgroundColor: 'rgb(var(--color-surface))', border: '1px solid rgb(var(--color-tertiary))'}}>
           <Shield size={48} className="mx-auto mb-4" style={{color: 'rgb(var(--color-tertiary))'}} />
           <h2 className="text-xl font-bold mb-2 font-outfit" style={{color: 'rgb(var(--color-text-primary))'}}>Profile Error</h2>
-          <p className="mb-4 font-inter" style={{color: 'rgb(var(--color-text-secondary))'}}>>{error}</p>
+          <p className="mb-4 font-inter" style={{color: 'rgb(var(--color-text-secondary))'}}>{error}</p>
           <button
             onClick={fetchUserProfile}
             className="px-6 py-3 rounded-lg transition-all duration-250 hover:scale-105 font-medium"
@@ -146,7 +146,7 @@ export default function ProfileComponent({ userId = null, isOwnProfile = false }
         {/* Error display */}
         {error && !loading && (
           <div className="mt-6 rounded-lg p-4" style={{backgroundColor: 'rgb(var(--color-surface))', border: '1px solid rgb(var(--color-tertiary))'}}>
-            <p className="font-inter" style={{color: 'rgb(var(--color-tertiary))'}}>>{error}</p>
+            <p className="font-inter" style={{color: 'rgb(var(--color-tertiary))'}}>{error}</p>
           </div>
         )}
       </div>
