@@ -56,9 +56,8 @@ export default function PostCard({ post, onDelete, onUpdate }) {
           const commentsList = data.comments || data;
           // Count only top-level comments (replies have parent_id)
           const count = commentsList.filter(comment => !comment.parent_id).length;
-            console.log('Counted comments from API:', count, 'for post:', post.id);
-            setCommentCount(count);
-          }
+          console.log('Counted comments from API:', count, 'for post:', post.id);
+          setCommentCount(count);
         } catch (error) {
           console.error('Error fetching comments for count:', error);
         }
