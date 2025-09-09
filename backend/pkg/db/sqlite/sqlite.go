@@ -26,9 +26,14 @@ func InitDB() (*sql.DB, error) {
 	if dbPath == "" {
 		dbPath = "soshi.db"
 	}
+	// Force persistent path for production
+	if os.Getenv("PORT") == "8080" && dbPath == "soshi.db" {
+		dbPath = "/data/soshi.db"
+	}
 
 	// Log database path for debugging
 	log.Printf("Database path: %s", dbPath)
+	log.Printf("DB_PATH environment variable: %s", os.Getenv("DB_PATH"))
 
 	// Ensure directory exists
 	dir := filepath.Dir(dbPath)
