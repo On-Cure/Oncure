@@ -2,7 +2,7 @@
 
 import { useState, useCallback } from "react";
 import { useAuth } from "../../hooks/useAuth";
-import { upload } from "../../lib/api";
+import { upload, posts } from "../../lib/api";
 import SelectFollowersModal from "./SelectFollowersModal";
 
 export default function CreatePostComponent({ onPostCreated }) {
@@ -76,25 +76,14 @@ export default function CreatePostComponent({ onPostCreated }) {
         }
       }
 
-      // Create post
-      const postRes = await fetch("/api/posts", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        credentials: 'include',
-        body: JSON.stringify({
-          userId: user.id,
-          content,
-          privacy,
-          image_url: imageUrl,
-          selected_users: privacy === 'private' ? selectedUsers : []
-        }),
+      // Create post using API client
+      const newPost = await posts.createPost({
+        userId: user.id,
+        content,
+        privacy,
+        image_url: imageUrl,
+        selected_users: privacy === 'private' ? selectedUsers : []
       });
-
-      if (!postRes.ok) throw new Error("Failed to create post");
-      
-      const newPost = await postRes.json();
 
       // Reset form
       setContent("");

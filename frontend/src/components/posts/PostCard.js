@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useRef } from "react";
 import { useAuth } from "../../hooks/useAuth";
-import { upload } from "../../lib/api";
+import { upload, posts, comments } from "../../lib/api";
 import { getImageUrl } from "../../utils/image";
 import { Edit, Trash2, ThumbsUp, ThumbsDown, MessageSquare, Bookmark, BookmarkCheck, Loader2, ImagePlus, X } from "lucide-react";
 import CommentSection from "../comments/CommentSection";
@@ -52,11 +52,10 @@ export default function PostCard({ post, onDelete, onUpdate }) {
       // If not in post data, fetch the comments and count them
       const fetchAndCountComments = async () => {
         try {
-          const response = await fetch(`/api/posts/${post.id}/comments?limit=100`);
-          if (response.ok) {
-            const comments = await response.json();
-            // Count only top-level comments (replies have parent_id)
-            const count = comments.filter(comment => !comment.parent_id).length;
+          const data = await comments.getPostComments(post.id, 1, 100);
+          const commentsList = data.comments || data;
+          // Count only top-level comments (replies have parent_id)
+          const count = commentsList.filter(comment => !comment.parent_id).length;
             console.log('Counted comments from API:', count, 'for post:', post.id);
             setCommentCount(count);
           }
@@ -150,23 +149,14 @@ export default function PostCard({ post, onDelete, onUpdate }) {
         imageUrl = result.url;
       }
 
-      // Update post
-      const res = await fetch(`/api/posts`, {
-        method: "PUT",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        credentials: 'include',
-        body: JSON.stringify({
-          id: post.id,
-          content: editedContent,
-          privacy: editedPrivacy,
-          selected_users: selectedUsers,
-          image_url: imageUrl
-        }),
+      // Update post using API client
+      await posts.updatePost({
+        id: post.id,
+        content: editedContent,
+        privacy: editedPrivacy,
+        selected_users: selectedUsers,
+        image_url: imageUrl
       });
-
-      if (!res.ok) throw new Error("Failed to update post");
 
       // Create updated post object with the new values
       const updatedPost = {
@@ -197,18 +187,7 @@ export default function PostCard({ post, onDelete, onUpdate }) {
 
     try {
       setIsDeleting(true);
-      const res = await fetch('/api/posts', {
-        method: 'DELETE',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        credentials: 'include',
-        body: JSON.stringify({
-          id: post.id
-        })
-      });
-
-      if (!res.ok) throw new Error("Failed to delete post");
+      await posts.deletePost(post.id);
 
       onDelete(post.id);
     } catch (error) {

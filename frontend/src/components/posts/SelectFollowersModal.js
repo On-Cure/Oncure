@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import { X, Search, Check } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { getImageUrl } from "../../utils/image";
+import { users } from "../../lib/api";
 
 const backdropVariants = {
   hidden: { opacity: 0 },
@@ -56,9 +57,7 @@ export default function SelectFollowersModal({
   const fetchFollowers = async () => {
     try {
       setIsLoading(true);
-      const response = await fetch('/api/users/followers');
-      if (!response.ok) throw new Error('Failed to fetch followers');
-      const data = await response.json();
+      const data = await users.getFollowers();
       setFollowers(data);
     } catch (error) {
       console.error('Error fetching followers:', error);
