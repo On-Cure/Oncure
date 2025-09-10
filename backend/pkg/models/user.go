@@ -111,16 +111,16 @@ func CreateUser(database *sql.DB, user User) (int, error) {
 }
 
 // GetUserByEmail retrieves a user by email
-func GetUserByEmail(db *sql.DB, email string) (*User, error) {
+func GetUserByEmail(database *sql.DB, email string) (*User, error) {
 	user := &User{}
-	err := db.QueryRow(
-		`SELECT u.id, u.email, u.password, u.first_name, u.last_name, u.date_of_birth, 
+	err := database.QueryRow(
+		db.ConvertSQL(`SELECT u.id, u.email, u.password, u.first_name, u.last_name, u.date_of_birth, 
 		u.avatar, u.nickname, u.about_me, COALESCE(u.role, 'user') as role, 
 		COALESCE(u.verification_status, 'unverified') as verification_status, u.verified_at,
 		u.created_at, u.updated_at, COALESCE(p.is_public, 1) as is_public
 		FROM users u
 		LEFT JOIN user_profiles p ON u.id = p.user_id
-		WHERE u.email = ?`,
+		WHERE u.email = ?`),
 		email,
 	).Scan(
 		&user.ID, &user.Email, &user.Password, &user.FirstName, &user.LastName, &user.DateOfBirth,
@@ -163,8 +163,8 @@ func GetUserById(db *sql.DB, id int) (*User, error) {
 }
 
 // AuthenticateUser authenticates a user with email and password
-func AuthenticateUser(db *sql.DB, email, password string) (*User, error) {
-	user, err := GetUserByEmail(db, email)
+func AuthenticateUser(database *sql.DB, email, password string) (*User, error) {
+	user, err := GetUserByEmail(database, email)
 	if err != nil {
 		return nil, err
 	}
