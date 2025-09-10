@@ -3,8 +3,10 @@ package models
 import (
 	"database/sql"
 	"errors"
+	"os"
 	"time"
 
+	"github.com/On-cure/Oncure/pkg/db"
 	"golang.org/x/crypto/bcrypt"
 )
 
@@ -40,10 +42,12 @@ type VerificationRequest struct {
 }
 
 // CreateUser creates a new user in the database
-func CreateUser(db *sql.DB, user User) (int, error) {
+func CreateUser(database *sql.DB, user User) (int, error) {
+	dbWrapper := db.NewDB(database)
+	
 	// Check if user with email already exists
 	var exists bool
-	err := db.QueryRow("SELECT EXISTS(SELECT 1 FROM users WHERE email = ?)", user.Email).Scan(&exists)
+	err := dbWrapper.QueryRow("SELECT EXISTS(SELECT 1 FROM users WHERE email = ?)", user.Email).Scan(&exists)
 	if err != nil {
 		return 0, err
 	}
@@ -58,32 +62,41 @@ func CreateUser(db *sql.DB, user User) (int, error) {
 	}
 
 	// Begin transaction
-	tx, err := db.Begin()
+	tx, err := database.Begin()
 	if err != nil {
 		return 0, err
 	}
 	defer tx.Rollback()
 
 	// Insert user
-	result, err := tx.Exec(
-		`INSERT INTO users (email, password, first_name, last_name, date_of_birth, avatar, nickname, about_me, role)
-		VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)`,
-		user.Email, string(hashedPassword), user.FirstName, user.LastName, user.DateOfBirth, user.Avatar, user.Nickname, user.AboutMe, user.Role,
-	)
-	if err != nil {
-		return 0, err
+	var userID int
+	if os.Getenv("DATABASE_URL") != "" {
+		// PostgreSQL with RETURNING
+		err = tx.QueryRow(
+			`INSERT INTO users (email, password, first_name, last_name, date_of_birth, avatar, nickname, about_me, role)
+			VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9) RETURNING id`,
+			user.Email, string(hashedPassword), user.FirstName, user.LastName, user.DateOfBirth, user.Avatar, user.Nickname, user.AboutMe, user.Role,
+		).Scan(&userID)
+	} else {
+		// SQLite with LastInsertId
+		result, err := tx.Exec(
+			`INSERT INTO users (email, password, first_name, last_name, date_of_birth, avatar, nickname, about_me, role)
+			VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+			user.Email, string(hashedPassword), user.FirstName, user.LastName, user.DateOfBirth, user.Avatar, user.Nickname, user.AboutMe, user.Role,
+		)
+		if err == nil {
+			id, _ := result.LastInsertId()
+			userID = int(id)
+		}
 	}
-
-	// Get user ID
-	userId, err := result.LastInsertId()
 	if err != nil {
 		return 0, err
 	}
 
 	// Create user profile (default to public)
 	_, err = tx.Exec(
-		`INSERT INTO user_profiles (user_id, is_public) VALUES (?, ?)`,
-		userId, true,
+		db.ConvertSQL(`INSERT INTO user_profiles (user_id, is_public) VALUES (?, ?)`),
+		userID, true,
 	)
 	if err != nil {
 		return 0, err
@@ -94,7 +107,7 @@ func CreateUser(db *sql.DB, user User) (int, error) {
 		return 0, err
 	}
 
-	return int(userId), nil
+	return userID, nil
 }
 
 // GetUserByEmail retrieves a user by email

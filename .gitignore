@@ -88,3 +88,5 @@ jspm_packages/
 # vendor/
 
 .amazonq
+
+*/soshi.db

@@ -5,9 +5,10 @@ import { useAuth } from "../../hooks/useAuth";
 import { posts as postsAPI, users as usersAPI, activity as activityAPI } from "../../lib/api";
 import CreatePostComponent from "../../components/posts/CreatePostComponent";
 import PostCard from "../../components/posts/PostCard";
+import AuthGuard from "../../components/auth/AuthGuard";
 import { Home, TrendingUp, Users, MessageCircle, Loader2 } from 'lucide-react';
 
-export default function FeedPage() {
+function FeedContent() {
   const [posts, setPosts] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
   const [page, setPage] = useState(1);
@@ -220,5 +221,13 @@ export default function FeedPage() {
         )}
       </div>
     </div>
+  );
+}
+
+export default function FeedPage() {
+  return (
+    <AuthGuard>
+      <FeedContent />
+    </AuthGuard>
   );
 }
