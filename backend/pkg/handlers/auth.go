@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"log"
 	"net/http"
+	"os"
 	"time"
 
 	"github.com/On-cure/Oncure/pkg/models"
@@ -112,7 +113,7 @@ func (h *AuthHandler) Login(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	// Set session cookie with debug logging
+	// Set session cookie with proper cross-origin settings
 	cookie := &http.Cookie{
 		Name:     "session_token",
 		Value:    sessionToken,
@@ -120,7 +121,7 @@ func (h *AuthHandler) Login(w http.ResponseWriter, r *http.Request) {
 		Expires:  time.Now().Add(7 * 24 * time.Hour),
 		HttpOnly: true,
 		SameSite: http.SameSiteNoneMode,
-		Secure:   true,
+		Secure:   os.Getenv("DATABASE_URL") != "", // Secure only in production
 	}
 	http.SetCookie(w, cookie)
 	
@@ -159,7 +160,7 @@ func (h *AuthHandler) Logout(w http.ResponseWriter, r *http.Request) {
 		Expires:  time.Now().Add(-time.Hour),
 		HttpOnly: true,
 		SameSite: http.SameSiteNoneMode,
-		Secure:   true,
+		Secure:   os.Getenv("DATABASE_URL") != "",
 	})
 
 	utils.RespondWithJSON(w, http.StatusOK, map[string]string{"message": "Logged out successfully"})
