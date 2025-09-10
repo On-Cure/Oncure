@@ -19,8 +19,9 @@ export default function SavedPostsPage() {
   const fetchSavedPosts = async (page = 1) => {
     try {
       setIsLoading(true);
+      const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8080';
       const response = await fetch(
-        `/api/posts/saved?page=${page}&limit=${pagination.limit}`,
+        `${apiUrl}/api/posts/saved?page=${page}&limit=${pagination.limit}`,
         { credentials: 'include' }
       );
 

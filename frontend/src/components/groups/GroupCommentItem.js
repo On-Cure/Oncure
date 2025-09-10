@@ -60,7 +60,8 @@ export default function GroupCommentItem({ comment, groupId, groupPostId, onUpda
     });
     
     try {
-      const res = await fetch(`/api/groups/comments/${comment.id}/reactions`, {
+      const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8080';
+      const res = await fetch(`${apiUrl}/api/groups/comments/${comment.id}/reactions`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         credentials: 'include',
@@ -86,7 +87,8 @@ export default function GroupCommentItem({ comment, groupId, groupPostId, onUpda
 
   const handleEdit = async (data) => {
     try {
-      const res = await fetch(`/api/groups/comments/${comment.id}`, {
+      const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8080';
+      const res = await fetch(`${apiUrl}/api/groups/comments/${comment.id}`, {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
         credentials: 'include',
@@ -111,7 +113,8 @@ export default function GroupCommentItem({ comment, groupId, groupPostId, onUpda
 
     try {
       setIsDeleting(true);
-      const res = await fetch(`/api/groups/comments/${comment.id}`, {
+      const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8080';
+      const res = await fetch(`${apiUrl}/api/groups/comments/${comment.id}`, {
         method: 'DELETE',
         headers: {
           'Content-Type': 'application/json'
@@ -140,7 +143,8 @@ export default function GroupCommentItem({ comment, groupId, groupPostId, onUpda
   useEffect(() => {
     const loadReactions = async () => {
       try {
-        const res = await fetch(`/api/groups/comments/${comment.id}/reactions`, {
+        const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8080';
+        const res = await fetch(`${apiUrl}/api/groups/comments/${comment.id}/reactions`, {
           credentials: 'include'
         });
         if (res.ok) {

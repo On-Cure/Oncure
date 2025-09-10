@@ -71,8 +71,10 @@ export default function PostCard({ post, onDelete, onUpdate }) {
   // Fetch initial reaction status and saved status
   useEffect(() => {
     if (user?.id) {
+      const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8080';
+      
       // Fetch reactions
-      fetch(`/api/posts/${post.id}/reactions?userId=${user.id}`, {
+      fetch(`${apiUrl}/api/posts/${post.id}/reactions?userId=${user.id}`, {
         credentials: 'include'
       })
         .then(res => {
@@ -83,7 +85,7 @@ export default function PostCard({ post, onDelete, onUpdate }) {
         .catch(error => console.error('Error fetching reactions:', error));
       
       // Check if post is saved
-      fetch(`/api/posts/${post.id}/saved`, {
+      fetch(`${apiUrl}/api/posts/${post.id}/saved`, {
         credentials: 'include'
       })
         .then(res => {
@@ -225,7 +227,8 @@ export default function PostCard({ post, onDelete, onUpdate }) {
     });
     
     try {
-      const res = await fetch(`/api/posts/${post.id}/reactions`, {
+      const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8080';
+      const res = await fetch(`${apiUrl}/api/posts/${post.id}/reactions`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         credentials: 'include',
@@ -257,7 +260,8 @@ export default function PostCard({ post, onDelete, onUpdate }) {
     setIsSaved(!prevSaved);
     
     try {
-      const url = `/api/posts/${post.id}/save`;
+      const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8080';
+      const url = `${apiUrl}/api/posts/${post.id}/save`;
       const method = prevSaved ? 'DELETE' : 'POST';
       
       const res = await fetch(url, {
