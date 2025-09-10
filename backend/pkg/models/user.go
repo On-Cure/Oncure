@@ -137,9 +137,9 @@ func GetUserByEmail(database *sql.DB, email string) (*User, error) {
 }
 
 // GetUserById retrieves a user by ID
-func GetUserById(db *sql.DB, id int) (*User, error) {
+func GetUserById(database *sql.DB, id int) (*User, error) {
 	user := &User{}
-	err := db.QueryRow(
+	err := database.QueryRow(
 		db.ConvertSQL(`SELECT u.id, u.email, u.first_name, u.last_name, u.date_of_birth, 
 		u.avatar, u.nickname, u.about_me, COALESCE(u.role, 'user') as role,
 		COALESCE(u.verification_status, 'unverified') as verification_status, u.verified_at,
@@ -195,7 +195,7 @@ func UpdateUser(db *sql.DB, user *User) error {
 }
 
 // GetSuggestedUsers returns all users in the database (except current user)
-func GetSuggestedUsers(db *sql.DB, userID int) ([]map[string]interface{}, error) {
+func GetSuggestedUsers(database *sql.DB, userID int) ([]map[string]interface{}, error) {
 	query := `
 		SELECT u.id, u.email, u.first_name, u.last_name, u.date_of_birth, 
 		       u.avatar, u.nickname, u.about_me, COALESCE(u.role, 'user') as role,
@@ -208,7 +208,7 @@ func GetSuggestedUsers(db *sql.DB, userID int) ([]map[string]interface{}, error)
 		LIMIT 20
 	`
 
-	rows, err := db.Query(db.ConvertSQL(query), userID)
+	rows, err := database.Query(db.ConvertSQL(query), userID)
 	if err != nil {
 		return nil, err
 	}
@@ -227,11 +227,11 @@ func GetSuggestedUsers(db *sql.DB, userID int) ([]map[string]interface{}, error)
 		}
 
 		// Check follow status in both directions
-		isFollowing, err := IsFollowing(db, userID, user.ID)
+		isFollowing, err := IsFollowing(database, userID, user.ID)
 		if err != nil {
 			isFollowing = "none"
 		}
-		isFollowedBy, err := IsFollowing(db, user.ID, userID)
+		isFollowedBy, err := IsFollowing(database, user.ID, userID)
 		if err != nil {
 			isFollowedBy = "none"
 		}
@@ -260,7 +260,7 @@ func GetSuggestedUsers(db *sql.DB, userID int) ([]map[string]interface{}, error)
 }
 
 // GetUsersByIDs retrieves multiple users by their IDs
-func GetUsersByIDs(db *sql.DB, userIDs []int) ([]User, error) {
+func GetUsersByIDs(database *sql.DB, userIDs []int) ([]User, error) {
 	if len(userIDs) == 0 {
 		return []User{}, nil
 	}
@@ -283,7 +283,7 @@ func GetUsersByIDs(db *sql.DB, userIDs []int) ([]User, error) {
 		ORDER BY u.first_name, u.last_name
 	`
 
-	rows, err := db.Query(db.ConvertSQL(query), args...)
+	rows, err := database.Query(db.ConvertSQL(query), args...)
 	if err != nil {
 		return nil, err
 	}
@@ -322,7 +322,7 @@ func joinPlaceholders(placeholders []string) string {
 }
 
 // GetUserBySessionToken retrieves a user by their session token
-func GetUserBySessionToken(db *sql.DB, sessionToken string) (*User, error) {
+func GetUserBySessionToken(database *sql.DB, sessionToken string) (*User, error) {
 	query := `
 		SELECT u.id, u.email, u.first_name, u.last_name, u.date_of_birth,
 		       u.avatar, u.nickname, u.about_me, u.created_at, u.updated_at,
@@ -334,7 +334,7 @@ func GetUserBySessionToken(db *sql.DB, sessionToken string) (*User, error) {
 	`
 
 	var user User
-	err := db.QueryRow(db.ConvertSQL(query), sessionToken).Scan(
+	err := database.QueryRow(db.ConvertSQL(query), sessionToken).Scan(
 		&user.ID, &user.Email, &user.FirstName, &user.LastName, &user.DateOfBirth,
 		&user.Avatar, &user.Nickname, &user.AboutMe, &user.CreatedAt, &user.UpdatedAt, &user.IsPublic,
 	)
@@ -350,7 +350,7 @@ func GetUserBySessionToken(db *sql.DB, sessionToken string) (*User, error) {
 }
 
 // GetAllUsers returns all users, including private ones, for the sidebar
-func GetAllUsers(db *sql.DB, excludeUserID int) ([]map[string]interface{}, error) {
+func GetAllUsers(database *sql.DB, excludeUserID int) ([]map[string]interface{}, error) {
 	query := `
 		SELECT u.id, u.email, u.first_name, u.last_name, u.date_of_birth, 
 		       u.avatar, u.nickname, u.about_me, COALESCE(u.role, 'user') as role,
@@ -363,7 +363,7 @@ func GetAllUsers(db *sql.DB, excludeUserID int) ([]map[string]interface{}, error
 		LIMIT 100
 	`
 
-	rows, err := db.Query(db.ConvertSQL(query), excludeUserID)
+	rows, err := database.Query(db.ConvertSQL(query), excludeUserID)
 	if err != nil {
 		return nil, err
 	}
