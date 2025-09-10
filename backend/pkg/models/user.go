@@ -117,7 +117,7 @@ func GetUserByEmail(database *sql.DB, email string) (*User, error) {
 		db.ConvertSQL(`SELECT u.id, u.email, u.password, u.first_name, u.last_name, u.date_of_birth, 
 		u.avatar, u.nickname, u.about_me, COALESCE(u.role, 'user') as role, 
 		COALESCE(u.verification_status, 'unverified') as verification_status, u.verified_at,
-		u.created_at, u.updated_at, COALESCE(p.is_public, 1) as is_public
+		u.created_at, u.updated_at, COALESCE(p.is_public, true) as is_public
 		FROM users u
 		LEFT JOIN user_profiles p ON u.id = p.user_id
 		WHERE u.email = ?`),
