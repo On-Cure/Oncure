@@ -5,7 +5,7 @@ import { useAuth } from "../../hooks/useAuth";
 import { posts as postsAPI, users as usersAPI, activity as activityAPI } from "../../lib/api";
 import CreatePostComponent from "../../components/posts/CreatePostComponent";
 import PostCard from "../../components/posts/PostCard";
-import AuthGuard from "../../components/auth/AuthGuard";
+import ClientAuthGuard from "../../components/auth/ClientAuthGuard";
 import { Home, TrendingUp, Users, MessageCircle, Loader2 } from 'lucide-react';
 
 function FeedContent() {
@@ -225,9 +225,5 @@ function FeedContent() {
 }
 
 export default function FeedPage() {
-  return (
-    <AuthGuard>
-      <FeedContent />
-    </AuthGuard>
-  );
+  return <FeedContent />;
 }
