@@ -20,20 +20,14 @@ func CreateSession(database *sql.DB, userId int, token string) error {
 	// Set expiration to 7 days from now
 	expiresAt := time.Now().Add(7 * 24 * time.Hour)
 
-	_, err := database.Exec(
-		db.ConvertSQL(`INSERT INTO sessions (user_id, token, expires_at) VALUES (?, ?, ?)`),
-		userId, token, expiresAt,
-	)
+	_, err := db.Exec(database, `INSERT INTO sessions (user_id, token, expires_at) VALUES (?, ?, ?)`, userId, token, expiresAt)
 	return err
 }
 
 // GetSessionByToken retrieves a session by token
 func GetSessionByToken(database *sql.DB, token string) (*Session, error) {
 	session := &Session{}
-	err := database.QueryRow(
-		db.ConvertSQL(`SELECT id, user_id, token, created_at, expires_at FROM sessions WHERE token = ?`),
-		token,
-	).Scan(&session.ID, &session.UserID, &session.Token, &session.CreatedAt, &session.ExpiresAt)
+	err := db.QueryRow(database, `SELECT id, user_id, token, created_at, expires_at FROM sessions WHERE token = ?`, token).Scan(&session.ID, &session.UserID, &session.Token, &session.CreatedAt, &session.ExpiresAt)
 	if err != nil {
 		if err == sql.ErrNoRows {
 			return nil, nil
@@ -44,7 +38,7 @@ func GetSessionByToken(database *sql.DB, token string) (*Session, error) {
 	// Check if session is expired
 	if session.ExpiresAt.Before(time.Now()) {
 		// Delete expired session
-		_, _ = database.Exec(db.ConvertSQL("DELETE FROM sessions WHERE id = ?"), session.ID)
+		_, _ = db.Exec(database, "DELETE FROM sessions WHERE id = ?", session.ID)
 		return nil, nil
 	}
 
@@ -53,12 +47,12 @@ func GetSessionByToken(database *sql.DB, token string) (*Session, error) {
 
 // DeleteSession deletes a session by ID
 func DeleteSession(database *sql.DB, sessionId int) error {
-	_, err := database.Exec(db.ConvertSQL("DELETE FROM sessions WHERE id = ?"), sessionId)
+	_, err := db.Exec(database, "DELETE FROM sessions WHERE id = ?", sessionId)
 	return err
 }
 
 // DeleteSessionByToken deletes a session by token
 func DeleteSessionByToken(database *sql.DB, token string) error {
-	_, err := database.Exec(db.ConvertSQL("DELETE FROM sessions WHERE token = ?"), token)
+	_, err := db.Exec(database, "DELETE FROM sessions WHERE token = ?", token)
 	return err
 }

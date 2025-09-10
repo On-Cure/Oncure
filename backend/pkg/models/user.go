@@ -94,10 +94,7 @@ func CreateUser(database *sql.DB, user User) (int, error) {
 	}
 
 	// Create user profile (default to public)
-	_, err = tx.Exec(
-		db.ConvertSQL(`INSERT INTO user_profiles (user_id, is_public) VALUES (?, ?)`),
-		userID, true,
-	)
+	_, err = db.TxExec(tx, `INSERT INTO user_profiles (user_id, is_public) VALUES (?, ?)`, userID, true)
 	if err != nil {
 		return 0, err
 	}
@@ -113,16 +110,13 @@ func CreateUser(database *sql.DB, user User) (int, error) {
 // GetUserByEmail retrieves a user by email
 func GetUserByEmail(database *sql.DB, email string) (*User, error) {
 	user := &User{}
-	err := database.QueryRow(
-		db.ConvertSQL(`SELECT u.id, u.email, u.password, u.first_name, u.last_name, u.date_of_birth, 
+	err := db.QueryRow(database, `SELECT u.id, u.email, u.password, u.first_name, u.last_name, u.date_of_birth, 
 		u.avatar, u.nickname, u.about_me, COALESCE(u.role, 'user') as role, 
 		COALESCE(u.verification_status, 'unverified') as verification_status, u.verified_at,
 		u.created_at, u.updated_at, COALESCE(p.is_public, true) as is_public
 		FROM users u
 		LEFT JOIN user_profiles p ON u.id = p.user_id
-		WHERE u.email = ?`),
-		email,
-	).Scan(
+		WHERE u.email = ?`, email).Scan(
 		&user.ID, &user.Email, &user.Password, &user.FirstName, &user.LastName, &user.DateOfBirth,
 		&user.Avatar, &user.Nickname, &user.AboutMe, &user.Role, &user.VerificationStatus, &user.VerifiedAt,
 		&user.CreatedAt, &user.UpdatedAt, &user.IsPublic,
@@ -139,16 +133,13 @@ func GetUserByEmail(database *sql.DB, email string) (*User, error) {
 // GetUserById retrieves a user by ID
 func GetUserById(database *sql.DB, id int) (*User, error) {
 	user := &User{}
-	err := database.QueryRow(
-		db.ConvertSQL(`SELECT u.id, u.email, u.first_name, u.last_name, u.date_of_birth, 
+	err := db.QueryRow(database, `SELECT u.id, u.email, u.first_name, u.last_name, u.date_of_birth, 
 		u.avatar, u.nickname, u.about_me, COALESCE(u.role, 'user') as role,
 		COALESCE(u.verification_status, 'unverified') as verification_status, u.verified_at,
 		u.created_at, u.updated_at, COALESCE(p.is_public, true) as is_public
 		FROM users u
 		LEFT JOIN user_profiles p ON u.id = p.user_id
-		WHERE u.id = ?`),
-		id,
-	).Scan(
+		WHERE u.id = ?`, id).Scan(
 		&user.ID, &user.Email, &user.FirstName, &user.LastName, &user.DateOfBirth,
 		&user.Avatar, &user.Nickname, &user.AboutMe, &user.Role, &user.VerificationStatus, &user.VerifiedAt,
 		&user.CreatedAt, &user.UpdatedAt, &user.IsPublic,
@@ -208,7 +199,7 @@ func GetSuggestedUsers(database *sql.DB, userID int) ([]map[string]interface{}, 
 		LIMIT 20
 	`
 
-	rows, err := database.Query(db.ConvertSQL(query), userID)
+	rows, err := db.Query(database, query, userID)
 	if err != nil {
 		return nil, err
 	}
@@ -283,7 +274,7 @@ func GetUsersByIDs(database *sql.DB, userIDs []int) ([]User, error) {
 		ORDER BY u.first_name, u.last_name
 	`
 
-	rows, err := database.Query(db.ConvertSQL(query), args...)
+	rows, err := db.Query(database, query, args...)
 	if err != nil {
 		return nil, err
 	}
@@ -334,7 +325,7 @@ func GetUserBySessionToken(database *sql.DB, sessionToken string) (*User, error)
 	`
 
 	var user User
-	err := database.QueryRow(db.ConvertSQL(query), sessionToken).Scan(
+	err := db.QueryRow(database, query, sessionToken).Scan(
 		&user.ID, &user.Email, &user.FirstName, &user.LastName, &user.DateOfBirth,
 		&user.Avatar, &user.Nickname, &user.AboutMe, &user.CreatedAt, &user.UpdatedAt, &user.IsPublic,
 	)
@@ -363,7 +354,7 @@ func GetAllUsers(database *sql.DB, excludeUserID int) ([]map[string]interface{},
 		LIMIT 100
 	`
 
-	rows, err := database.Query(db.ConvertSQL(query), excludeUserID)
+	rows, err := db.Query(database, query, excludeUserID)
 	if err != nil {
 		return nil, err
 	}
