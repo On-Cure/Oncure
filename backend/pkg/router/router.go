@@ -58,6 +58,7 @@ func (r *Router) ServeHTTP(w http.ResponseWriter, req *http.Request) {
 	allowedOrigins := []string{
 		"http://localhost:3000",
 		"https://oncare19.netlify.app",
+		"https://oncare-4igf.onrender.com",
 	}
 	origin := req.Header.Get("Origin")
 	allowedOrigin := "http://localhost:3000" // default
