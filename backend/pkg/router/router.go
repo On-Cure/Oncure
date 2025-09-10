@@ -4,7 +4,7 @@ import (
 	"net/http"
 	"regexp"
 
-	"github.com/hezronokwach/soshi/pkg/middleware"
+	"github.com/On-cure/Oncure/pkg/middleware"
 )
 
 // Router struct to handle routing logic

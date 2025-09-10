@@ -7,47 +7,47 @@ import (
 	"os"
 	"time"
 
-	"github.com/hezronokwach/soshi/pkg/db/sqlite"
-	"github.com/hezronokwach/soshi/pkg/handlers"
-	"github.com/hezronokwach/soshi/pkg/middleware"
-	r "github.com/hezronokwach/soshi/pkg/router"
-	"github.com/hezronokwach/soshi/pkg/websocket"
+	db "github.com/On-cure/Oncure/pkg/db"
+	"github.com/On-cure/Oncure/pkg/handlers"
+	"github.com/On-cure/Oncure/pkg/middleware"
+	r "github.com/On-cure/Oncure/pkg/router"
+	"github.com/On-cure/Oncure/pkg/websocket"
 )
 
 func main() {
 	// Initialize database
-	db, err := sqlite.InitDB()
+	dbConn, err := db.InitDB()
 	if err != nil {
 		log.Fatalf("Failed to initialize database: %v", err)
 	}
-	defer db.Close()
+	defer dbConn.Close()
 
 	// Apply migrations
-	if err := sqlite.ApplyMigrations(); err != nil {
+	if err := db.ApplyMigrations(); err != nil {
 		log.Fatalf("Failed to apply migrations: %v", err)
 	}
 
 	// Initialize websocket hub
-	hub := websocket.NewHub(db)
+	hub := websocket.NewHub(dbConn)
 	go hub.Run()
 
 	// Initialize handlers
-	authHandler := handlers.NewAuthHandler(db)
-	postHandler := handlers.NewPostHandler(db)
-	commentHandler := handlers.NewCommentHandler(db)
-	groupHandler := handlers.NewGroupHandler(db)
-	groupCommentHandler := handlers.NewGroupCommentHandler(db)
-	userHandler := handlers.NewUserHandler(db, hub)
-	messageHandler := handlers.NewMessageHandler(db, hub)
-	activityHandler := handlers.NewActivityHandler(db)
+	authHandler := handlers.NewAuthHandler(dbConn)
+	postHandler := handlers.NewPostHandler(dbConn)
+	commentHandler := handlers.NewCommentHandler(dbConn)
+	groupHandler := handlers.NewGroupHandler(dbConn)
+	groupCommentHandler := handlers.NewGroupCommentHandler(dbConn)
+	userHandler := handlers.NewUserHandler(dbConn, hub)
+	messageHandler := handlers.NewMessageHandler(dbConn, hub)
+	activityHandler := handlers.NewActivityHandler(dbConn)
 	uploadHandler := handlers.NewUploadHandler()
-	wsHandler := handlers.NewWebSocketHandler(hub, db)
-	notificationHandler := handlers.NewNotificationHandler(db)
-	verificationHandler := handlers.NewVerificationHandler(db)
+	wsHandler := handlers.NewWebSocketHandler(hub, dbConn)
+	notificationHandler := handlers.NewNotificationHandler(dbConn)
+	verificationHandler := handlers.NewVerificationHandler(dbConn)
 
 	// Create router
 	router := r.NewRouter()
-	authMiddleware := middleware.Auth(db)
+	authMiddleware := middleware.Auth(dbConn)
 
 	// Serve static files for uploads
 	fs := http.FileServer(http.Dir("./uploads"))

@@ -1,22 +1,22 @@
 services:
-  - type: web
-    name: oncure-backend
-    runtime: go
-    buildCommand: go build -o main .
-    startCommand: ./main
-    rootDir: backend
+  - type: pserv
+    name: oncare-backend
+    env: go
+    buildCommand: cd backend && go build -o server server.go
+    startCommand: cd backend && ./server
     envVars:
-      - key: PORT
-        value: "8080"
-      - key: DB_PATH
-        value: "/data/soshi.db"
+      - key: DATABASE_URL
+        fromDatabase:
+          name: oncare-db
+          property: connectionString
       - key: MIGRATIONS_PATH
-        value: "file://pkg/db/migrations/sqlite"
+        value: file://pkg/db/migrations/postgres
+      - key: JWT_SECRET
+        generateValue: true
       - key: UPLOAD_PATH
-        value: "./uploads"
-      - key: CGO_ENABLED
-        value: "1"
-    disk:
-      name: oncure-data
-      mountPath: /data
-      sizeGB: 1
+        value: ./uploads
+
+databases:
+  - name: oncare-db
+    databaseName: oncare
+    user: oncare_user

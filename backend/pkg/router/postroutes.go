@@ -3,7 +3,7 @@ package router
 import (
 	"net/http"
 
-	"github.com/hezronokwach/soshi/pkg/handlers"
+	"github.com/On-cure/Oncure/pkg/handlers"
 )
 
 // SetupPostRoutes configures post-related routes

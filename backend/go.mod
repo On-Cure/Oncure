@@ -1,4 +1,4 @@
-module github.com/hezronokwach/soshi
+module github.com/On-cure/Oncure
 
 go 1.21
 
@@ -6,6 +6,7 @@ require (
 	github.com/golang-migrate/migrate/v4 v4.16.2
 	github.com/google/uuid v1.3.1
 	github.com/gorilla/websocket v1.5.3
+	github.com/lib/pq v1.10.9
 	github.com/mattn/go-sqlite3 v1.14.17
 	golang.org/x/crypto v0.13.0
 )

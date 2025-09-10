@@ -44,7 +44,7 @@ onCare blends **community connection, mentorship, and blockchain-powered rewards
 ### Backend
 
 * **Runtime**: Go 1.21+
-* **Database**: SQLite with migrations
+* **Database**: PostgreSQL (production) / SQLite (development) with migrations
 * **Authentication**: Sessions & cookies
 * **File Storage**: Local filesystem for media uploads
 * **WebSocket**: Gorilla WebSocket
@@ -219,10 +219,25 @@ soshicare/
 
 ### Backend (.env)
 
+#### For Local Development (SQLite)
 ```env
 PORT=8080
 DB_PATH=./data/soshicare.db
 MIGRATIONS_PATH=file://pkg/db/migrations/sqlite
+JWT_SECRET=your-secret-key
+UPLOAD_PATH=./uploads
+
+# Hedera Integration
+HEDERA_ACCOUNT_ID=your-hedera-id
+HEDERA_PRIVATE_KEY=your-private-key
+HEDERA_NETWORK=testnet
+```
+
+#### For Production (PostgreSQL)
+```env
+PORT=8080
+DATABASE_URL=postgres://username:password@host:port/database?sslmode=require
+MIGRATIONS_PATH=file://pkg/db/migrations/postgres
 JWT_SECRET=your-secret-key
 UPLOAD_PATH=./uploads
 
@@ -242,6 +257,31 @@ NEXT_PUBLIC_HEDERA_NETWORK=testnet
 ---
 
 ## 🚢 Deployment
+
+### Render Deployment (Recommended for Production)
+
+1. **Create PostgreSQL Database on Render**
+   - Go to Render Dashboard → New → PostgreSQL
+   - Note the DATABASE_URL provided
+
+2. **Deploy Backend**
+   - Connect your GitHub repository
+   - Set build command: `cd backend && go build -o server server.go`
+   - Set start command: `cd backend && ./server`
+   - Add environment variables:
+     ```
+     DATABASE_URL=<your-render-postgres-url>
+     MIGRATIONS_PATH=file://pkg/db/migrations/postgres
+     JWT_SECRET=<your-secret>
+     ```
+
+3. **Deploy Frontend on Netlify**
+   - Connect repository
+   - Set build command: `cd frontend && npm run build`
+   - Set publish directory: `frontend/.next`
+   - Add environment variable: `NEXT_PUBLIC_API_URL=<your-render-backend-url>`
+
+### Docker Deployment (Alternative)
 
 ```bash
 docker-compose -f docker-compose.prod.yml up --build -d

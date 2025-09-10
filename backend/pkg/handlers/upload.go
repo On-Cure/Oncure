@@ -8,8 +8,8 @@ import (
 	"path/filepath"
 	"strings"
 
-	md "github.com/hezronokwach/soshi/pkg/middleware"
-	"github.com/hezronokwach/soshi/pkg/utils"
+	md "github.com/On-cure/Oncure/pkg/middleware"
+	"github.com/On-cure/Oncure/pkg/utils"
 
 	"github.com/google/uuid"
 )

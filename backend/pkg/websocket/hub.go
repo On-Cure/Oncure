@@ -5,7 +5,7 @@ import (
 	"encoding/json"
 	"log"
 
-	"github.com/hezronokwach/soshi/pkg/models"
+	"github.com/On-cure/Oncure/pkg/models"
 )
 
 // Hub maintains the set of active clients and broadcasts messages to them
