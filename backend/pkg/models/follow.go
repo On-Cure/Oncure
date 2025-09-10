@@ -9,15 +9,15 @@ import (
 func GetFollowers(db *sql.DB, userId int) ([]User, error) {
 	followers := []User{}
 
-	rows, err := db.Query(`
+	rows, err := db.Query(db.ConvertSQL(`
 		SELECT u.id, u.email, u.first_name, u.last_name, u.avatar, u.nickname, u.about_me, 
-		u.created_at, u.updated_at, COALESCE(p.is_public, 1) as is_public
+		u.created_at, u.updated_at, COALESCE(p.is_public, true) as is_public
 		FROM follows f
 		JOIN users u ON f.follower_id = u.id
 		LEFT JOIN user_profiles p ON u.id = p.user_id
 		WHERE f.following_id = ? AND f.status = 'accepted'
 		ORDER BY f.created_at DESC
-	`, userId)
+	`), userId)
 	if err != nil {
 		return nil, err
 	}
@@ -42,15 +42,15 @@ func GetFollowers(db *sql.DB, userId int) ([]User, error) {
 func GetFollowing(db *sql.DB, userId int) ([]User, error) {
 	following := []User{}
 
-	rows, err := db.Query(`
+	rows, err := db.Query(db.ConvertSQL(`
 		SELECT u.id, u.email, u.first_name, u.last_name, u.avatar, u.nickname, u.about_me, 
-		u.created_at, u.updated_at, COALESCE(p.is_public, 1) as is_public
+		u.created_at, u.updated_at, COALESCE(p.is_public, true) as is_public
 		FROM follows f
 		JOIN users u ON f.following_id = u.id
 		LEFT JOIN user_profiles p ON u.id = p.user_id
 		WHERE f.follower_id = ? AND f.status = 'accepted'
 		ORDER BY f.created_at DESC
-	`, userId)
+	`), userId)
 	if err != nil {
 		return nil, err
 	}
@@ -103,7 +103,7 @@ func FollowUser(db *sql.DB, followerId int, followingId int) error {
 	// Check if user to follow has a public profile
 	var isPublic bool
 	err = db.QueryRow(
-		"SELECT COALESCE(is_public, 1) FROM user_profiles WHERE user_id = ?",
+		db.ConvertSQL("SELECT COALESCE(is_public, true) FROM user_profiles WHERE user_id = ?"),
 		followingId,
 	).Scan(&isPublic)
 	if err != nil && err != sql.ErrNoRows {
@@ -234,7 +234,7 @@ func GetFollowersWithCursor(db *sql.DB, userId int, limit int, cursor string) ([
 	followers := []User{}
 	query := `
 		SELECT u.id, u.email, u.first_name, u.last_name, u.avatar, u.nickname, u.about_me, 
-		u.created_at, u.updated_at, COALESCE(p.is_public, 1) as is_public, f.created_at as follow_date
+		u.created_at, u.updated_at, COALESCE(p.is_public, true) as is_public, f.created_at as follow_date
 		FROM follows f
 		JOIN users u ON f.follower_id = u.id
 		LEFT JOIN user_profiles p ON u.id = p.user_id
@@ -286,7 +286,7 @@ func GetFollowingWithCursor(db *sql.DB, userId int, limit int, cursor string) ([
 	following := []User{}
 	query := `
 		SELECT u.id, u.email, u.first_name, u.last_name, u.avatar, u.nickname, u.about_me, 
-		u.created_at, u.updated_at, COALESCE(p.is_public, 1) as is_public, f.created_at as follow_date
+		u.created_at, u.updated_at, COALESCE(p.is_public, true) as is_public, f.created_at as follow_date
 		FROM follows f
 		JOIN users u ON f.following_id = u.id
 		LEFT JOIN user_profiles p ON u.id = p.user_id

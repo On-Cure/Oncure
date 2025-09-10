@@ -140,13 +140,13 @@ func GetUserByEmail(database *sql.DB, email string) (*User, error) {
 func GetUserById(db *sql.DB, id int) (*User, error) {
 	user := &User{}
 	err := db.QueryRow(
-		`SELECT u.id, u.email, u.first_name, u.last_name, u.date_of_birth, 
+		db.ConvertSQL(`SELECT u.id, u.email, u.first_name, u.last_name, u.date_of_birth, 
 		u.avatar, u.nickname, u.about_me, COALESCE(u.role, 'user') as role,
 		COALESCE(u.verification_status, 'unverified') as verification_status, u.verified_at,
-		u.created_at, u.updated_at, COALESCE(p.is_public, 1) as is_public
+		u.created_at, u.updated_at, COALESCE(p.is_public, true) as is_public
 		FROM users u
 		LEFT JOIN user_profiles p ON u.id = p.user_id
-		WHERE u.id = ?`,
+		WHERE u.id = ?`),
 		id,
 	).Scan(
 		&user.ID, &user.Email, &user.FirstName, &user.LastName, &user.DateOfBirth,
@@ -200,7 +200,7 @@ func GetSuggestedUsers(db *sql.DB, userID int) ([]map[string]interface{}, error)
 		SELECT u.id, u.email, u.first_name, u.last_name, u.date_of_birth, 
 		       u.avatar, u.nickname, u.about_me, COALESCE(u.role, 'user') as role,
 		       COALESCE(u.verification_status, 'unverified') as verification_status,
-		       u.created_at, u.updated_at, COALESCE(p.is_public, 1) as is_public
+		       u.created_at, u.updated_at, COALESCE(p.is_public, true) as is_public
 		FROM users u
 		LEFT JOIN user_profiles p ON u.id = p.user_id
 		WHERE u.id != ?
@@ -208,7 +208,7 @@ func GetSuggestedUsers(db *sql.DB, userID int) ([]map[string]interface{}, error)
 		LIMIT 20
 	`
 
-	rows, err := db.Query(query, userID)
+	rows, err := db.Query(db.ConvertSQL(query), userID)
 	if err != nil {
 		return nil, err
 	}
@@ -276,14 +276,14 @@ func GetUsersByIDs(db *sql.DB, userIDs []int) ([]User, error) {
 	query := `
 		SELECT u.id, u.email, u.first_name, u.last_name, u.date_of_birth,
 		       u.avatar, u.nickname, u.about_me, u.created_at, u.updated_at,
-		       COALESCE(p.is_public, 1) as is_public
+		       COALESCE(p.is_public, true) as is_public
 		FROM users u
 		LEFT JOIN user_profiles p ON u.id = p.user_id
 		WHERE u.id IN (` + joinPlaceholders(placeholders) + `)
 		ORDER BY u.first_name, u.last_name
 	`
 
-	rows, err := db.Query(query, args...)
+	rows, err := db.Query(db.ConvertSQL(query), args...)
 	if err != nil {
 		return nil, err
 	}
@@ -326,15 +326,15 @@ func GetUserBySessionToken(db *sql.DB, sessionToken string) (*User, error) {
 	query := `
 		SELECT u.id, u.email, u.first_name, u.last_name, u.date_of_birth,
 		       u.avatar, u.nickname, u.about_me, u.created_at, u.updated_at,
-		       COALESCE(p.is_public, 1) as is_public
+		       COALESCE(p.is_public, true) as is_public
 		FROM users u
 		LEFT JOIN user_profiles p ON u.id = p.user_id
 		INNER JOIN sessions s ON u.id = s.user_id
-		WHERE s.token = ? AND s.expires_at > datetime('now')
+		WHERE s.token = ? AND s.expires_at > CURRENT_TIMESTAMP
 	`
 
 	var user User
-	err := db.QueryRow(query, sessionToken).Scan(
+	err := db.QueryRow(db.ConvertSQL(query), sessionToken).Scan(
 		&user.ID, &user.Email, &user.FirstName, &user.LastName, &user.DateOfBirth,
 		&user.Avatar, &user.Nickname, &user.AboutMe, &user.CreatedAt, &user.UpdatedAt, &user.IsPublic,
 	)
@@ -355,7 +355,7 @@ func GetAllUsers(db *sql.DB, excludeUserID int) ([]map[string]interface{}, error
 		SELECT u.id, u.email, u.first_name, u.last_name, u.date_of_birth, 
 		       u.avatar, u.nickname, u.about_me, COALESCE(u.role, 'user') as role,
 		       COALESCE(u.verification_status, 'unverified') as verification_status,
-		       u.created_at, u.updated_at, COALESCE(p.is_public, 1) as is_public
+		       u.created_at, u.updated_at, COALESCE(p.is_public, true) as is_public
 		FROM users u
 		LEFT JOIN user_profiles p ON u.id = p.user_id
 		WHERE u.id != ?
@@ -363,7 +363,7 @@ func GetAllUsers(db *sql.DB, excludeUserID int) ([]map[string]interface{}, error
 		LIMIT 100
 	`
 
-	rows, err := db.Query(query, excludeUserID)
+	rows, err := db.Query(db.ConvertSQL(query), excludeUserID)
 	if err != nil {
 		return nil, err
 	}

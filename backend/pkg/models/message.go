@@ -267,7 +267,7 @@ func GetUserConversations(db *sql.DB, userId int) ([]ConversationInfo, error) {
 		// If the other user is private and the current user does NOT follow them, mark as request
 		isRequest := false
 		var isOtherUserPublic bool
-		err = db.QueryRow("SELECT COALESCE(is_public, 1) FROM user_profiles WHERE user_id = ?", conversation.User.ID).Scan(&isOtherUserPublic)
+		err = db.QueryRow(db.ConvertSQL("SELECT COALESCE(is_public, true) FROM user_profiles WHERE user_id = ?"), conversation.User.ID).Scan(&isOtherUserPublic)
 		if err == nil && !isOtherUserPublic {
 			// Check if current user follows the other user
 			status, err := IsFollowing(db, userId, conversation.User.ID)
