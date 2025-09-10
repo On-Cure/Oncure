@@ -3,6 +3,7 @@ package handlers
 import (
 	"database/sql"
 	"encoding/json"
+	"log"
 	"net/http"
 	"time"
 
@@ -92,10 +93,12 @@ func (h *AuthHandler) Login(w http.ResponseWriter, r *http.Request) {
 	// Authenticate user
 	user, err := models.AuthenticateUser(h.db, req.Email, req.Password)
 	if err != nil {
+		log.Printf("Authentication error for %s: %v", req.Email, err)
 		utils.RespondWithError(w, http.StatusInternalServerError, "Authentication error")
 		return
 	}
 	if user == nil {
+		log.Printf("Invalid credentials for %s", req.Email)
 		utils.RespondWithError(w, http.StatusUnauthorized, "Invalid email or password")
 		return
 	}
@@ -104,6 +107,7 @@ func (h *AuthHandler) Login(w http.ResponseWriter, r *http.Request) {
 	sessionToken := uuid.New().String()
 	err = models.CreateSession(h.db, user.ID, sessionToken)
 	if err != nil {
+		log.Printf("Failed to create session for user %d: %v", user.ID, err)
 		utils.RespondWithError(w, http.StatusInternalServerError, "Failed to create session")
 		return
 	}
