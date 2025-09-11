@@ -82,7 +82,7 @@ func FollowUser(database *sql.DB, followerId int, followingId int) error {
 
 	// Check if following user exists
 	var exists bool
-	err := database.QueryRow("SELECT EXISTS(SELECT 1 FROM users WHERE id = ?)", followingId).Scan(&exists)
+	err := db.QueryRow(database, "SELECT EXISTS(SELECT 1 FROM users WHERE id = ?)", followingId).Scan(&exists)
 	if err != nil {
 		return err
 	}
@@ -91,7 +91,7 @@ func FollowUser(database *sql.DB, followerId int, followingId int) error {
 	}
 
 	// Check if already following
-	err = database.QueryRow(
+	err = db.QueryRow(database,
 		"SELECT EXISTS(SELECT 1 FROM follows WHERE follower_id = ? AND following_id = ?)",
 		followerId, followingId,
 	).Scan(&exists)
@@ -116,7 +116,7 @@ func FollowUser(database *sql.DB, followerId int, followingId int) error {
 	}
 
 	// Create follow relationship
-	_, err = database.Exec(
+	_, err = db.Exec(database,
 		"INSERT INTO follows (follower_id, following_id, status) VALUES (?, ?, ?)",
 		followerId, followingId, status,
 	)
@@ -127,7 +127,7 @@ func FollowUser(database *sql.DB, followerId int, followingId int) error {
 func UnfollowUser(database *sql.DB, followerId int, followingId int) error {
 	// Check if following exists
 	var exists bool
-	err := database.QueryRow(
+	err := db.QueryRow(database,
 		"SELECT EXISTS(SELECT 1 FROM follows WHERE follower_id = ? AND following_id = ? AND status = 'accepted')",
 		followerId, followingId,
 	).Scan(&exists)
@@ -139,7 +139,7 @@ func UnfollowUser(database *sql.DB, followerId int, followingId int) error {
 	}
 
 	// Delete follow relationship
-	_, err = database.Exec(
+	_, err = db.Exec(database,
 		"DELETE FROM follows WHERE follower_id = ? AND following_id = ?",
 		followerId, followingId,
 	)
@@ -150,7 +150,7 @@ func UnfollowUser(database *sql.DB, followerId int, followingId int) error {
 func RespondToFollowRequest(database *sql.DB, followerId int, followingId int, status string) error {
 	// Check if request exists
 	var exists bool
-	err := database.QueryRow(
+	err := db.QueryRow(database,
 		"SELECT EXISTS(SELECT 1 FROM follows WHERE follower_id = ? AND following_id = ? AND status = 'pending')",
 		followerId, followingId,
 	).Scan(&exists)
@@ -163,7 +163,7 @@ func RespondToFollowRequest(database *sql.DB, followerId int, followingId int, s
 
 	// Update status
 	if status == "accepted" || status == "declined" {
-		_, err = database.Exec(
+		_, err = db.Exec(database,
 			"UPDATE follows SET status = ? WHERE follower_id = ? AND following_id = ?",
 			status, followerId, followingId,
 		)
@@ -178,7 +178,7 @@ func GetFollowCounts(database *sql.DB, userId int) (map[string]int, error) {
 
 	// Get follower count
 	var followerCount int
-	err := database.QueryRow(
+	err := db.QueryRow(database,
 		"SELECT COUNT(*) FROM follows WHERE following_id = ? AND status = 'accepted'",
 		userId,
 	).Scan(&followerCount)
@@ -189,7 +189,7 @@ func GetFollowCounts(database *sql.DB, userId int) (map[string]int, error) {
 
 	// Get following count
 	var followingCount int
-	err = database.QueryRow(
+	err = db.QueryRow(database,
 		"SELECT COUNT(*) FROM follows WHERE follower_id = ? AND status = 'accepted'",
 		userId,
 	).Scan(&followingCount)
@@ -200,7 +200,7 @@ func GetFollowCounts(database *sql.DB, userId int) (map[string]int, error) {
 
 	// Get posts count
 	var postsCount int
-	err = database.QueryRow(
+	err = db.QueryRow(database,
 		"SELECT COUNT(*) FROM posts WHERE user_id = ?",
 		userId,
 	).Scan(&postsCount)
@@ -215,7 +215,7 @@ func GetFollowCounts(database *sql.DB, userId int) (map[string]int, error) {
 // IsFollowing checks if user A is following user B
 func IsFollowing(database *sql.DB, followerId int, followingId int) (string, error) {
 	var status string
-	err := database.QueryRow(
+	err := db.QueryRow(database,
 		"SELECT status FROM follows WHERE follower_id = ? AND following_id = ?",
 		followerId, followingId,
 	).Scan(&status)
@@ -249,7 +249,7 @@ func GetFollowersWithCursor(database *sql.DB, userId int, limit int, cursor stri
 	query += " ORDER BY f.created_at DESC LIMIT ?"
 	args = append(args, limit+1) // Get one extra to check if there are more
 
-	rows, err := database.Query(query, args...)
+	rows, err := db.Query(database, query, args...)
 	if err != nil {
 		return nil, "", err
 	}
@@ -301,7 +301,7 @@ func GetFollowingWithCursor(database *sql.DB, userId int, limit int, cursor stri
 	query += " ORDER BY f.created_at DESC LIMIT ?"
 	args = append(args, limit+1) // Get one extra to check if there are more
 
-	rows, err := database.Query(query, args...)
+	rows, err := db.Query(database, query, args...)
 	if err != nil {
 		return nil, "", err
 	}

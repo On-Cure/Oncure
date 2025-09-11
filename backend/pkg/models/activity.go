@@ -4,6 +4,8 @@ import (
 	"database/sql"
 	"encoding/json"
 	"time"
+
+	"github.com/On-cure/Oncure/pkg/db"
 )
 
 type Activity struct {
@@ -34,13 +36,13 @@ type ActivitySettings struct {
 }
 
 // CreateActivity records a new user activity
-func CreateActivity(db *sql.DB, activity Activity) error {
+func CreateActivity(database *sql.DB, activity Activity) error {
 	metadataJSON, err := json.Marshal(activity.Metadata)
 	if err != nil {
 		return err
 	}
 
-	_, err = db.Exec(`
+	_, err = db.Exec(database, `
 		INSERT INTO user_activities (user_id, activity_type, target_type, target_id, target_user_id, metadata)
 		VALUES (?, ?, ?, ?, ?, ?)
 	`, activity.UserID, activity.ActivityType, activity.TargetType, activity.TargetID, 
@@ -50,7 +52,7 @@ func CreateActivity(db *sql.DB, activity Activity) error {
 }
 
 // GetUserActivities retrieves activities for a user with filtering
-func GetUserActivities(db *sql.DB, userID int, filters map[string]interface{}, page, limit int) ([]Activity, error) {
+func GetUserActivities(database *sql.DB, userID int, filters map[string]interface{}, page, limit int) ([]Activity, error) {
 	offset := (page - 1) * limit
 	activities := []Activity{}
 
@@ -86,7 +88,7 @@ func GetUserActivities(db *sql.DB, userID int, filters map[string]interface{}, p
 	`
 
 	args = append(args, limit, offset)
-	rows, err := db.Query(query, args...)
+	rows, err := db.Query(database, query, args...)
 	if err != nil {
 		return nil, err
 	}
@@ -123,7 +125,7 @@ func GetUserActivities(db *sql.DB, userID int, filters map[string]interface{}, p
 
 	// Populate target details
 	for i := range activities {
-		if err := populateActivityTarget(db, &activities[i]); err != nil {
+		if err := populateActivityTarget(database, &activities[i]); err != nil {
 			// Log error but continue
 			continue
 		}
@@ -133,7 +135,7 @@ func GetUserActivities(db *sql.DB, userID int, filters map[string]interface{}, p
 }
 
 // GetUserPosts retrieves all posts by a user for activity display
-func GetUserPosts(db *sql.DB, userID int, page, limit int) ([]Post, error) {
+func GetUserPosts(database *sql.DB, userID int, page, limit int) ([]Post, error) {
 	offset := (page - 1) * limit
 	posts := []Post{}
 
@@ -149,7 +151,7 @@ func GetUserPosts(db *sql.DB, userID int, page, limit int) ([]Post, error) {
 		LIMIT ? OFFSET ?
 	`
 
-	rows, err := db.Query(query, userID, limit, offset)
+	rows, err := db.Query(database, query, userID, limit, offset)
 	if err != nil {
 		return nil, err
 	}
@@ -176,8 +178,8 @@ func GetUserPosts(db *sql.DB, userID int, page, limit int) ([]Post, error) {
 }
 
 // HideActivity marks an activity as hidden
-func HideActivity(db *sql.DB, activityID int, userID int) error {
-	_, err := db.Exec(`
+func HideActivity(database *sql.DB, activityID int, userID int) error {
+	_, err := db.Exec(database, `
 		UPDATE user_activities 
 		SET is_hidden = 1 
 		WHERE id = ? AND user_id = ?
@@ -186,8 +188,8 @@ func HideActivity(db *sql.DB, activityID int, userID int) error {
 }
 
 // UnhideActivity marks an activity as visible
-func UnhideActivity(db *sql.DB, activityID int, userID int) error {
-	_, err := db.Exec(`
+func UnhideActivity(database *sql.DB, activityID int, userID int) error {
+	_, err := db.Exec(database, `
 		UPDATE user_activities 
 		SET is_hidden = 0 
 		WHERE id = ? AND user_id = ?
@@ -196,7 +198,7 @@ func UnhideActivity(db *sql.DB, activityID int, userID int) error {
 }
 
 // GetActivitySettings retrieves user's activity settings
-func GetActivitySettings(db *sql.DB, userID int) (*ActivitySettings, error) {
+func GetActivitySettings(database *sql.DB, userID int) (*ActivitySettings, error) {
 	settings := &ActivitySettings{
 		UserID:              userID,
 		ShowPosts:          true,
@@ -205,7 +207,7 @@ func GetActivitySettings(db *sql.DB, userID int) (*ActivitySettings, error) {
 		ShowToFollowersOnly: false,
 	}
 
-	err := db.QueryRow(`
+	err := db.QueryRow(database, `
 		SELECT show_posts, show_comments, show_likes, show_to_followers_only, updated_at
 		FROM user_activity_settings
 		WHERE user_id = ?
@@ -214,7 +216,7 @@ func GetActivitySettings(db *sql.DB, userID int) (*ActivitySettings, error) {
 
 	if err == sql.ErrNoRows {
 		// Create default settings
-		return CreateActivitySettings(db, userID)
+		return CreateActivitySettings(database, userID)
 	}
 	if err != nil {
 		return nil, err
@@ -224,8 +226,8 @@ func GetActivitySettings(db *sql.DB, userID int) (*ActivitySettings, error) {
 }
 
 // CreateActivitySettings creates default activity settings for a user
-func CreateActivitySettings(db *sql.DB, userID int) (*ActivitySettings, error) {
-	_, err := db.Exec(`
+func CreateActivitySettings(database *sql.DB, userID int) (*ActivitySettings, error) {
+	_, err := db.Exec(database, `
 		INSERT OR REPLACE INTO user_activity_settings (user_id, show_posts, show_comments, show_likes, show_to_followers_only)
 		VALUES (?, 1, 1, 1, 0)
 	`, userID)
@@ -233,12 +235,12 @@ func CreateActivitySettings(db *sql.DB, userID int) (*ActivitySettings, error) {
 		return nil, err
 	}
 
-	return GetActivitySettings(db, userID)
+	return GetActivitySettings(database, userID)
 }
 
 // UpdateActivitySettings updates user's activity settings
-func UpdateActivitySettings(db *sql.DB, userID int, settings ActivitySettings) error {
-	_, err := db.Exec(`
+func UpdateActivitySettings(database *sql.DB, userID int, settings ActivitySettings) error {
+	_, err := db.Exec(database, `
 		INSERT OR REPLACE INTO user_activity_settings 
 		(user_id, show_posts, show_comments, show_likes, show_to_followers_only, updated_at)
 		VALUES (?, ?, ?, ?, ?, CURRENT_TIMESTAMP)
@@ -247,15 +249,15 @@ func UpdateActivitySettings(db *sql.DB, userID int, settings ActivitySettings) e
 }
 
 // Helper function to populate activity target details
-func populateActivityTarget(db *sql.DB, activity *Activity) error {
+func populateActivityTarget(database *sql.DB, activity *Activity) error {
 	if activity.TargetType == "post" {
-		post, err := GetPostById(db, activity.TargetID, activity.UserID)
+		post, err := GetPostById(database, activity.TargetID, activity.UserID)
 		if err != nil {
 			return err
 		}
 		activity.Post = post
 	} else if activity.TargetType == "comment" {
-		comment, err := GetCommentById(db, activity.TargetID)
+		comment, err := GetCommentById(database, activity.TargetID)
 		if err != nil {
 			return err
 		}
@@ -264,7 +266,7 @@ func populateActivityTarget(db *sql.DB, activity *Activity) error {
 
 	// Get target user if specified
 	if activity.TargetUserID != nil {
-		targetUser, err := GetUserById(db, *activity.TargetUserID)
+		targetUser, err := GetUserById(database, *activity.TargetUserID)
 		if err != nil {
 			return err
 		}
@@ -293,12 +295,12 @@ func joinStrings(strs []string, sep string) string {
 // Activity creation helpers for different types
 
 // CreatePostActivity records when a user creates a post
-func CreatePostActivity(db *sql.DB, userID int, postID int, content string) error {
+func CreatePostActivity(database *sql.DB, userID int, postID int, content string) error {
 	metadata := map[string]interface{}{
 		"content_preview": truncateString(content, 100),
 	}
 	
-	return CreateActivity(db, Activity{
+	return CreateActivity(database, Activity{
 		UserID:       userID,
 		ActivityType: "post_created",
 		TargetType:   "post",
@@ -308,7 +310,7 @@ func CreatePostActivity(db *sql.DB, userID int, postID int, content string) erro
 }
 
 // CreateCommentActivity records when a user creates a comment
-func CreateCommentActivity(db *sql.DB, userID int, commentID int, postID int, content string, targetUserID int) error {
+func CreateCommentActivity(database *sql.DB, userID int, commentID int, postID int, content string, targetUserID int) error {
 	metadata := map[string]interface{}{
 		"content_preview": truncateString(content, 100),
 		"post_id":        postID,
@@ -319,7 +321,7 @@ func CreateCommentActivity(db *sql.DB, userID int, commentID int, postID int, co
 		targetUID = &targetUserID
 	}
 	
-	return CreateActivity(db, Activity{
+	return CreateActivity(database, Activity{
 		UserID:       userID,
 		ActivityType: "comment_created",
 		TargetType:   "comment",
@@ -330,7 +332,7 @@ func CreateCommentActivity(db *sql.DB, userID int, commentID int, postID int, co
 }
 
 // CreateReactionActivity records when a user reacts to content
-func CreateReactionActivity(db *sql.DB, userID int, targetType string, targetID int, reactionType string, targetUserID int) error {
+func CreateReactionActivity(database *sql.DB, userID int, targetType string, targetID int, reactionType string, targetUserID int) error {
 	activityType := targetType + "_" + reactionType
 	
 	var targetUID *int
@@ -338,7 +340,7 @@ func CreateReactionActivity(db *sql.DB, userID int, targetType string, targetID 
 		targetUID = &targetUserID
 	}
 	
-	return CreateActivity(db, Activity{
+	return CreateActivity(database, Activity{
 		UserID:       userID,
 		ActivityType: activityType,
 		TargetType:   targetType,
