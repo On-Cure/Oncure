@@ -1,6 +1,6 @@
 # onCare
 
-A **social support network** for cancer patients, survivors, caregivers, and health coaches&#x20;
+A **social support network** for cancer patients, survivors, caregivers, and health coaches 
 onCare blends **community connection, mentorship, and blockchain-powered rewards** (via Hedera) to create a safe, stigma-free, and motivating environment for healing and resilience.
 
 ---
@@ -19,6 +19,8 @@ onCare blends **community connection, mentorship, and blockchain-powered rewards
 * **Tipping with Hedera Tokens**: Patients/families can send micro-rewards to supporters.
 * **Weekly Rewards**: Automatic distribution of Hedera tokens to top contributors.
 * **NFT Badges**: Recognition for mentors, supporters, and milestone achievers (e.g., “Community Hero”).
+
+> Hedera account setup and API usage: see **documentation/HEDERA_ACCOUNTS.md**
 
 ### 🧑‍🤝‍🧑 Mentorship & Coaching
 
@@ -44,7 +46,7 @@ onCare blends **community connection, mentorship, and blockchain-powered rewards
 ### Backend
 
 * **Runtime**: Go 1.21+
-* **Database**: PostgreSQL (production) / SQLite (development) with migrations
+* **Database**: SQLite with migrations
 * **Authentication**: Sessions & cookies
 * **File Storage**: Local filesystem for media uploads
 * **WebSocket**: Gorilla WebSocket
@@ -126,7 +128,7 @@ soshicare/
 │   │   └── types/              # TypeScript types
 │   ├── public/                 # Static assets
 │   └── package.json
-├── backend/                    
+├── backend                    
 │   ├── pkg/                    
 │   │   ├── db/                 # Database & migrations
 │   │   ├── handlers/           # API handlers
@@ -219,25 +221,10 @@ soshicare/
 
 ### Backend (.env)
 
-#### For Local Development (SQLite)
 ```env
 PORT=8080
 DB_PATH=./data/soshicare.db
 MIGRATIONS_PATH=file://pkg/db/migrations/sqlite
-JWT_SECRET=your-secret-key
-UPLOAD_PATH=./uploads
-
-# Hedera Integration
-HEDERA_ACCOUNT_ID=your-hedera-id
-HEDERA_PRIVATE_KEY=your-private-key
-HEDERA_NETWORK=testnet
-```
-
-#### For Production (PostgreSQL)
-```env
-PORT=8080
-DATABASE_URL=postgres://username:password@host:port/database?sslmode=require
-MIGRATIONS_PATH=file://pkg/db/migrations/postgres
 JWT_SECRET=your-secret-key
 UPLOAD_PATH=./uploads
 
@@ -257,31 +244,6 @@ NEXT_PUBLIC_HEDERA_NETWORK=testnet
 ---
 
 ## 🚢 Deployment
-
-### Render Deployment (Recommended for Production)
-
-1. **Create PostgreSQL Database on Render**
-   - Go to Render Dashboard → New → PostgreSQL
-   - Note the DATABASE_URL provided
-
-2. **Deploy Backend**
-   - Connect your GitHub repository
-   - Set build command: `cd backend && go build -o server server.go`
-   - Set start command: `cd backend && ./server`
-   - Add environment variables:
-     ```
-     DATABASE_URL=<your-render-postgres-url>
-     MIGRATIONS_PATH=file://pkg/db/migrations/postgres
-     JWT_SECRET=<your-secret>
-     ```
-
-3. **Deploy Frontend on Netlify**
-   - Connect repository
-   - Set build command: `cd frontend && npm run build`
-   - Set publish directory: `frontend/.next`
-   - Add environment variable: `NEXT_PUBLIC_API_URL=<your-render-backend-url>`
-
-### Docker Deployment (Alternative)
 
 ```bash
 docker-compose -f docker-compose.prod.yml up --build -d
