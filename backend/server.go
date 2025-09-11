@@ -69,7 +69,7 @@ func main() {
 
 	// Apply global middleware and use our router
 	var handler http.Handler = router
-	handler = middleware.WithCORS(handler.ServeHTTP)
+	handler = middleware.CORSMiddleware(handler)
 	handler = middleware.WithLogging(handler.ServeHTTP)
 	handler = middleware.WithRecover(handler.ServeHTTP)
 	handler = middleware.WithTimeout(handler.ServeHTTP, 60*time.Second)
