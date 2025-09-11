@@ -3,6 +3,8 @@ package models
 import (
 	"database/sql"
 	"time"
+
+	"github.com/On-cure/Oncure/pkg/db"
 )
 
 type Notification struct {
@@ -16,8 +18,8 @@ type Notification struct {
 }
 
 // CreateNotification creates a new notification
-func CreateNotification(db *sql.DB, userId int, notificationType string, message string, relatedId int) (int, error) {
-	result, err := db.Exec(
+func CreateNotification(database *sql.DB, userId int, notificationType string, message string, relatedId int) (int, error) {
+	result, err := db.Exec(database,
 		`INSERT INTO notifications (user_id, type, message, related_id) VALUES (?, ?, ?, ?)`,
 		userId, notificationType, message, relatedId,
 	)
@@ -34,11 +36,11 @@ func CreateNotification(db *sql.DB, userId int, notificationType string, message
 }
 
 // GetUserNotifications retrieves notifications for a user
-func GetUserNotifications(db *sql.DB, userId int, page int, limit int) ([]Notification, error) {
+func GetUserNotifications(database *sql.DB, userId int, page int, limit int) ([]Notification, error) {
 	offset := (page - 1) * limit
 	notifications := []Notification{}
 
-	rows, err := db.Query(`
+	rows, err := db.Query(database, `
 		SELECT id, user_id, type, message, related_id, is_read, created_at
 		FROM notifications
 		WHERE user_id = ?
@@ -66,8 +68,8 @@ func GetUserNotifications(db *sql.DB, userId int, page int, limit int) ([]Notifi
 }
 
 // MarkNotificationAsRead marks a notification as read
-func MarkNotificationAsRead(db *sql.DB, notificationId int, userId int) error {
-	_, err := db.Exec(
+func MarkNotificationAsRead(database *sql.DB, notificationId int, userId int) error {
+	_, err := db.Exec(database,
 		"UPDATE notifications SET is_read = 1 WHERE id = ? AND user_id = ?",
 		notificationId, userId,
 	)
@@ -75,8 +77,8 @@ func MarkNotificationAsRead(db *sql.DB, notificationId int, userId int) error {
 }
 
 // MarkAllNotificationsAsRead marks all notifications for a user as read
-func MarkAllNotificationsAsRead(db *sql.DB, userId int) error {
-	_, err := db.Exec(
+func MarkAllNotificationsAsRead(database *sql.DB, userId int) error {
+	_, err := db.Exec(database,
 		"UPDATE notifications SET is_read = 1 WHERE user_id = ?",
 		userId,
 	)
@@ -84,9 +86,9 @@ func MarkAllNotificationsAsRead(db *sql.DB, userId int) error {
 }
 
 // GetUnreadNotificationCount gets the count of unread notifications for a user
-func GetUnreadNotificationCount(db *sql.DB, userId int) (int, error) {
+func GetUnreadNotificationCount(database *sql.DB, userId int) (int, error) {
 	var count int
-	err := db.QueryRow(
+	err := db.QueryRow(database,
 		"SELECT COUNT(*) FROM notifications WHERE user_id = ? AND is_read = 0",
 		userId,
 	).Scan(&count)

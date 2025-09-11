@@ -18,7 +18,8 @@ func CORSMiddleware(next http.Handler) http.Handler {
 				"https://oncare19.netlify.app",
 				"https://oncare-frontend.netlify.app",
 				"https://oncare.netlify.app",
-				"https://main--oncare.netlify.app",
+				"https://main--oncare19.netlify.app",
+				"https://deploy-preview-*--oncare19.netlify.app",
 			}
 			
 			allowed := false
@@ -29,15 +30,19 @@ func CORSMiddleware(next http.Handler) http.Handler {
 				}
 			}
 			
-			if allowed {
+			if allowed || origin == "" {
 				w.Header().Set("Access-Control-Allow-Origin", origin)
 			} else {
-				// Fallback for production - allow all for now
+				// Fallback for production - allow the main Netlify URL
 				w.Header().Set("Access-Control-Allow-Origin", "https://oncare19.netlify.app")
 			}
 		} else {
-			// Development - allow all origins
-			w.Header().Set("Access-Control-Allow-Origin", "https://oncare19.netlify.app")
+			// Development - allow localhost and Netlify
+			if origin == "http://localhost:3000" || origin == "https://oncare19.netlify.app" {
+				w.Header().Set("Access-Control-Allow-Origin", origin)
+			} else {
+				w.Header().Set("Access-Control-Allow-Origin", "*")
+			}
 		}
 		
 		w.Header().Set("Access-Control-Allow-Credentials", "true")

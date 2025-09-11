@@ -26,7 +26,7 @@ func CreatePrivateMessage(database *sql.DB, senderId int, receiverId int, conten
 	// (Old restriction removed to support message requests)
 
 	// Create message
-	result, err := database.Exec(
+	result, err := db.Exec(database,
 		`INSERT INTO messages (sender_id, receiver_id, content) VALUES (?, ?, ?)`,
 		senderId, receiverId, content,
 	)
@@ -41,7 +41,7 @@ func CreatePrivateMessage(database *sql.DB, senderId int, receiverId int, conten
 
 	// Retrieve the created message
 	var message Message
-	err = database.QueryRow(`
+	err = db.QueryRow(database, `
 		SELECT id, sender_id, receiver_id, content, is_read, created_at
 		FROM messages
 		WHERE id = ?
@@ -61,7 +61,7 @@ func CreatePrivateMessage(database *sql.DB, senderId int, receiverId int, conten
 func CreateGroupMessage(database *sql.DB, senderId int, groupId int, content string) (int, error) {
 	// Check if user is a member of the group
 	var status string
-	err := database.QueryRow(
+	err := db.QueryRow(database,
 		"SELECT status FROM group_members WHERE group_id = ? AND user_id = ?",
 		groupId, senderId,
 	).Scan(&status)
@@ -76,7 +76,7 @@ func CreateGroupMessage(database *sql.DB, senderId int, groupId int, content str
 	}
 
 	// Create message
-	result, err := database.Exec(
+	result, err := db.Exec(database,
 		`INSERT INTO messages (sender_id, group_id, content) VALUES (?, ?, ?)`,
 		senderId, groupId, content,
 	)
@@ -97,7 +97,7 @@ func GetPrivateMessages(database *sql.DB, userId1 int, userId2 int, page int, li
 	offset := (page - 1) * limit
 	messages := []Message{}
 
-	rows, err := database.Query(`
+	rows, err := db.Query(database, `
 		SELECT m.id, m.sender_id, m.receiver_id, m.content, m.is_read, m.created_at,
 		s.id, s.email, s.first_name, s.last_name, s.avatar, s.nickname,
 		r.id, r.email, r.first_name, r.last_name, r.avatar, r.nickname
@@ -133,7 +133,7 @@ func GetPrivateMessages(database *sql.DB, userId1 int, userId2 int, page int, li
 	}
 
 	// Mark messages as read
-	_, err = database.Exec(`
+	_, err = db.Exec(database, `
 		UPDATE messages 
 		SET is_read = 1 
 		WHERE receiver_id = ? AND sender_id = ? AND is_read = 0
@@ -149,7 +149,7 @@ func GetPrivateMessages(database *sql.DB, userId1 int, userId2 int, page int, li
 func GetGroupMessages(database *sql.DB, groupId int, userId int, page int, limit int) ([]Message, error) {
 	// Check if user is a member of the group
 	var status string
-	err := database.QueryRow(
+	err := db.QueryRow(database,
 		"SELECT status FROM group_members WHERE group_id = ? AND user_id = ?",
 		groupId, userId,
 	).Scan(&status)
@@ -166,7 +166,7 @@ func GetGroupMessages(database *sql.DB, groupId int, userId int, page int, limit
 	offset := (page - 1) * limit
 	messages := []Message{}
 
-	rows, err := database.Query(`
+	rows, err := db.Query(database, `
 		SELECT m.id, m.sender_id, m.group_id, m.content, m.is_read, m.created_at,
 		s.id, s.email, s.first_name, s.last_name, s.avatar, s.nickname
 		FROM messages m
@@ -214,7 +214,7 @@ func GetUserConversations(database *sql.DB, userId int) ([]ConversationInfo, err
 	conversations := []ConversationInfo{}
 
 	// Get users the current user has exchanged messages with
-	rows, err := database.Query(`
+	rows, err := db.Query(database, `
 		SELECT DISTINCT
 			CASE
 				WHEN m.sender_id = ? THEN m.receiver_id
@@ -293,7 +293,7 @@ func MarkMessagesAsRead(database *sql.DB, recipientID, senderID int) error {
 		WHERE receiver_id = ? AND sender_id = ? AND is_read = 0
 	`
 
-	result, err := database.Exec(query, recipientID, senderID)
+	result, err := db.Exec(database, query, recipientID, senderID)
 	if err != nil {
 		return err
 	}
@@ -318,7 +318,7 @@ func GetUnreadMessageCount(database *sql.DB, userID int) (int, error) {
 		WHERE receiver_id = ? AND is_read = 0
 	`
 
-	err := database.QueryRow(query, userID).Scan(&count)
+	err := db.QueryRow(database, query, userID).Scan(&count)
 	if err != nil {
 		return 0, err
 	}
@@ -339,7 +339,7 @@ func GetMessageByID(database *sql.DB, messageID int) (*Message, error) {
 		WHERE m.id = ?
 	`
 
-	err := database.QueryRow(query, messageID).Scan(
+	err := db.QueryRow(database, query, messageID).Scan(
 		&message.ID, &message.SenderID, &message.ReceiverID, &message.GroupID,
 		&message.Content, &message.IsRead, &message.CreatedAt,
 		&sender.ID, &sender.Email, &sender.FirstName, &sender.LastName,

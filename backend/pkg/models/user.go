@@ -43,11 +43,9 @@ type VerificationRequest struct {
 
 // CreateUser creates a new user in the database
 func CreateUser(database *sql.DB, user User) (int, error) {
-	dbWrapper := db.NewDB(database)
-	
 	// Check if user with email already exists
 	var exists bool
-	err := dbWrapper.QueryRow("SELECT EXISTS(SELECT 1 FROM users WHERE email = ?)", user.Email).Scan(&exists)
+	err := db.QueryRow(database, "SELECT EXISTS(SELECT 1 FROM users WHERE email = ?)", user.Email).Scan(&exists)
 	if err != nil {
 		return 0, err
 	}
@@ -173,8 +171,8 @@ func AuthenticateUser(database *sql.DB, email, password string) (*User, error) {
 }
 
 // UpdateUser updates user information
-func UpdateUser(db *sql.DB, user *User) error {
-	_, err := db.Exec(
+func UpdateUser(database *sql.DB, user *User) error {
+	_, err := db.Exec(database,
 		`UPDATE users SET 
 		first_name = ?, last_name = ?, date_of_birth = ?, 
 		avatar = ?, nickname = ?, about_me = ?, updated_at = CURRENT_TIMESTAMP

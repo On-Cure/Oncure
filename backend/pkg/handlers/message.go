@@ -7,6 +7,7 @@ import (
 	"net/http"
 	"strconv"
 
+	"github.com/On-cure/Oncure/pkg/db"
 	md "github.com/On-cure/Oncure/pkg/middleware"
 	"github.com/On-cure/Oncure/pkg/models"
 	"github.com/On-cure/Oncure/pkg/utils"
@@ -143,7 +144,7 @@ func (h *MessageHandler) GetUnreadCount(w http.ResponseWriter, r *http.Request) 
 
 	// Get unread count from database
 	var count int
-	err := h.db.QueryRow(`
+	err := db.QueryRow(h.db, `
 		SELECT COUNT(*) FROM messages
 		WHERE receiver_id = ? AND is_read = 0
 	`, user.ID).Scan(&count)
