@@ -24,6 +24,9 @@ func NewAuthHandler(db *sql.DB) *AuthHandler {
 
 // Register handles user registration
 func (h *AuthHandler) Register(w http.ResponseWriter, r *http.Request) {
+	// Set CORS headers
+	w.Header().Set("Access-Control-Allow-Origin", "https://oncare19.netlify.app")
+	w.Header().Set("Access-Control-Allow-Credentials", "true")
 	// Parse request body
 	var req struct {
 		Email       string `json:"email"`
@@ -80,6 +83,9 @@ func (h *AuthHandler) Register(w http.ResponseWriter, r *http.Request) {
 
 // Login handles user login
 func (h *AuthHandler) Login(w http.ResponseWriter, r *http.Request) {
+	// Set CORS headers
+	w.Header().Set("Access-Control-Allow-Origin", "https://oncare19.netlify.app")
+	w.Header().Set("Access-Control-Allow-Credentials", "true")
 	// Parse request body
 	var req struct {
 		Email    string `json:"email"`
@@ -133,6 +139,9 @@ func (h *AuthHandler) Login(w http.ResponseWriter, r *http.Request) {
 
 // Logout handles user logout
 func (h *AuthHandler) Logout(w http.ResponseWriter, r *http.Request) {
+	// Set CORS headers
+	w.Header().Set("Access-Control-Allow-Origin", "https://oncare19.netlify.app")
+	w.Header().Set("Access-Control-Allow-Credentials", "true")
 	// Get session token from cookie
 	cookie, err := r.Cookie("session_token")
 	if err != nil {
@@ -168,6 +177,9 @@ func (h *AuthHandler) Logout(w http.ResponseWriter, r *http.Request) {
 
 // GetSession retrieves the current user session
 func (h *AuthHandler) GetSession(w http.ResponseWriter, r *http.Request) {
+	// Set CORS headers
+	w.Header().Set("Access-Control-Allow-Origin", "https://oncare19.netlify.app")
+	w.Header().Set("Access-Control-Allow-Credentials", "true")
 	// Get session token from cookie
 	cookie, err := r.Cookie("session_token")
 	if err != nil {
