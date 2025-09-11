@@ -9,6 +9,7 @@ import (
 
 	db "github.com/On-cure/Oncure/pkg/db"
 	"github.com/On-cure/Oncure/pkg/handlers"
+	"github.com/On-cure/Oncure/pkg/hedera"
 	"github.com/On-cure/Oncure/pkg/middleware"
 	r "github.com/On-cure/Oncure/pkg/router"
 	"github.com/On-cure/Oncure/pkg/websocket"
@@ -25,6 +26,19 @@ func main() {
 	// Apply migrations
 	if err := db.ApplyMigrations(); err != nil {
 		log.Fatalf("Failed to apply migrations: %v", err)
+	}
+
+	// Optional Hedera service
+	var hederaSvc *hedera.Service
+	var hederaHandler *handlers.HederaHandler
+	if os.Getenv("HEDERA_ACCOUNT_ID") != "" && os.Getenv("HEDERA_PRIVATE_KEY") != "" {
+		if svc, err := hedera.NewService(); err != nil {
+			log.Printf("Hedera disabled: %v", err)
+		} else {
+			hederaSvc = svc
+			hederaHandler = handlers.NewHederaHandler(dbConn, hederaSvc)
+			log.Println("Hedera features enabled")
+		}
 	}
 
 	// Initialize websocket hub
@@ -66,6 +80,9 @@ func main() {
 	r.SetupUploadRoutes(router, uploadHandler, authMiddleware)
 	r.SetupWebSocketRoutes(router, wsHandler)
 	r.SetupVerificationRoutes(router, verificationHandler, authMiddleware)
+	if hederaHandler != nil {
+		r.SetupHederaRoutes(router, hederaHandler, authMiddleware)
+	}
 
 	// Apply global middleware and use our router
 	var handler http.Handler = router
