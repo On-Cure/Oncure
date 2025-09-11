@@ -7,6 +7,7 @@ export function middleware(request) {
   if (
     pathname === '/login' ||
     pathname === '/register' ||
+    pathname === '/feed' ||  // Allow feed page - client-side auth will handle it
     pathname.startsWith('/_next') ||
     pathname.startsWith('/api') ||
     pathname === '/favicon.ico'
@@ -14,7 +15,7 @@ export function middleware(request) {
     return NextResponse.next();
   }
   
-  // Check for session token
+  // Check for session token for other protected routes
   const sessionToken = request.cookies.get('session_token')?.value;
   
   if (!sessionToken) {

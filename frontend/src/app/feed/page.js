@@ -225,5 +225,9 @@ function FeedContent() {
 }
 
 export default function FeedPage() {
-  return <FeedContent />;
+  return (
+    <ClientAuthGuard>
+      <FeedContent />
+    </ClientAuthGuard>
+  );
 }
