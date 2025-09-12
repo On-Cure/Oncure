@@ -477,18 +477,28 @@ func GetCommentedPosts(db *sql.DB, userId int, page, limit int) ([]Post, error) 
 }
 
 // SavePost saves a post for a user
-func SavePost(db *sql.DB, userID, postID int) error {
-	_, err := db.Exec(`
-		INSERT INTO saved_posts (user_id, post_id)
-		VALUES (?, ?)
-		ON CONFLICT(user_id, post_id) DO NOTHING
-	`, userID, postID)
+func SavePost(database *sql.DB, userID, postID int) error {
+	var query string
+	if db.IsPostgreSQL() {
+		query = `
+			INSERT INTO saved_posts (user_id, post_id)
+			VALUES (?, ?)
+			ON CONFLICT(user_id, post_id) DO NOTHING
+		`
+	} else {
+		query = `
+			INSERT OR IGNORE INTO saved_posts (user_id, post_id)
+			VALUES (?, ?)
+		`
+	}
+	
+	_, err := db.Exec(database, query, userID, postID)
 	return err
 }
 
 // UnsavePost removes a saved post for a user
-func UnsavePost(db *sql.DB, userID, postID int) error {
-	_, err := db.Exec(`
+func UnsavePost(database *sql.DB, userID, postID int) error {
+	_, err := db.Exec(database, `
 		DELETE FROM saved_posts 
 		WHERE user_id = ? AND post_id = ?
 	`, userID, postID)
@@ -496,9 +506,9 @@ func UnsavePost(db *sql.DB, userID, postID int) error {
 }
 
 // IsPostSaved checks if a post is saved by a user
-func IsPostSaved(db *sql.DB, userID, postID int) (bool, error) {
+func IsPostSaved(database *sql.DB, userID, postID int) (bool, error) {
 	var count int
-	err := db.QueryRow(`
+	err := db.QueryRow(database, `
 		SELECT COUNT(*) 
 		FROM saved_posts 
 		WHERE user_id = ? AND post_id = ?
@@ -512,7 +522,7 @@ func IsPostSaved(db *sql.DB, userID, postID int) (bool, error) {
 }
 
 // GetSavedPosts retrieves posts that a user has saved
-func GetSavedPosts(db *sql.DB, userID, page, limit int) ([]Post, error) {
+func GetSavedPosts(database *sql.DB, userID, page, limit int) ([]Post, error) {
 	offset := (page - 1) * limit
 	posts := []Post{}
 
@@ -542,7 +552,7 @@ func GetSavedPosts(db *sql.DB, userID, page, limit int) ([]Post, error) {
 		LIMIT ? OFFSET ?
 	`
 
-	rows, err := db.Query(query, userID, userID, userID, userID, userID, limit, offset)
+	rows, err := db.Query(database, query, userID, userID, userID, userID, userID, limit, offset)
 	if err != nil {
 		return nil, err
 	}

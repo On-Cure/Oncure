@@ -227,10 +227,25 @@ func GetActivitySettings(database *sql.DB, userID int) (*ActivitySettings, error
 
 // CreateActivitySettings creates default activity settings for a user
 func CreateActivitySettings(database *sql.DB, userID int) (*ActivitySettings, error) {
-	_, err := db.Exec(database, `
-		INSERT OR REPLACE INTO user_activity_settings (user_id, show_posts, show_comments, show_likes, show_to_followers_only)
-		VALUES (?, 1, 1, 1, 0)
-	`, userID)
+	var query string
+	if db.IsPostgreSQL() {
+		query = `
+			INSERT INTO user_activity_settings (user_id, show_posts, show_comments, show_likes, show_to_followers_only)
+			VALUES (?, TRUE, TRUE, TRUE, FALSE)
+			ON CONFLICT (user_id) DO UPDATE SET
+				show_posts = EXCLUDED.show_posts,
+				show_comments = EXCLUDED.show_comments,
+				show_likes = EXCLUDED.show_likes,
+				show_to_followers_only = EXCLUDED.show_to_followers_only
+		`
+	} else {
+		query = `
+			INSERT OR REPLACE INTO user_activity_settings (user_id, show_posts, show_comments, show_likes, show_to_followers_only)
+			VALUES (?, 1, 1, 1, 0)
+		`
+	}
+	
+	_, err := db.Exec(database, query, userID)
 	if err != nil {
 		return nil, err
 	}
@@ -240,11 +255,28 @@ func CreateActivitySettings(database *sql.DB, userID int) (*ActivitySettings, er
 
 // UpdateActivitySettings updates user's activity settings
 func UpdateActivitySettings(database *sql.DB, userID int, settings ActivitySettings) error {
-	_, err := db.Exec(database, `
-		INSERT OR REPLACE INTO user_activity_settings 
-		(user_id, show_posts, show_comments, show_likes, show_to_followers_only, updated_at)
-		VALUES (?, ?, ?, ?, ?, CURRENT_TIMESTAMP)
-	`, userID, settings.ShowPosts, settings.ShowComments, settings.ShowLikes, settings.ShowToFollowersOnly)
+	var query string
+	if db.IsPostgreSQL() {
+		query = `
+			INSERT INTO user_activity_settings 
+			(user_id, show_posts, show_comments, show_likes, show_to_followers_only, updated_at)
+			VALUES (?, ?, ?, ?, ?, CURRENT_TIMESTAMP)
+			ON CONFLICT (user_id) DO UPDATE SET
+				show_posts = EXCLUDED.show_posts,
+				show_comments = EXCLUDED.show_comments,
+				show_likes = EXCLUDED.show_likes,
+				show_to_followers_only = EXCLUDED.show_to_followers_only,
+				updated_at = CURRENT_TIMESTAMP
+		`
+	} else {
+		query = `
+			INSERT OR REPLACE INTO user_activity_settings 
+			(user_id, show_posts, show_comments, show_likes, show_to_followers_only, updated_at)
+			VALUES (?, ?, ?, ?, ?, CURRENT_TIMESTAMP)
+		`
+	}
+	
+	_, err := db.Exec(database, query, userID, settings.ShowPosts, settings.ShowComments, settings.ShowLikes, settings.ShowToFollowersOnly)
 	return err
 }
 

@@ -133,11 +133,21 @@ func GetPrivateMessages(database *sql.DB, userId1 int, userId2 int, page int, li
 	}
 
 	// Mark messages as read
-	_, err = db.Exec(database, `
-		UPDATE messages 
-		SET is_read = 1 
-		WHERE receiver_id = ? AND sender_id = ? AND is_read = 0
-	`, userId1, userId2)
+	var updateQuery string
+	if db.IsPostgreSQL() {
+		updateQuery = `
+			UPDATE messages 
+			SET is_read = TRUE 
+			WHERE receiver_id = ? AND sender_id = ? AND is_read = FALSE
+		`
+	} else {
+		updateQuery = `
+			UPDATE messages 
+			SET is_read = 1 
+			WHERE receiver_id = ? AND sender_id = ? AND is_read = 0
+		`
+	}
+	_, err = db.Exec(database, updateQuery, userId1, userId2)
 	if err != nil {
 		return nil, err
 	}
@@ -213,8 +223,15 @@ type ConversationInfo struct {
 func GetUserConversations(database *sql.DB, userId int) ([]ConversationInfo, error) {
 	conversations := []ConversationInfo{}
 
-	// Get users the current user has exchanged messages with
-	rows, err := db.Query(database, `
+	// Build query with proper boolean handling
+	var isReadCondition string
+	if db.IsPostgreSQL() {
+		isReadCondition = "FALSE"
+	} else {
+		isReadCondition = "0"
+	}
+
+	query := `
 		SELECT DISTINCT
 			CASE
 				WHEN m.sender_id = ? THEN m.receiver_id
@@ -222,7 +239,7 @@ func GetUserConversations(database *sql.DB, userId int) ([]ConversationInfo, err
 			END as other_user_id,
 			u.id, u.email, u.first_name, u.last_name, u.avatar, u.nickname,
 			(SELECT COUNT(*) FROM messages
-			 WHERE receiver_id = ? AND sender_id = u.id AND is_read = 0) as unread_count,
+			 WHERE receiver_id = ? AND sender_id = u.id AND is_read = ` + isReadCondition + `) as unread_count,
 			(SELECT content FROM messages
 			 WHERE (sender_id = ? AND receiver_id = u.id) OR (sender_id = u.id AND receiver_id = ?)
 			 ORDER BY created_at DESC LIMIT 1) as last_message,
@@ -233,7 +250,10 @@ func GetUserConversations(database *sql.DB, userId int) ([]ConversationInfo, err
 		JOIN users u ON (m.sender_id = u.id OR m.receiver_id = u.id) AND u.id != ?
 		WHERE (m.sender_id = ? OR m.receiver_id = ?) AND m.group_id IS NULL
 		ORDER BY last_message_time DESC
-	`, userId, userId, userId, userId, userId, userId, userId, userId, userId)
+	`
+
+	// Get users the current user has exchanged messages with
+	rows, err := db.Query(database, query, userId, userId, userId, userId, userId, userId, userId, userId, userId)
 	if err != nil {
 		return nil, err
 	}
@@ -287,11 +307,20 @@ func GetUserConversations(database *sql.DB, userId int) ([]ConversationInfo, err
 
 // MarkMessagesAsRead marks all messages from a specific user as read
 func MarkMessagesAsRead(database *sql.DB, recipientID, senderID int) error {
-	query := `
-		UPDATE messages
-		SET is_read = 1
-		WHERE receiver_id = ? AND sender_id = ? AND is_read = 0
-	`
+	var query string
+	if db.IsPostgreSQL() {
+		query = `
+			UPDATE messages
+			SET is_read = TRUE
+			WHERE receiver_id = ? AND sender_id = ? AND is_read = FALSE
+		`
+	} else {
+		query = `
+			UPDATE messages
+			SET is_read = 1
+			WHERE receiver_id = ? AND sender_id = ? AND is_read = 0
+		`
+	}
 
 	result, err := db.Exec(database, query, recipientID, senderID)
 	if err != nil {
@@ -312,11 +341,20 @@ func MarkMessagesAsRead(database *sql.DB, recipientID, senderID int) error {
 // GetUnreadMessageCount gets the total number of unread messages for a user
 func GetUnreadMessageCount(database *sql.DB, userID int) (int, error) {
 	var count int
-	query := `
-		SELECT COUNT(*)
-		FROM messages
-		WHERE receiver_id = ? AND is_read = 0
-	`
+	var query string
+	if db.IsPostgreSQL() {
+		query = `
+			SELECT COUNT(*)
+			FROM messages
+			WHERE receiver_id = ? AND is_read = FALSE
+		`
+	} else {
+		query = `
+			SELECT COUNT(*)
+			FROM messages
+			WHERE receiver_id = ? AND is_read = 0
+		`
+	}
 
 	err := db.QueryRow(database, query, userID).Scan(&count)
 	if err != nil {

@@ -3,7 +3,6 @@ package models
 import (
 	"database/sql"
 	"errors"
-	"os"
 	"time"
 
 	"github.com/On-cure/Oncure/pkg/db"
@@ -68,7 +67,7 @@ func CreateUser(database *sql.DB, user User) (int, error) {
 
 	// Insert user
 	var userID int
-	if os.Getenv("DATABASE_URL") != "" {
+	if db.IsPostgreSQL() {
 		// PostgreSQL with RETURNING
 		err = tx.QueryRow(
 			`INSERT INTO users (email, password, first_name, last_name, date_of_birth, avatar, nickname, about_me, role)
@@ -226,21 +225,21 @@ func GetSuggestedUsers(database *sql.DB, userID int) ([]map[string]interface{}, 
 		}
 
 		userMap := map[string]interface{}{
-			"id":                   user.ID,
-			"email":                user.Email,
-			"first_name":           user.FirstName,
-			"last_name":            user.LastName,
-			"date_of_birth":        user.DateOfBirth,
-			"avatar":               user.Avatar,
-			"nickname":             user.Nickname,
-			"about_me":             user.AboutMe,
-			"role":                 user.Role,
-			"verification_status":  user.VerificationStatus,
-			"created_at":           user.CreatedAt,
-			"updated_at":           user.UpdatedAt,
-			"is_public":            user.IsPublic,
-			"is_following":         isFollowing == "accepted",
-			"is_followed_by":       isFollowedBy == "accepted",
+			"id":                  user.ID,
+			"email":               user.Email,
+			"first_name":          user.FirstName,
+			"last_name":           user.LastName,
+			"date_of_birth":       user.DateOfBirth,
+			"avatar":              user.Avatar,
+			"nickname":            user.Nickname,
+			"about_me":            user.AboutMe,
+			"role":                user.Role,
+			"verification_status": user.VerificationStatus,
+			"created_at":          user.CreatedAt,
+			"updated_at":          user.UpdatedAt,
+			"is_public":           user.IsPublic,
+			"is_following":        isFollowing == "accepted",
+			"is_followed_by":      isFollowedBy == "accepted",
 		}
 		users = append(users, userMap)
 	}
@@ -370,19 +369,19 @@ func GetAllUsers(database *sql.DB, excludeUserID int) ([]map[string]interface{},
 			return nil, err
 		}
 		userMap := map[string]interface{}{
-			"id":                   user.ID,
-			"email":                user.Email,
-			"first_name":           user.FirstName,
-			"last_name":            user.LastName,
-			"date_of_birth":        user.DateOfBirth,
-			"avatar":               user.Avatar,
-			"nickname":             user.Nickname,
-			"about_me":             user.AboutMe,
-			"role":                 user.Role,
-			"verification_status":  user.VerificationStatus,
-			"created_at":           user.CreatedAt,
-			"updated_at":           user.UpdatedAt,
-			"is_public":            user.IsPublic,
+			"id":                  user.ID,
+			"email":               user.Email,
+			"first_name":          user.FirstName,
+			"last_name":           user.LastName,
+			"date_of_birth":       user.DateOfBirth,
+			"avatar":              user.Avatar,
+			"nickname":            user.Nickname,
+			"about_me":            user.AboutMe,
+			"role":                user.Role,
+			"verification_status": user.VerificationStatus,
+			"created_at":          user.CreatedAt,
+			"updated_at":          user.UpdatedAt,
+			"is_public":           user.IsPublic,
 		}
 		users = append(users, userMap)
 	}

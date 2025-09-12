@@ -69,28 +69,37 @@ func GetUserNotifications(database *sql.DB, userId int, page int, limit int) ([]
 
 // MarkNotificationAsRead marks a notification as read
 func MarkNotificationAsRead(database *sql.DB, notificationId int, userId int) error {
-	_, err := db.Exec(database,
-		"UPDATE notifications SET is_read = 1 WHERE id = ? AND user_id = ?",
-		notificationId, userId,
-	)
+	var query string
+	if db.IsPostgreSQL() {
+		query = "UPDATE notifications SET is_read = TRUE WHERE id = ? AND user_id = ?"
+	} else {
+		query = "UPDATE notifications SET is_read = 1 WHERE id = ? AND user_id = ?"
+	}
+	_, err := db.Exec(database, query, notificationId, userId)
 	return err
 }
 
 // MarkAllNotificationsAsRead marks all notifications for a user as read
 func MarkAllNotificationsAsRead(database *sql.DB, userId int) error {
-	_, err := db.Exec(database,
-		"UPDATE notifications SET is_read = 1 WHERE user_id = ?",
-		userId,
-	)
+	var query string
+	if db.IsPostgreSQL() {
+		query = "UPDATE notifications SET is_read = TRUE WHERE user_id = ?"
+	} else {
+		query = "UPDATE notifications SET is_read = 1 WHERE user_id = ?"
+	}
+	_, err := db.Exec(database, query, userId)
 	return err
 }
 
 // GetUnreadNotificationCount gets the count of unread notifications for a user
 func GetUnreadNotificationCount(database *sql.DB, userId int) (int, error) {
 	var count int
-	err := db.QueryRow(database,
-		"SELECT COUNT(*) FROM notifications WHERE user_id = ? AND is_read = 0",
-		userId,
-	).Scan(&count)
+	var query string
+	if db.IsPostgreSQL() {
+		query = "SELECT COUNT(*) FROM notifications WHERE user_id = ? AND is_read = FALSE"
+	} else {
+		query = "SELECT COUNT(*) FROM notifications WHERE user_id = ? AND is_read = 0"
+	}
+	err := db.QueryRow(database, query, userId).Scan(&count)
 	return count, err
 }
