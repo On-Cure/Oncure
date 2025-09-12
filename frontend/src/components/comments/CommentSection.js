@@ -5,6 +5,7 @@ import { useAuth } from '../../hooks/useAuth';
 import { MessageSquare } from 'lucide-react';
 import CommentForm from './CommentForm';
 import CommentList from './CommentList';
+import { comments } from '../../lib/api';
 
 export default function CommentSection({ postId, postOwnerId, onCommentAdded }) {
   console.log('CommentSection mounted with onCommentAdded:', !!onCommentAdded);
@@ -77,28 +78,16 @@ export default function CommentSection({ postId, postOwnerId, onCommentAdded }) 
       console.log(`Fetching comments for post ${postId}, page ${pageNum}`);
       
       // First fetch top-level comments
-      const [commentsRes, repliesRes] = await Promise.all([
-        fetch(`/api/posts/${postId}/comments?page=${pageNum}&parentId=`),
-        fetch(`/api/posts/${postId}/comments?parentId=all`) // Special case to get all replies
+      const [topLevelComments, allReplies] = await Promise.all([
+        comments.getPostComments(postId, pageNum, 20, ''),
+        comments.getPostComments(postId, 1, 1000, 'all') // Special case to get all replies
       ]);
       
-      if (!commentsRes.ok) {
-        const errorText = await commentsRes.text();
-        throw new Error(`Failed to fetch top-level comments: ${commentsRes.status} ${errorText}`);
-      }
-      if (!repliesRes.ok) {
-        const errorText = await repliesRes.text();
-        throw new Error(`Failed to fetch replies: ${repliesRes.status} ${errorText}`);
-      }
-      
-      const topLevelComments = await commentsRes.json();
-      const allReplies = await repliesRes.json();
-      
-      console.log(`Fetched ${topLevelComments.length} top-level comments and ${allReplies.length} replies`);
+      console.log(`Fetched ${topLevelComments.comments.length} top-level comments and ${allReplies.comments.length} replies`);
       
       try {
         // Combine and build the comment tree
-        const allComments = [...topLevelComments, ...allReplies];
+        const allComments = [...topLevelComments.comments, ...allReplies.comments];
         console.log('Building comment tree from', allComments.length, 'total comments');
         
         const commentTree = buildCommentTree(allComments);
@@ -110,11 +99,11 @@ export default function CommentSection({ postId, postOwnerId, onCommentAdded }) 
           setComments(prev => [...prev, ...commentTree]);
         }
         
-        setHasMore(topLevelComments.length === 20);
+        setHasMore(topLevelComments.comments.length === 20);
       } catch (buildError) {
         console.error('Error building comment tree:', buildError);
-        console.error('Top level comments:', topLevelComments);
-        console.error('All replies:', allReplies);
+        console.error('Top level comments:', topLevelComments.comments);
+        console.error('All replies:', allReplies.comments);
         throw new Error(`Error building comment tree: ${buildError.message}`);
       }
     } catch (error) {
@@ -152,18 +141,7 @@ export default function CommentSection({ postId, postOwnerId, onCommentAdded }) 
       
       console.log('Sending comment data:', requestBody);
       
-      const res = await fetch(`/api/posts/${postId}/comments`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(requestBody)
-      });
-
-      if (!res.ok) {
-        const errorData = await res.json();
-        throw new Error(errorData.error || 'Failed to create comment');
-      }
-      
-      const newComment = await res.json();
+      const newComment = await comments.createComment(postId, requestBody);
       console.log('Created new comment:', newComment);
       
       // If this is a reply, update the parent comment's replies

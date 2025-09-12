@@ -9,23 +9,17 @@
 
 // src/components/notifications/NotificationComponent.js
 
+import { groups } from '../../lib/api';
+
 const renderGroupNotification = (notification) => {
   const handleGroupAction = async (action) => {
     if (notification.type === 'group_join_request') {
-      await fetch(`/api/groups/${notification.related_id}/members/${notification.user_id}`, {
-        method: 'PUT',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ action })
-      });
+      await groups.updateMember(notification.related_id, notification.user_id, { action });
 
       // Mark notification as read and refresh
       markAsRead(notification.id);
     } else if (notification.type === 'group_invitation') {
-      await fetch(`/api/groups/${notification.related_id}/members/${user.id}`, {
-        method: 'PUT',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ action })
-      });
+      await groups.updateMember(notification.related_id, user.id, { action });
 
       markAsRead(notification.id);
     }

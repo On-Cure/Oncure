@@ -322,9 +322,9 @@ func CanViewPost(database *sql.DB, post *Post, userId int) (bool, error) {
 }
 
 // AddReaction adds or updates a reaction to a post
-func AddPostReaction(db *sql.DB, postId int, userId int, reactionType string) (map[string]interface{}, error) {
+func AddPostReaction(database *sql.DB, postId int, userId int, reactionType string) (map[string]interface{}, error) {
 	// Begin transaction
-	tx, err := db.Begin()
+	tx, err := database.Begin()
 	if err != nil {
 		return nil, err
 	}
@@ -332,7 +332,7 @@ func AddPostReaction(db *sql.DB, postId int, userId int, reactionType string) (m
 
 	// Check if post exists
 	var exists bool
-	err = tx.QueryRow("SELECT EXISTS(SELECT 1 FROM posts WHERE id = ?)", postId).Scan(&exists)
+	err = tx.QueryRow(db.Placeholder("SELECT EXISTS(SELECT 1 FROM posts WHERE id = ?)"), postId).Scan(&exists)
 	if err != nil {
 		return nil, err
 	}
@@ -342,8 +342,8 @@ func AddPostReaction(db *sql.DB, postId int, userId int, reactionType string) (m
 
 	// Check existing reaction
 	var existingType string
-	err = tx.QueryRow(
-		"SELECT reaction_type FROM post_reactions WHERE post_id = ? AND user_id = ?",
+	err = tx.QueryRow(db.Placeholder(
+		"SELECT reaction_type FROM post_reactions WHERE post_id = ? AND user_id = ?"),
 		postId, userId,
 	).Scan(&existingType)
 
@@ -353,8 +353,8 @@ func AddPostReaction(db *sql.DB, postId int, userId int, reactionType string) (m
 		// Reaction exists
 		if existingType == reactionType {
 			// Remove reaction if same type
-			_, err = tx.Exec(
-				"DELETE FROM post_reactions WHERE post_id = ? AND user_id = ?",
+			_, err = tx.Exec(db.Placeholder(
+				"DELETE FROM post_reactions WHERE post_id = ? AND user_id = ?"),
 				postId, userId,
 			)
 			if err != nil {
@@ -363,8 +363,8 @@ func AddPostReaction(db *sql.DB, postId int, userId int, reactionType string) (m
 			changes[existingType+"_count"] = -1
 		} else {
 			// Update reaction type
-			_, err = tx.Exec(
-				"UPDATE post_reactions SET reaction_type = ? WHERE post_id = ? AND user_id = ?",
+			_, err = tx.Exec(db.Placeholder(
+				"UPDATE post_reactions SET reaction_type = ? WHERE post_id = ? AND user_id = ?"),
 				reactionType, postId, userId,
 			)
 			if err != nil {
@@ -375,8 +375,8 @@ func AddPostReaction(db *sql.DB, postId int, userId int, reactionType string) (m
 		}
 	} else if err == sql.ErrNoRows {
 		// Add new reaction
-		_, err = tx.Exec(
-			"INSERT INTO post_reactions (post_id, user_id, reaction_type) VALUES (?, ?, ?)",
+		_, err = tx.Exec(db.Placeholder(
+			"INSERT INTO post_reactions (post_id, user_id, reaction_type) VALUES (?, ?, ?)"),
 			postId, userId, reactionType,
 		)
 		if err != nil {
@@ -389,8 +389,8 @@ func AddPostReaction(db *sql.DB, postId int, userId int, reactionType string) (m
 
 	// Update counts in posts table
 	for column, change := range changes {
-		_, err = tx.Exec(
-			"UPDATE posts SET "+column+" = COALESCE("+column+", 0) + ? WHERE id = ?",
+		_, err = tx.Exec(db.Placeholder(
+			"UPDATE posts SET "+column+" = COALESCE("+column+", 0) + ? WHERE id = ?"),
 			change, postId,
 		)
 		if err != nil {
@@ -405,8 +405,8 @@ func AddPostReaction(db *sql.DB, postId int, userId int, reactionType string) (m
 
 	// Get updated counts
 	var likeCount, dislikeCount int
-	err = db.QueryRow(
-		"SELECT COALESCE(like_count, 0), COALESCE(dislike_count, 0) FROM posts WHERE id = ?",
+	err = database.QueryRow(db.Placeholder(
+		"SELECT COALESCE(like_count, 0), COALESCE(dislike_count, 0) FROM posts WHERE id = ?"),
 		postId,
 	).Scan(&likeCount, &dislikeCount)
 	if err != nil {
@@ -415,8 +415,8 @@ func AddPostReaction(db *sql.DB, postId int, userId int, reactionType string) (m
 
 	// Get user reaction
 	var userReaction *string
-	err = db.QueryRow(
-		"SELECT reaction_type FROM post_reactions WHERE post_id = ? AND user_id = ?",
+	err = database.QueryRow(db.Placeholder(
+		"SELECT reaction_type FROM post_reactions WHERE post_id = ? AND user_id = ?"),
 		postId, userId,
 	).Scan(&userReaction)
 	if err != nil && err != sql.ErrNoRows {
@@ -431,7 +431,7 @@ func AddPostReaction(db *sql.DB, postId int, userId int, reactionType string) (m
 }
 
 // GetCommentedPosts retrieves posts that a user has commented on
-func GetCommentedPosts(db *sql.DB, userId int, page, limit int) ([]Post, error) {
+func GetCommentedPosts(database *sql.DB, userId int, page, limit int) ([]Post, error) {
 	offset := (page - 1) * limit
 	posts := []Post{}
 
@@ -461,7 +461,7 @@ func GetCommentedPosts(db *sql.DB, userId int, page, limit int) ([]Post, error) 
 		LIMIT ? OFFSET ?
 	`
 
-	rows, err := db.Query(query, userId, userId, userId, userId, userId, limit, offset)
+	rows, err := db.Query(database, query, userId, userId, userId, userId, userId, limit, offset)
 	if err != nil {
 		return nil, err
 	}
@@ -590,7 +590,7 @@ func GetSavedPosts(database *sql.DB, userID, page, limit int) ([]Post, error) {
 }
 
 // GetLikedPosts retrieves posts that a user has liked
-func GetLikedPosts(db *sql.DB, userId int, page, limit int) ([]Post, error) {
+func GetLikedPosts(database *sql.DB, userId int, page, limit int) ([]Post, error) {
 	offset := (page - 1) * limit
 	posts := []Post{}
 
@@ -620,7 +620,7 @@ func GetLikedPosts(db *sql.DB, userId int, page, limit int) ([]Post, error) {
 		LIMIT ? OFFSET ?
 	`
 
-	rows, err := db.Query(query, userId, userId, userId, userId, userId, limit, offset)
+	rows, err := db.Query(database, query, userId, userId, userId, userId, userId, limit, offset)
 	if err != nil {
 		return nil, err
 	}
@@ -647,11 +647,11 @@ func GetLikedPosts(db *sql.DB, userId int, page, limit int) ([]Post, error) {
 }
 
 // GetReactions gets reaction counts and user reaction for a post
-func GetPostReactions(db *sql.DB, postId int, userId int) (map[string]interface{}, error) {
+func GetPostReactions(database *sql.DB, postId int, userId int) (map[string]interface{}, error) {
 	// Get post counts
 	var likeCount, dislikeCount int
-	err := db.QueryRow(
-		"SELECT COALESCE(like_count, 0), COALESCE(dislike_count, 0) FROM posts WHERE id = ?",
+	err := database.QueryRow(db.Placeholder(
+		"SELECT COALESCE(like_count, 0), COALESCE(dislike_count, 0) FROM posts WHERE id = ?"),
 		postId,
 	).Scan(&likeCount, &dislikeCount)
 	if err != nil {
@@ -663,8 +663,8 @@ func GetPostReactions(db *sql.DB, postId int, userId int) (map[string]interface{
 
 	// Get user reaction
 	var userReaction *string
-	err = db.QueryRow(
-		"SELECT reaction_type FROM post_reactions WHERE post_id = ? AND user_id = ?",
+	err = database.QueryRow(db.Placeholder(
+		"SELECT reaction_type FROM post_reactions WHERE post_id = ? AND user_id = ?"),
 		postId, userId,
 	).Scan(&userReaction)
 	if err != nil && err != sql.ErrNoRows {
