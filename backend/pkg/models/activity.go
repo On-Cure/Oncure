@@ -18,7 +18,7 @@ type Activity struct {
 	Metadata     map[string]interface{} `json:"metadata,omitempty"`
 	IsHidden     bool                   `json:"is_hidden"`
 	CreatedAt    time.Time              `json:"created_at"`
-	
+
 	// Populated fields
 	User       *User    `json:"user,omitempty"`
 	TargetUser *User    `json:"target_user,omitempty"`
@@ -27,12 +27,12 @@ type Activity struct {
 }
 
 type ActivitySettings struct {
-	UserID              int  `json:"user_id"`
-	ShowPosts          bool `json:"show_posts"`
-	ShowComments       bool `json:"show_comments"`
-	ShowLikes          bool `json:"show_likes"`
-	ShowToFollowersOnly bool `json:"show_to_followers_only"`
-	UpdatedAt          time.Time `json:"updated_at"`
+	UserID              int       `json:"user_id"`
+	ShowPosts           bool      `json:"show_posts"`
+	ShowComments        bool      `json:"show_comments"`
+	ShowLikes           bool      `json:"show_likes"`
+	ShowToFollowersOnly bool      `json:"show_to_followers_only"`
+	UpdatedAt           time.Time `json:"updated_at"`
 }
 
 // CreateActivity records a new user activity
@@ -45,9 +45,9 @@ func CreateActivity(database *sql.DB, activity Activity) error {
 	_, err = db.Exec(database, `
 		INSERT INTO user_activities (user_id, activity_type, target_type, target_id, target_user_id, metadata)
 		VALUES (?, ?, ?, ?, ?, ?)
-	`, activity.UserID, activity.ActivityType, activity.TargetType, activity.TargetID, 
-	   activity.TargetUserID, string(metadataJSON))
-	
+	`, activity.UserID, activity.ActivityType, activity.TargetType, activity.TargetID,
+		activity.TargetUserID, string(metadataJSON))
+
 	return err
 }
 
@@ -58,6 +58,9 @@ func GetUserActivities(database *sql.DB, userID int, filters map[string]interfac
 
 	// Build WHERE clause based on filters
 	whereClause := "WHERE a.user_id = ? AND a.is_hidden = 0"
+	if db.IsPostgreSQL() {
+		whereClause = "WHERE a.user_id = ? AND a.is_hidden = FALSE"
+	}
 	args := []interface{}{userID}
 
 	if activityTypes, ok := filters["activity_types"].([]string); ok && len(activityTypes) > 0 {
@@ -179,21 +182,41 @@ func GetUserPosts(database *sql.DB, userID int, page, limit int) ([]Post, error)
 
 // HideActivity marks an activity as hidden
 func HideActivity(database *sql.DB, activityID int, userID int) error {
-	_, err := db.Exec(database, `
-		UPDATE user_activities 
-		SET is_hidden = 1 
-		WHERE id = ? AND user_id = ?
-	`, activityID, userID)
+	var hideQuery string
+	if db.IsPostgreSQL() {
+		hideQuery = `
+			UPDATE user_activities 
+			SET is_hidden = TRUE 
+			WHERE id = ? AND user_id = ?
+		`
+	} else {
+		hideQuery = `
+			UPDATE user_activities 
+			SET is_hidden = 1 
+			WHERE id = ? AND user_id = ?
+		`
+	}
+	_, err := db.Exec(database, hideQuery, activityID, userID)
 	return err
 }
 
 // UnhideActivity marks an activity as visible
 func UnhideActivity(database *sql.DB, activityID int, userID int) error {
-	_, err := db.Exec(database, `
-		UPDATE user_activities 
-		SET is_hidden = 0 
-		WHERE id = ? AND user_id = ?
-	`, activityID, userID)
+	var unhideQuery string
+	if db.IsPostgreSQL() {
+		unhideQuery = `
+			UPDATE user_activities 
+			SET is_hidden = FALSE 
+			WHERE id = ? AND user_id = ?
+		`
+	} else {
+		unhideQuery = `
+			UPDATE user_activities 
+			SET is_hidden = 0 
+			WHERE id = ? AND user_id = ?
+		`
+	}
+	_, err := db.Exec(database, unhideQuery, activityID, userID)
 	return err
 }
 
@@ -201,9 +224,9 @@ func UnhideActivity(database *sql.DB, activityID int, userID int) error {
 func GetActivitySettings(database *sql.DB, userID int) (*ActivitySettings, error) {
 	settings := &ActivitySettings{
 		UserID:              userID,
-		ShowPosts:          true,
-		ShowComments:       true,
-		ShowLikes:          true,
+		ShowPosts:           true,
+		ShowComments:        true,
+		ShowLikes:           true,
 		ShowToFollowersOnly: false,
 	}
 
@@ -211,7 +234,7 @@ func GetActivitySettings(database *sql.DB, userID int) (*ActivitySettings, error
 		SELECT show_posts, show_comments, show_likes, show_to_followers_only, updated_at
 		FROM user_activity_settings
 		WHERE user_id = ?
-	`, userID).Scan(&settings.ShowPosts, &settings.ShowComments, &settings.ShowLikes, 
+	`, userID).Scan(&settings.ShowPosts, &settings.ShowComments, &settings.ShowLikes,
 		&settings.ShowToFollowersOnly, &settings.UpdatedAt)
 
 	if err == sql.ErrNoRows {
@@ -244,7 +267,7 @@ func CreateActivitySettings(database *sql.DB, userID int) (*ActivitySettings, er
 			VALUES (?, 1, 1, 1, 0)
 		`
 	}
-	
+
 	_, err := db.Exec(database, query, userID)
 	if err != nil {
 		return nil, err
@@ -275,7 +298,7 @@ func UpdateActivitySettings(database *sql.DB, userID int, settings ActivitySetti
 			VALUES (?, ?, ?, ?, ?, CURRENT_TIMESTAMP)
 		`
 	}
-	
+
 	_, err := db.Exec(database, query, userID, settings.ShowPosts, settings.ShowComments, settings.ShowLikes, settings.ShowToFollowersOnly)
 	return err
 }
@@ -316,7 +339,7 @@ func joinStrings(strs []string, sep string) string {
 	if len(strs) == 1 {
 		return strs[0]
 	}
-	
+
 	result := strs[0]
 	for i := 1; i < len(strs); i++ {
 		result += sep + strs[i]
@@ -331,7 +354,7 @@ func CreatePostActivity(database *sql.DB, userID int, postID int, content string
 	metadata := map[string]interface{}{
 		"content_preview": truncateString(content, 100),
 	}
-	
+
 	return CreateActivity(database, Activity{
 		UserID:       userID,
 		ActivityType: "post_created",
@@ -345,14 +368,14 @@ func CreatePostActivity(database *sql.DB, userID int, postID int, content string
 func CreateCommentActivity(database *sql.DB, userID int, commentID int, postID int, content string, targetUserID int) error {
 	metadata := map[string]interface{}{
 		"content_preview": truncateString(content, 100),
-		"post_id":        postID,
+		"post_id":         postID,
 	}
 
 	var targetUID *int
 	if targetUserID != userID {
 		targetUID = &targetUserID
 	}
-	
+
 	return CreateActivity(database, Activity{
 		UserID:       userID,
 		ActivityType: "comment_created",
@@ -366,12 +389,12 @@ func CreateCommentActivity(database *sql.DB, userID int, commentID int, postID i
 // CreateReactionActivity records when a user reacts to content
 func CreateReactionActivity(database *sql.DB, userID int, targetType string, targetID int, reactionType string, targetUserID int) error {
 	activityType := targetType + "_" + reactionType
-	
+
 	var targetUID *int
 	if targetUserID != userID {
 		targetUID = &targetUserID
 	}
-	
+
 	return CreateActivity(database, Activity{
 		UserID:       userID,
 		ActivityType: activityType,

@@ -9,18 +9,18 @@ import (
 )
 
 type Post struct {
-	ID           int       `json:"id"`
-	UserID       int       `json:"user_id"`
-	Content      string    `json:"content"`
-	ImageURL     string    `json:"image_url,omitempty"`
-	Privacy      string    `json:"privacy"`
-	LikeCount    int       `json:"like_count"`
-	DislikeCount int       `json:"dislike_count"`
-	CreatedAt    time.Time `json:"created_at"`
-	UpdatedAt    time.Time `json:"updated_at"`
-	User         *User     `json:"user,omitempty"`
-	Comments     []Comment `json:"comments,omitempty"`
-	SelectedUsers []int    `json:"selected_users,omitempty"`
+	ID            int       `json:"id"`
+	UserID        int       `json:"user_id"`
+	Content       string    `json:"content"`
+	ImageURL      string    `json:"image_url,omitempty"`
+	Privacy       string    `json:"privacy"`
+	LikeCount     int       `json:"like_count"`
+	DislikeCount  int       `json:"dislike_count"`
+	CreatedAt     time.Time `json:"created_at"`
+	UpdatedAt     time.Time `json:"updated_at"`
+	User          *User     `json:"user,omitempty"`
+	Comments      []Comment `json:"comments,omitempty"`
+	SelectedUsers []int     `json:"selected_users,omitempty"`
 }
 
 // CreatePost creates a new post
@@ -33,18 +33,29 @@ func CreatePost(database *sql.DB, post Post) (int, error) {
 	defer tx.Rollback()
 
 	// Insert post
-	result, err := db.TxExec(tx,
-		`INSERT INTO posts (user_id, content, image_url, privacy) VALUES (?, ?, ?, ?)`,
-		post.UserID, post.Content, post.ImageURL, post.Privacy,
-	)
-	if err != nil {
-		return 0, err
-	}
-
-	// Get post ID
-	postId, err := result.LastInsertId()
-	if err != nil {
-		return 0, err
+	var postId int64
+	if db.IsPostgreSQL() {
+		// Use RETURNING for PostgreSQL
+		if err := tx.QueryRow(
+			`INSERT INTO posts (user_id, content, image_url, privacy) VALUES ($1, $2, $3, $4) RETURNING id`,
+			post.UserID, post.Content, post.ImageURL, post.Privacy,
+		).Scan(&postId); err != nil {
+			return 0, err
+		}
+	} else {
+		// SQLite: use LastInsertId
+		result, err := db.TxExec(tx,
+			`INSERT INTO posts (user_id, content, image_url, privacy) VALUES (?, ?, ?, ?)`,
+			post.UserID, post.Content, post.ImageURL, post.Privacy,
+		)
+		if err != nil {
+			return 0, err
+		}
+		id, err := result.LastInsertId()
+		if err != nil {
+			return 0, err
+		}
+		postId = id
 	}
 
 	// If privacy is private, add selected users
@@ -71,7 +82,7 @@ func CreatePost(database *sql.DB, post Post) (int, error) {
 // GetPostById retrieves a post by ID
 func GetPostById(database *sql.DB, postId int, currentUserId int) (*Post, error) {
 	post := &Post{}
-	
+
 	// Get post data
 	err := db.QueryRow(database,
 		`SELECT p.id, p.user_id, p.content, p.image_url, p.privacy, 
@@ -167,7 +178,7 @@ func GetFeedPosts(database *sql.DB, userId int, page, limit int, privacy []strin
 	for rows.Next() {
 		var post Post
 		var user User
-		
+
 		err := rows.Scan(
 			&post.ID, &post.UserID, &post.Content, &post.ImageURL, &post.Privacy,
 			&post.LikeCount, &post.DislikeCount, &post.CreatedAt, &post.UpdatedAt,
@@ -176,7 +187,7 @@ func GetFeedPosts(database *sql.DB, userId int, page, limit int, privacy []strin
 		if err != nil {
 			return nil, err
 		}
-		
+
 		post.User = &user
 		posts = append(posts, post)
 	}
@@ -337,7 +348,7 @@ func AddPostReaction(db *sql.DB, postId int, userId int, reactionType string) (m
 	).Scan(&existingType)
 
 	changes := make(map[string]interface{})
-	
+
 	if err == nil {
 		// Reaction exists
 		if existingType == reactionType {
@@ -459,7 +470,7 @@ func GetCommentedPosts(db *sql.DB, userId int, page, limit int) ([]Post, error) 
 	for rows.Next() {
 		var post Post
 		var user User
-		
+
 		err := rows.Scan(
 			&post.ID, &post.UserID, &post.Content, &post.ImageURL, &post.Privacy,
 			&post.LikeCount, &post.DislikeCount, &post.CreatedAt, &post.UpdatedAt,
@@ -468,7 +479,7 @@ func GetCommentedPosts(db *sql.DB, userId int, page, limit int) ([]Post, error) 
 		if err != nil {
 			return nil, err
 		}
-		
+
 		post.User = &user
 		posts = append(posts, post)
 	}
@@ -491,7 +502,7 @@ func SavePost(database *sql.DB, userID, postID int) error {
 			VALUES (?, ?)
 		`
 	}
-	
+
 	_, err := db.Exec(database, query, userID, postID)
 	return err
 }
@@ -561,7 +572,7 @@ func GetSavedPosts(database *sql.DB, userID, page, limit int) ([]Post, error) {
 	for rows.Next() {
 		var post Post
 		var user User
-		
+
 		err := rows.Scan(
 			&post.ID, &post.UserID, &post.Content, &post.ImageURL, &post.Privacy,
 			&post.LikeCount, &post.DislikeCount, &post.CreatedAt, &post.UpdatedAt,
@@ -570,7 +581,7 @@ func GetSavedPosts(database *sql.DB, userID, page, limit int) ([]Post, error) {
 		if err != nil {
 			return nil, err
 		}
-		
+
 		post.User = &user
 		posts = append(posts, post)
 	}
@@ -618,7 +629,7 @@ func GetLikedPosts(db *sql.DB, userId int, page, limit int) ([]Post, error) {
 	for rows.Next() {
 		var post Post
 		var user User
-		
+
 		err := rows.Scan(
 			&post.ID, &post.UserID, &post.Content, &post.ImageURL, &post.Privacy,
 			&post.LikeCount, &post.DislikeCount, &post.CreatedAt, &post.UpdatedAt,
@@ -627,7 +638,7 @@ func GetLikedPosts(db *sql.DB, userId int, page, limit int) ([]Post, error) {
 		if err != nil {
 			return nil, err
 		}
-		
+
 		post.User = &user
 		posts = append(posts, post)
 	}
