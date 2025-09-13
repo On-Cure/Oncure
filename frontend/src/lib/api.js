@@ -46,14 +46,6 @@ async function fetchAPI(endpoint, options = {}) {
 
       // If response is not ok, throw error with message from API
       if (!response.ok) {
-        // If unauthorized, clear local session state
-        if (response.status === 401) {
-          // Clear any client-side session data
-          if (typeof window !== 'undefined') {
-            // You can dispatch a logout event here if using context
-            window.dispatchEvent(new CustomEvent('unauthorized'))
-          }
-        }
         throw new Error(data.error || "An error occurred")
       }
 
@@ -62,11 +54,6 @@ async function fetchAPI(endpoint, options = {}) {
 
     // For non-JSON responses
     if (!response.ok) {
-      if (response.status === 401) {
-        if (typeof window !== 'undefined') {
-          window.dispatchEvent(new CustomEvent('unauthorized'))
-        }
-      }
       throw new Error("An error occurred")
     }
 
@@ -163,6 +150,23 @@ export const posts = {
   
   getCommentedPosts: async (page = 1, limit = 10) => {
     const data = await fetchAPI(`/api/posts/commented?page=${page}&limit=${limit}`);
+
+    // Normalize response: if backend returns array directly, wrap it in an object
+    if (Array.isArray(data)) {
+      return {
+        posts: data,
+        page: page,
+        limit: limit,
+        total: data.length,
+        hasMore: data.length === limit // Assume more posts if we got full page
+      };
+    }
+
+    return data;
+  },
+
+  getSavedPosts: async (page = 1, limit = 10) => {
+    const data = await fetchAPI(`/api/posts/saved?page=${page}&limit=${limit}`);
 
     // Normalize response: if backend returns array directly, wrap it in an object
     if (Array.isArray(data)) {

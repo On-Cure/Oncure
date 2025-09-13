@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import { useAuth } from '../../../hooks/useAuth';
+import { posts as postsAPI } from '../../../lib/api';
 import PostCard from '../../../components/posts/PostCard';
 import { Loader2 } from 'lucide-react';
 
@@ -19,28 +20,7 @@ export default function SavedPostsPage() {
   const fetchSavedPosts = async (page = 1) => {
     try {
       setIsLoading(true);
-      const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8080';
-      const response = await fetch(
-        `${apiUrl}/api/posts/saved?page=${page}&limit=${pagination.limit}`,
-        { 
-          credentials: 'include',
-          headers: {
-            'Content-Type': 'application/json'
-          }
-        }
-      );
-
-      if (!response.ok) {
-        if (response.status === 401) {
-          // Don't throw error for 401, just return empty data
-          setPosts([]);
-          setError('Please log in to view saved posts');
-          return;
-        }
-        throw new Error('Failed to fetch saved posts');
-      }
-
-      const data = await response.json();
+      const data = await postsAPI.getSavedPosts(page, pagination.limit);
       
       setPosts(prev => page === 1 ? (data.posts || []) : [...prev, ...(data.posts || [])]);
       setPagination(prev => ({
@@ -51,7 +31,11 @@ export default function SavedPostsPage() {
       setError(null);
     } catch (err) {
       console.error('Error fetching saved posts:', err);
-      setError('Failed to load saved posts. Please try again later.');
+      if (err.message.includes('Unauthorized')) {
+        setError('Please log in to view saved posts');
+      } else {
+        setError('Failed to load saved posts. Please try again later.');
+      }
     } finally {
       setIsLoading(false);
     }
