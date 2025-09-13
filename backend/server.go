@@ -50,7 +50,11 @@ func main() {
 	authMiddleware := middleware.Auth(dbConn)
 
 	// Serve static files for uploads
-	fs := http.FileServer(http.Dir("./uploads"))
+	uploadsDir := os.Getenv("UPLOAD_PATH")
+	if uploadsDir == "" {
+		uploadsDir = "./uploads"
+	}
+	fs := http.FileServer(http.Dir(uploadsDir))
 	router.AddRoute("GET", "/uploads/{file:.*}", func(w http.ResponseWriter, r *http.Request) {
 		http.StripPrefix("/uploads/", fs).ServeHTTP(w, r)
 	})

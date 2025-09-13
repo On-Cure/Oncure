@@ -22,20 +22,31 @@ export default function SavedPostsPage() {
       const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8080';
       const response = await fetch(
         `${apiUrl}/api/posts/saved?page=${page}&limit=${pagination.limit}`,
-        { credentials: 'include' }
+        { 
+          credentials: 'include',
+          headers: {
+            'Content-Type': 'application/json'
+          }
+        }
       );
 
       if (!response.ok) {
+        if (response.status === 401) {
+          // Don't throw error for 401, just return empty data
+          setPosts([]);
+          setError('Please log in to view saved posts');
+          return;
+        }
         throw new Error('Failed to fetch saved posts');
       }
 
       const data = await response.json();
       
-      setPosts(prev => page === 1 ? data.posts : [...prev, ...data.posts]);
+      setPosts(prev => page === 1 ? (data.posts || []) : [...prev, ...(data.posts || [])]);
       setPagination(prev => ({
         ...prev,
         page,
-        hasMore: data.hasMore,
+        hasMore: data.hasMore || false,
       }));
       setError(null);
     } catch (err) {
