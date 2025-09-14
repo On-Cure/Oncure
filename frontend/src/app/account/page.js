@@ -126,10 +126,11 @@ export default function AccountPage() {
               <div className="flex items-center gap-4">
                 <div>
                   <p className="text-2xl font-bold text-primary">
-                    {balance ? `${balance.hbar.toFixed(2)} HBAR` : "0.00 HBAR"}
+                    
+                    {balance ? `${balance.ksh.toLocaleString()} KSH` : "0 KSH"}
                   </p>
                   <p className="text-text-secondary">
-                    ≈ {balance ? `${balance.ksh.toLocaleString()} KSH` : "0 KSH"}
+                    ≈ {balance ? `${balance.hbar.toFixed(2)} HBAR` : "0.00 HBAR"}
                   </p>
                 </div>
               </div>
@@ -191,10 +192,10 @@ export default function AccountPage() {
                   <div className="text-right">
                     <p className={`font-semibold ${getTransactionColor(tx.type)}`}>
                       {tx.type.includes('sent') || tx.type === 'withdrawal' ? '-' : '+'}
-                      {tx.amount} HBAR
+                      {tx.ksh_amount?.toLocaleString()} KSH
                     </p>
                     <p className="text-sm text-text-secondary">
-                      ≈ {tx.ksh_amount?.toLocaleString()} KSH
+                      ≈ {tx.amount} HBAR
                     </p>
                   </div>
                 </div>
