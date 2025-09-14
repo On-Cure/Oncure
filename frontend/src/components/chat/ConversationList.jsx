@@ -20,7 +20,7 @@ export default function ConversationList({
     padding: '0.75rem',
     minHeight: 0, // Important for flex child to allow scrolling
     scrollbarWidth: 'thin',
-    scrollbarColor: '#2A3343 transparent'
+    scrollbarColor: 'rgb(var(--color-border)) transparent'
   };
 
   const loadingStyles = {
@@ -28,7 +28,7 @@ export default function ConversationList({
     alignItems: 'center',
     justifyContent: 'center',
     padding: '2rem',
-    color: '#B8C1CF'
+    color: 'rgb(var(--color-text-secondary))'
   };
 
   const emptyStyles = {
@@ -37,7 +37,7 @@ export default function ConversationList({
     alignItems: 'center',
     justifyContent: 'center',
     padding: '2rem',
-    color: '#B8C1CF',
+    color: 'rgb(var(--color-text-secondary))',
     textAlign: 'center'
   };
 
@@ -49,26 +49,26 @@ export default function ConversationList({
     borderRadius: '0.75rem',
     cursor: 'pointer',
     transition: 'all 0.2s ease',
-    backgroundColor: isSelected ? 'rgba(58, 134, 255, 0.15)' : 'transparent',
-    border: isSelected ? '1px solid rgba(58, 134, 255, 0.4)' : hasUnread ? '1px solid rgba(255, 0, 110, 0.3)' : '1px solid transparent',
+    backgroundColor: isSelected ? 'rgba(var(--color-primary), 0.15)' : 'transparent',
+    border: isSelected ? '1px solid rgba(var(--color-primary), 0.4)' : hasUnread ? '1px solid rgba(var(--color-tertiary), 0.3)' : '1px solid transparent',
     marginBottom: '0.5rem',
     position: 'relative',
-    boxShadow: isSelected ? '0 2px 8px rgba(58, 134, 255, 0.1)' : 'none'
+    boxShadow: isSelected ? '0 2px 8px rgba(var(--color-primary), 0.1)' : 'none'
   });
 
   const avatarStyles = {
     width: '3.5rem',
     height: '3.5rem',
     borderRadius: '50%',
-    background: 'linear-gradient(135deg, #3A86FF 0%, #8338EC 100%)',
+    background: 'linear-gradient(135deg, rgb(var(--color-primary)) 0%, rgb(var(--color-secondary)) 100%)',
     display: 'flex',
     alignItems: 'center',
     justifyContent: 'center',
-    color: '#FFFFFF',
+    color: 'rgb(var(--color-background))',
     fontSize: '1rem',
     fontWeight: '700',
     flexShrink: 0,
-    boxShadow: '0 2px 8px rgba(58, 134, 255, 0.2)'
+    boxShadow: '0 2px 8px rgba(var(--color-primary), 0.2)'
   };
 
   const avatarImageStyles = {
@@ -87,7 +87,7 @@ export default function ConversationList({
   const nameStyles = (hasUnread) => ({
     fontSize: '1rem',
     fontWeight: hasUnread ? '600' : '500',
-    color: '#FFFFFF',
+    color: 'rgb(var(--color-text-primary))',
     marginBottom: '0.25rem',
     overflow: 'hidden',
     textOverflow: 'ellipsis',
@@ -96,7 +96,7 @@ export default function ConversationList({
 
   const messagePreviewStyles = (hasUnread) => ({
     fontSize: '0.875rem',
-    color: hasUnread ? '#B8C1CF' : '#6C7A89',
+    color: hasUnread ? 'rgb(var(--color-text-secondary))' : 'rgb(var(--color-text-disabled))',
     overflow: 'hidden',
     textOverflow: 'ellipsis',
     whiteSpace: 'nowrap',
@@ -105,7 +105,7 @@ export default function ConversationList({
 
   const timestampStyles = {
     fontSize: '0.75rem',
-    color: '#6C7A89',
+    color: 'rgb(var(--color-text-disabled))',
     marginTop: '0.125rem'
   };
 
@@ -113,8 +113,8 @@ export default function ConversationList({
     position: 'absolute',
     top: '0.5rem',
     right: '0.5rem',
-    backgroundColor: '#FF006E',
-    color: '#FFFFFF',
+    backgroundColor: 'rgb(var(--color-tertiary))',
+    color: 'rgb(var(--color-background))',
     fontSize: '0.75rem',
     fontWeight: '600',
     borderRadius: '50%',
@@ -130,12 +130,12 @@ export default function ConversationList({
     width: '1rem',
     height: '1rem',
     borderRadius: '50%',
-    backgroundColor: '#06D6A0',
-    border: '3px solid #1A2333',
+    backgroundColor: 'rgb(var(--color-success, 6 214 160))',
+    border: '3px solid rgb(var(--color-surface))',
     position: 'absolute',
     bottom: '-2px',
     right: '-2px',
-    boxShadow: '0 0 0 2px rgba(6, 214, 160, 0.3)'
+    boxShadow: '0 0 0 2px rgba(var(--color-success, 6 214 160), 0.3)'
   };
 
   if (loading) {
@@ -145,8 +145,8 @@ export default function ConversationList({
           <div style={{
             width: '1.5rem',
             height: '1.5rem',
-            border: '2px solid #2A3343',
-            borderTop: '2px solid #3A86FF',
+            border: '2px solid rgb(var(--color-border))',
+            borderTop: '2px solid rgb(var(--color-primary))',
             borderRadius: '50%',
             animation: 'spin 1s linear infinite'
           }}></div>
@@ -219,7 +219,7 @@ export default function ConversationList({
             onClick={() => onConversationSelect(conversation)}
             onMouseEnter={(e) => {
               if (!isSelected) {
-                e.target.style.backgroundColor = 'rgba(184, 193, 207, 0.05)';
+                e.target.style.backgroundColor = 'rgba(var(--color-text-secondary), 0.05)';
               }
             }}
             onMouseLeave={(e) => {

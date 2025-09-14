@@ -46,6 +46,30 @@
     --color-text-primary: 51 51 51; /* #333333 */
     --color-text-secondary: 107 107 107; /* #6B6B6B */
     --color-text-disabled: 156 163 175; /* #9CA3AF */
+
+    /* Status colors for light theme */
+    --color-success: 5 179 134; /* #05B386 */
+    --color-success-light: 77 232 190; /* #4DE8BE */
+    --color-success-dark: 6 214 160; /* #06D6A0 */
+
+    --color-warning: 230 188 92; /* #E6BC5C */
+    --color-warning-light: 255 223 140; /* #FFDF8C */
+    --color-warning-dark: 255 209 102; /* #FFD166 */
+
+    --color-error: 214 61 98; /* #D63D62 */
+    --color-error-light: 244 122 151; /* #F47A97 */
+    --color-error-dark: 239 71 111; /* #EF476F */
+
+    --color-info: 14 119 153; /* #0E7799 */
+    --color-info-light: 77 172 208; /* #4DACD0 */
+    --color-info-dark: 17 138 178; /* #118AB2 */
+
+    /* Radius values */
+    --radius-xs: 0.125rem; /* 2px */
+    --radius-sm: 0.25rem; /* 4px */
+    --radius-md: 0.5rem; /* 8px */
+    --radius-lg: 1rem; /* 16px */
+    --radius-xl: 1.5rem; /* 24px */
   }
 
   .dark {

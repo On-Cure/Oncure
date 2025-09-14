@@ -49,16 +49,16 @@ export default function MessageBubble({ message, isOwn, showAvatar, showTimestam
     width: '2rem',
     height: '2rem',
     borderRadius: '50%',
-    backgroundColor: '#3A86FF', // Primary color from style guide
+    backgroundColor: 'rgb(var(--color-primary))',
     display: 'flex',
     alignItems: 'center',
     justifyContent: 'center',
-    color: '#FFFFFF',
+    color: 'rgb(var(--color-background))',
     fontSize: '0.75rem',
     fontWeight: '600',
     flexShrink: 0,
     visibility: showAvatar ? 'visible' : 'hidden',
-    border: '2px solid #2A3343' // Border color from style guide
+    border: '2px solid rgb(var(--color-border))'
   };
 
   const avatarImageStyles = {
@@ -80,24 +80,24 @@ export default function MessageBubble({ message, isOwn, showAvatar, showTimestam
     borderRadius: isOwn
       ? '1.25rem 1.25rem 0.25rem 1.25rem'
       : '1.25rem 1.25rem 1.25rem 0.25rem',
-    backgroundColor: isOwn ? '#3A86FF' : '#2A3343', // Style guide colors
-    color: '#FFFFFF',
+    backgroundColor: isOwn ? 'rgb(var(--color-primary))' : 'rgb(var(--color-border))',
+    color: isOwn ? 'rgb(var(--color-background))' : 'rgb(var(--color-text-primary))',
     fontSize: '0.95rem',
     lineHeight: '1.4',
     wordWrap: 'break-word',
     overflowWrap: 'break-word',
     wordBreak: 'break-word',
     transition: 'all 0.2s ease',
-    border: isOwn ? 'none' : '1px solid #374151',
+    border: isOwn ? 'none' : '1px solid rgb(var(--color-border))',
     boxShadow: isOwn
-      ? '0 2px 8px rgba(58, 134, 255, 0.3)'
+      ? '0 2px 8px rgba(var(--color-primary), 0.3)'
       : '0 2px 8px rgba(0, 0, 0, 0.2)',
     position: 'relative'
   };
 
   const timeStyles = {
     fontSize: '0.7rem',
-    color: isOwn ? 'rgba(255, 255, 255, 0.7)' : '#9CA3AF',
+    color: isOwn ? 'rgba(var(--color-background), 0.7)' : 'rgb(var(--color-text-disabled))',
     marginTop: '0.25rem',
     textAlign: isOwn ? 'right' : 'left',
     fontWeight: '400'
@@ -105,7 +105,7 @@ export default function MessageBubble({ message, isOwn, showAvatar, showTimestam
 
   const senderNameStyles = {
     fontSize: '0.75rem',
-    color: '#3A86FF',
+    color: 'rgb(var(--color-primary))',
     fontWeight: '600',
     marginBottom: '0.25rem',
     display: isOwn ? 'none' : 'block'
@@ -113,7 +113,7 @@ export default function MessageBubble({ message, isOwn, showAvatar, showTimestam
 
   const statusStyles = {
     fontSize: '0.7rem',
-    color: '#6C7A89',
+    color: 'rgb(var(--color-text-disabled))',
     marginTop: '0.25rem',
     textAlign: 'right',
     display: 'flex',
@@ -131,19 +131,19 @@ export default function MessageBubble({ message, isOwn, showAvatar, showTimestam
       return {
         icon: <CheckCheck style={{ width: '0.875rem', height: '0.875rem' }} />,
         text: 'Read',
-        color: '#06D6A0'
+        color: 'rgb(var(--color-success, 6 214 160))'
       };
     } else if (message.id) {
       return {
         icon: <Check style={{ width: '0.875rem', height: '0.875rem' }} />,
         text: 'Delivered',
-        color: '#6C7A89'
+        color: 'rgb(var(--color-text-disabled))'
       };
     } else {
       return {
         icon: <Check style={{ width: '0.875rem', height: '0.875rem' }} />,
         text: 'Sent',
-        color: '#6C7A89'
+        color: 'rgb(var(--color-text-disabled))'
       };
     }
   };

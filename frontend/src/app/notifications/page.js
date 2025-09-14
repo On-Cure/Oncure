@@ -99,16 +99,16 @@ export default function NotificationsPage() {
     switch (type) {
       case 'follow':
       case 'follow_request':
-        return <Users size={20} className="text-[#3A86FF]" />;
+        return <Users size={20} style={{color: 'rgb(var(--color-primary))'}} />;
       case 'group_invitation':
       case 'group_join_request':
-        return <Users size={20} className="text-[#06D6A0]" />;
+        return <Users size={20} style={{color: 'rgb(var(--color-success))'}} />;
       case 'like':
-        return <Heart size={20} className="text-[#EF476F]" />;
+        return <Heart size={20} style={{color: 'rgb(var(--color-tertiary))'}} />;
       case 'comment':
-        return <MessageSquare size={20} className="text-[#8338EC]" />;
+        return <MessageSquare size={20} style={{color: 'rgb(var(--color-secondary))'}} />;
       default:
-        return <Bell size={20} className="text-[#B8C1CF]" />;
+        return <Bell size={20} style={{color: 'rgb(var(--color-text-secondary))'}} />;
     }
   };
 
@@ -126,15 +126,15 @@ export default function NotificationsPage() {
     <>
       <Navbar />
       <div className="w-full px-3 sm:px-4 lg:px-6 xl:px-8 lg:pl-8 py-4 space-y-6" style={{ paddingTop: '5rem' }}>
-        <div className="bg-[#1A2333] border border-[#2A3343] rounded-lg p-6 shadow-xl">
+        <div className="rounded-lg p-6 shadow-xl" style={{backgroundColor: 'rgb(var(--color-surface))', border: '1px solid rgb(var(--color-border))'}}>
           <div className="flex items-center justify-between mb-6">
             <div className="flex items-center gap-3">
-              <div className="w-12 h-12 bg-gradient-to-r from-[#3A86FF] to-[#8338EC] rounded-full flex items-center justify-center shadow-[0_0_15px_rgba(58,134,255,0.3)]">
-                <Bell size={24} className="text-white" />
+              <div className="w-12 h-12 rounded-full flex items-center justify-center" style={{background: 'linear-gradient(135deg, rgb(var(--color-primary)) 0%, rgb(var(--color-secondary)) 100%)', boxShadow: '0 0 15px rgba(var(--color-primary), 0.3)'}}>
+                <Bell size={24} style={{color: 'rgb(var(--color-background))'}} />
               </div>
               <div>
-                <h1 className="text-2xl font-bold text-[#FFFFFF] font-outfit">Notifications</h1>
-                <p className="text-[#B8C1CF] font-inter">Stay updated with your latest activities</p>
+                <h1 className="text-2xl font-bold font-outfit" style={{color: 'rgb(var(--color-text-primary))'}}>Notifications</h1>
+                <p className="font-inter" style={{color: 'rgb(var(--color-text-secondary))'}}>Stay updated with your latest activities</p>
               </div>
             </div>
             
@@ -187,11 +187,13 @@ export default function NotificationsPage() {
               {notificationsList.map((notification) => (
                 <div 
                   key={notification.id}
-                  className={`border rounded-lg p-4 cursor-pointer transition-all duration-250 hover:scale-[1.01] ${
-                    notification.is_read 
-                      ? 'bg-[#0F1624] border-[#2A3343] hover:border-[#3A86FF]' 
-                      : 'bg-[#3A86FF]/10 border-[#3A86FF]/30 hover:border-[#3A86FF]'
-                  }`}
+                  className="rounded-lg p-4 cursor-pointer transition-all duration-250 hover:scale-[1.01]"
+                  style={{
+                    backgroundColor: notification.is_read ? 'rgb(var(--color-background))' : 'rgba(var(--color-primary), 0.1)',
+                    border: notification.is_read ? '1px solid rgb(var(--color-border))' : '1px solid rgba(var(--color-primary), 0.3)'
+                  }}
+                  onMouseEnter={(e) => e.target.style.borderColor = 'rgb(var(--color-primary))'}
+                  onMouseLeave={(e) => e.target.style.borderColor = notification.is_read ? 'rgb(var(--color-border))' : 'rgba(var(--color-primary), 0.3)'}
                   onClick={() => !notification.is_read && handleMarkAsRead(notification.id)}
                 >
                   <div className="flex items-start gap-4">
@@ -199,10 +201,13 @@ export default function NotificationsPage() {
                       {getNotificationIcon(notification.type)}
                     </div>
                     <div className="flex-1 min-w-0">
-                      <p className={`font-inter break-words ${notification.is_read ? 'text-[#B8C1CF]' : 'text-[#FFFFFF] font-medium'}`}>
+                      <p className="font-inter break-words" style={{
+                        color: notification.is_read ? 'rgb(var(--color-text-secondary))' : 'rgb(var(--color-text-primary))',
+                        fontWeight: notification.is_read ? '400' : '500'
+                      }}>
                         {notification.message}
                       </p>
-                      <p className="text-[#6C7A89] text-sm mt-1 font-inter">
+                      <p className="text-sm mt-1 font-inter" style={{color: 'rgb(var(--color-text-disabled))'}}>
                         {formatDate(notification.created_at)}
                       </p>
                       {notification.type === 'follow_request' && !notification.is_read && (
@@ -212,7 +217,12 @@ export default function NotificationsPage() {
                               e.stopPropagation();
                               handleAcceptFollowRequest(notification.related_id, notification.id);
                             }}
-                            className="bg-gradient-to-r from-[#06D6A0] to-[#3A86FF] hover:shadow-[0_0_15px_rgba(6,214,160,0.5)] text-white px-4 py-2 rounded-lg text-sm font-medium transition-all duration-250 hover:scale-105"
+                            className="px-4 py-2 rounded-lg text-sm font-medium transition-all duration-250 hover:scale-105"
+                            style={{
+                              background: 'linear-gradient(135deg, rgb(var(--color-success)) 0%, rgb(var(--color-primary)) 100%)',
+                              color: 'rgb(var(--color-background))',
+                              border: 'none'
+                            }}
                           >
                             Accept
                           </button>
@@ -221,7 +231,22 @@ export default function NotificationsPage() {
                               e.stopPropagation();
                               handleDeclineFollowRequest(notification.related_id, notification.id);
                             }}
-                            className="bg-[#0F1624] hover:bg-[#2A3343] text-[#B8C1CF] hover:text-[#FFFFFF] px-4 py-2 rounded-lg text-sm font-medium border border-[#2A3343] hover:border-[#EF476F] transition-all duration-250 hover:scale-105"
+                            className="px-4 py-2 rounded-lg text-sm font-medium transition-all duration-250 hover:scale-105"
+                            style={{
+                              backgroundColor: 'rgb(var(--color-background))',
+                              color: 'rgb(var(--color-text-secondary))',
+                              border: '1px solid rgb(var(--color-border))'
+                            }}
+                            onMouseEnter={(e) => {
+                              e.target.style.backgroundColor = 'rgb(var(--color-border))';
+                              e.target.style.color = 'rgb(var(--color-text-primary))';
+                              e.target.style.borderColor = 'rgb(var(--color-tertiary))';
+                            }}
+                            onMouseLeave={(e) => {
+                              e.target.style.backgroundColor = 'rgb(var(--color-background))';
+                              e.target.style.color = 'rgb(var(--color-text-secondary))';
+                              e.target.style.borderColor = 'rgb(var(--color-border))';
+                            }}
                           >
                             Decline
                           </button>
@@ -234,7 +259,12 @@ export default function NotificationsPage() {
                               e.stopPropagation();
                               handleGroupInvitation(notification.related_id, 'accept', notification.id);
                             }}
-                            className="bg-gradient-to-r from-[#06D6A0] to-[#3A86FF] hover:shadow-[0_0_15px_rgba(6,214,160,0.5)] text-white px-4 py-2 rounded-lg text-sm font-medium transition-all duration-250 hover:scale-105"
+                            className="px-4 py-2 rounded-lg text-sm font-medium transition-all duration-250 hover:scale-105"
+                            style={{
+                              background: 'linear-gradient(135deg, rgb(var(--color-success)) 0%, rgb(var(--color-primary)) 100%)',
+                              color: 'rgb(var(--color-background))',
+                              border: 'none'
+                            }}
                           >
                             Accept
                           </button>
@@ -243,7 +273,22 @@ export default function NotificationsPage() {
                               e.stopPropagation();
                               handleGroupInvitation(notification.related_id, 'decline', notification.id);
                             }}
-                            className="bg-[#0F1624] hover:bg-[#2A3343] text-[#B8C1CF] hover:text-[#FFFFFF] px-4 py-2 rounded-lg text-sm font-medium border border-[#2A3343] hover:border-[#EF476F] transition-all duration-250 hover:scale-105"
+                            className="px-4 py-2 rounded-lg text-sm font-medium transition-all duration-250 hover:scale-105"
+                            style={{
+                              backgroundColor: 'rgb(var(--color-background))',
+                              color: 'rgb(var(--color-text-secondary))',
+                              border: '1px solid rgb(var(--color-border))'
+                            }}
+                            onMouseEnter={(e) => {
+                              e.target.style.backgroundColor = 'rgb(var(--color-border))';
+                              e.target.style.color = 'rgb(var(--color-text-primary))';
+                              e.target.style.borderColor = 'rgb(var(--color-tertiary))';
+                            }}
+                            onMouseLeave={(e) => {
+                              e.target.style.backgroundColor = 'rgb(var(--color-background))';
+                              e.target.style.color = 'rgb(var(--color-text-secondary))';
+                              e.target.style.borderColor = 'rgb(var(--color-border))';
+                            }}
                           >
                             Decline
                           </button>
@@ -256,7 +301,12 @@ export default function NotificationsPage() {
                               e.stopPropagation();
                               handleGroupJoinRequest(notification.related_id, notification.user_id, 'accept', notification.id);
                             }}
-                            className="bg-gradient-to-r from-[#06D6A0] to-[#3A86FF] hover:shadow-[0_0_15px_rgba(6,214,160,0.5)] text-white px-4 py-2 rounded-lg text-sm font-medium transition-all duration-250 hover:scale-105"
+                            className="px-4 py-2 rounded-lg text-sm font-medium transition-all duration-250 hover:scale-105"
+                            style={{
+                              background: 'linear-gradient(135deg, rgb(var(--color-success)) 0%, rgb(var(--color-primary)) 100%)',
+                              color: 'rgb(var(--color-background))',
+                              border: 'none'
+                            }}
                           >
                             Accept
                           </button>
@@ -265,7 +315,22 @@ export default function NotificationsPage() {
                               e.stopPropagation();
                               handleGroupJoinRequest(notification.related_id, notification.user_id, 'decline', notification.id);
                             }}
-                            className="bg-[#0F1624] hover:bg-[#2A3343] text-[#B8C1CF] hover:text-[#FFFFFF] px-4 py-2 rounded-lg text-sm font-medium border border-[#2A3343] hover:border-[#EF476F] transition-all duration-250 hover:scale-105"
+                            className="px-4 py-2 rounded-lg text-sm font-medium transition-all duration-250 hover:scale-105"
+                            style={{
+                              backgroundColor: 'rgb(var(--color-background))',
+                              color: 'rgb(var(--color-text-secondary))',
+                              border: '1px solid rgb(var(--color-border))'
+                            }}
+                            onMouseEnter={(e) => {
+                              e.target.style.backgroundColor = 'rgb(var(--color-border))';
+                              e.target.style.color = 'rgb(var(--color-text-primary))';
+                              e.target.style.borderColor = 'rgb(var(--color-tertiary))';
+                            }}
+                            onMouseLeave={(e) => {
+                              e.target.style.backgroundColor = 'rgb(var(--color-background))';
+                              e.target.style.color = 'rgb(var(--color-text-secondary))';
+                              e.target.style.borderColor = 'rgb(var(--color-border))';
+                            }}
                           >
                             Decline
                           </button>
@@ -273,7 +338,7 @@ export default function NotificationsPage() {
                       )}
                     </div>
                     {!notification.is_read && (
-                      <div className="w-2 h-2 bg-[#3A86FF] rounded-full flex-shrink-0 mt-2"></div>
+                      <div className="w-2 h-2 rounded-full flex-shrink-0 mt-2" style={{backgroundColor: 'rgb(var(--color-primary))'}}></div>
                     )}
                   </div>
                 </div>

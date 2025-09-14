@@ -24,9 +24,6 @@ func NewAuthHandler(db *sql.DB) *AuthHandler {
 
 // Register handles user registration
 func (h *AuthHandler) Register(w http.ResponseWriter, r *http.Request) {
-	// Set CORS headers
-	w.Header().Set("Access-Control-Allow-Origin", "https://oncare19.netlify.app")
-	w.Header().Set("Access-Control-Allow-Credentials", "true")
 	// Parse request body
 	var req struct {
 		Email       string `json:"email"`
@@ -83,9 +80,6 @@ func (h *AuthHandler) Register(w http.ResponseWriter, r *http.Request) {
 
 // Login handles user login
 func (h *AuthHandler) Login(w http.ResponseWriter, r *http.Request) {
-	// Set CORS headers
-	w.Header().Set("Access-Control-Allow-Origin", "https://oncare19.netlify.app")
-	w.Header().Set("Access-Control-Allow-Credentials", "true")
 	// Parse request body
 	var req struct {
 		Email    string `json:"email"`
@@ -120,14 +114,20 @@ func (h *AuthHandler) Login(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// Set session cookie with proper cross-origin settings
+	isProduction := os.Getenv("DATABASE_URL") != ""
 	cookie := &http.Cookie{
 		Name:     "session_token",
 		Value:    sessionToken,
 		Path:     "/",
 		Expires:  time.Now().Add(7 * 24 * time.Hour),
 		HttpOnly: true,
-		SameSite: http.SameSiteNoneMode,
-		Secure:   os.Getenv("DATABASE_URL") != "", // Secure only in production
+		SameSite: func() http.SameSite {
+			if isProduction {
+				return http.SameSiteNoneMode
+			}
+			return http.SameSiteLaxMode
+		}(),
+		Secure: isProduction,
 	}
 	http.SetCookie(w, cookie)
 	
@@ -139,9 +139,6 @@ func (h *AuthHandler) Login(w http.ResponseWriter, r *http.Request) {
 
 // Logout handles user logout
 func (h *AuthHandler) Logout(w http.ResponseWriter, r *http.Request) {
-	// Set CORS headers
-	w.Header().Set("Access-Control-Allow-Origin", "https://oncare19.netlify.app")
-	w.Header().Set("Access-Control-Allow-Credentials", "true")
 	// Get session token from cookie
 	cookie, err := r.Cookie("session_token")
 	if err != nil {
@@ -162,14 +159,20 @@ func (h *AuthHandler) Logout(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// Clear cookie
+	isProduction := os.Getenv("DATABASE_URL") != ""
 	http.SetCookie(w, &http.Cookie{
 		Name:     "session_token",
 		Value:    "",
 		Path:     "/",
 		Expires:  time.Now().Add(-time.Hour),
 		HttpOnly: true,
-		SameSite: http.SameSiteNoneMode,
-		Secure:   os.Getenv("DATABASE_URL") != "",
+		SameSite: func() http.SameSite {
+			if isProduction {
+				return http.SameSiteNoneMode
+			}
+			return http.SameSiteLaxMode
+		}(),
+		Secure: isProduction,
 	})
 
 	utils.RespondWithJSON(w, http.StatusOK, map[string]string{"message": "Logged out successfully"})
@@ -177,9 +180,6 @@ func (h *AuthHandler) Logout(w http.ResponseWriter, r *http.Request) {
 
 // GetSession retrieves the current user session
 func (h *AuthHandler) GetSession(w http.ResponseWriter, r *http.Request) {
-	// Set CORS headers
-	w.Header().Set("Access-Control-Allow-Origin", "https://oncare19.netlify.app")
-	w.Header().Set("Access-Control-Allow-Credentials", "true")
 	// Get session token from cookie
 	cookie, err := r.Cookie("session_token")
 	if err != nil {

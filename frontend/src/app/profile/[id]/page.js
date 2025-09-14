@@ -99,43 +99,43 @@ export default function UserProfilePage() {
   }
 
   return (
-    <div className="min-h-screen bg-[#0F1624]">
+    <div className="min-h-screen bg-background">
       <Navbar />
       <div className="container mx-auto max-w-4xl p-4 space-y-6" style={{ paddingTop: '5rem' }}>
         {/* Tab Navigation */}
-        <div className="bg-[#1A2333] border border-[#2A3343] rounded-lg p-6 shadow-xl">
+        <div className="bg-surface border border-border rounded-lg p-6 shadow-xl">
           <div className="flex gap-3 overflow-x-auto">
             <button
               onClick={() => setActiveTab('profile')}
               className={`flex items-center gap-2 px-6 py-3 rounded-lg font-medium transition-all duration-250 whitespace-nowrap ${
                 activeTab === 'profile'
-                  ? 'bg-gradient-to-r from-[#3A86FF] to-[#8338EC] text-white shadow-[0_0_15px_rgba(58,134,255,0.5)] hover:scale-105'
-                  : 'bg-[#0F1624] text-[#B8C1CF] hover:bg-[#2A3343] hover:text-[#FFFFFF] border border-[#2A3343] hover:border-[#3A86FF] hover:scale-105'
+                  ? 'bg-primary-gradient text-background shadow-glow hover:scale-105'
+                  : 'bg-background text-text-secondary hover:bg-border hover:text-text-primary border border-border hover:border-primary hover:scale-105'
               }`}
             >
-              <User size={18} className={activeTab === 'profile' ? 'text-white' : 'text-[#3A86FF]'} />
+              <User size={18} className={activeTab === 'profile' ? 'text-background' : 'text-primary'} />
               Profile
             </button>
             <button
               onClick={() => setActiveTab('activity')}
               className={`flex items-center gap-2 px-6 py-3 rounded-lg font-medium transition-all duration-250 whitespace-nowrap ${
                 activeTab === 'activity'
-                  ? 'bg-gradient-to-r from-[#8338EC] to-[#FF006E] text-white shadow-[0_0_15px_rgba(131,56,236,0.5)] hover:scale-105'
-                  : 'bg-[#0F1624] text-[#B8C1CF] hover:bg-[#2A3343] hover:text-[#FFFFFF] border border-[#2A3343] hover:border-[#8338EC] hover:scale-105'
+                  ? 'bg-accent-gradient text-background shadow-glow hover:scale-105'
+                  : 'bg-background text-text-secondary hover:bg-border hover:text-text-primary border border-border hover:border-secondary hover:scale-105'
               }`}
             >
-              <Activity size={18} className={activeTab === 'activity' ? 'text-white' : 'text-[#8338EC]'} />
+              <Activity size={18} className={activeTab === 'activity' ? 'text-background' : 'text-secondary'} />
               Activity
             </button>
             <button
               onClick={() => setActiveTab('connections')}
               className={`flex items-center gap-2 px-6 py-3 rounded-lg font-medium transition-all duration-250 whitespace-nowrap ${
                 activeTab === 'connections'
-                  ? 'bg-gradient-to-r from-[#FF006E] to-[#06D6A0] text-white shadow-[0_0_15px_rgba(255,0,110,0.5)] hover:scale-105'
-                  : 'bg-[#0F1624] text-[#B8C1CF] hover:bg-[#2A3343] hover:text-[#FFFFFF] border border-[#2A3343] hover:border-[#FF006E] hover:scale-105'
+                  ? 'bg-accent-gradient text-background shadow-glow hover:scale-105'
+                  : 'bg-background text-text-secondary hover:bg-border hover:text-text-primary border border-border hover:border-tertiary hover:scale-105'
               }`}
             >
-              <Users size={18} className={activeTab === 'connections' ? 'text-white' : 'text-[#FF006E]'} />
+              <Users size={18} className={activeTab === 'connections' ? 'text-background' : 'text-tertiary'} />
               Connections
             </button>
           </div>
