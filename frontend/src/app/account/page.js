@@ -145,7 +145,7 @@ export default function AccountPage() {
                 backgroundColor: 'rgb(var(--color-success))',
                 color: 'rgb(var(--color-background))'
               }}
-              onMouseEnter={(e) => e.target.style.backgroundColor = 'rgba(var(--color-success), 0.8)'}
+              onMouseEnter={(e) => e.target.style.backgroundColor = 'rgb(var(--color-success-dark))'}
               onMouseLeave={(e) => e.target.style.backgroundColor = 'rgb(var(--color-success))'}
             >
               <ArrowDownCircle size={20} />
@@ -158,7 +158,7 @@ export default function AccountPage() {
                 backgroundColor: 'rgb(var(--color-error))',
                 color: 'rgb(var(--color-background))'
               }}
-              onMouseEnter={(e) => e.target.style.backgroundColor = 'rgba(var(--color-error), 0.8)'}
+              onMouseEnter={(e) => e.target.style.backgroundColor = 'rgb(var(--color-error-dark))'}
               onMouseLeave={(e) => e.target.style.backgroundColor = 'rgb(var(--color-error))'}
             >
               <ArrowUpCircle size={20} />
@@ -247,7 +247,7 @@ export default function AccountPage() {
                     backgroundColor: 'rgb(var(--color-success))',
                     color: 'rgb(var(--color-background))'
                   }}
-                  onMouseEnter={(e) => !e.target.disabled && (e.target.style.backgroundColor = 'rgba(var(--color-success), 0.8)')}
+                  onMouseEnter={(e) => !e.target.disabled && (e.target.style.backgroundColor = 'rgb(var(--color-success-dark))')}
                   onMouseLeave={(e) => !e.target.disabled && (e.target.style.backgroundColor = 'rgb(var(--color-success))')}
                 >
                   {isProcessing ? (
@@ -312,7 +312,7 @@ export default function AccountPage() {
                     backgroundColor: 'rgb(var(--color-error))',
                     color: 'rgb(var(--color-background))'
                   }}
-                  onMouseEnter={(e) => !e.target.disabled && (e.target.style.backgroundColor = 'rgba(var(--color-error), 0.8)')}
+                  onMouseEnter={(e) => !e.target.disabled && (e.target.style.backgroundColor = 'rgb(var(--color-error-dark))')}
                   onMouseLeave={(e) => !e.target.disabled && (e.target.style.backgroundColor = 'rgb(var(--color-error))')}
                 >
                   {isProcessing ? (
