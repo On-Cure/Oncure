@@ -18,21 +18,25 @@ func CORSMiddleware(next http.Handler) http.Handler {
 		
 		// Handle origin
 		if origin != "" {
-			allowedOrigins := []string{
-				"http://localhost:3000",
-				"https://oncare19.netlify.app",
-				"https://main--oncare19.netlify.app",
-			}
-			
-			// Check for Netlify deploy previews
-			if strings.Contains(origin, "--oncare19.netlify.app") {
-				allowedOrigins = append(allowedOrigins, origin)
-			}
-			
-			for _, allowedOrigin := range allowedOrigins {
-				if origin == allowedOrigin {
-					w.Header().Set("Access-Control-Allow-Origin", origin)
-					break
+			// Allow localhost for development
+			if strings.HasPrefix(origin, "http://localhost:") || strings.HasPrefix(origin, "http://127.0.0.1:") {
+				w.Header().Set("Access-Control-Allow-Origin", origin)
+			} else {
+				allowedOrigins := []string{
+					"https://oncare19.netlify.app",
+					"https://main--oncare19.netlify.app",
+				}
+				
+				// Check for Netlify deploy previews
+				if strings.Contains(origin, "--oncare19.netlify.app") {
+					allowedOrigins = append(allowedOrigins, origin)
+				}
+				
+				for _, allowedOrigin := range allowedOrigins {
+					if origin == allowedOrigin {
+						w.Header().Set("Access-Control-Allow-Origin", origin)
+						break
+					}
 				}
 			}
 		} else {
