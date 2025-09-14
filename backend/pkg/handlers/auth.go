@@ -114,14 +114,20 @@ func (h *AuthHandler) Login(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// Set session cookie with proper cross-origin settings
+	isProduction := os.Getenv("DATABASE_URL") != ""
 	cookie := &http.Cookie{
 		Name:     "session_token",
 		Value:    sessionToken,
 		Path:     "/",
 		Expires:  time.Now().Add(7 * 24 * time.Hour),
 		HttpOnly: true,
-		SameSite: http.SameSiteNoneMode,
-		Secure:   os.Getenv("DATABASE_URL") != "", // Secure only in production
+		SameSite: func() http.SameSite {
+			if isProduction {
+				return http.SameSiteNoneMode
+			}
+			return http.SameSiteLaxMode
+		}(),
+		Secure: isProduction,
 	}
 	http.SetCookie(w, cookie)
 	
@@ -153,14 +159,20 @@ func (h *AuthHandler) Logout(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// Clear cookie
+	isProduction := os.Getenv("DATABASE_URL") != ""
 	http.SetCookie(w, &http.Cookie{
 		Name:     "session_token",
 		Value:    "",
 		Path:     "/",
 		Expires:  time.Now().Add(-time.Hour),
 		HttpOnly: true,
-		SameSite: http.SameSiteNoneMode,
-		Secure:   os.Getenv("DATABASE_URL") != "",
+		SameSite: func() http.SameSite {
+			if isProduction {
+				return http.SameSiteNoneMode
+			}
+			return http.SameSiteLaxMode
+		}(),
+		Secure: isProduction,
 	})
 
 	utils.RespondWithJSON(w, http.StatusOK, map[string]string{"message": "Logged out successfully"})
