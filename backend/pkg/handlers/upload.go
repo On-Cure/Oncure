@@ -1,8 +1,11 @@
 package handlers
 
 import (
+	"bytes"
+	"encoding/json"
 	"fmt"
 	"io"
+	"mime/multipart"
 	"net/http"
 	"os"
 	"path/filepath"
@@ -51,37 +54,38 @@ func (h *UploadHandler) UploadFile(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	// Create uploads directory if it doesn't exist
-	uploadsDir := os.Getenv("UPLOAD_PATH")
-	if uploadsDir == "" {
-		uploadsDir = "./uploads"
-	}
-	if err := os.MkdirAll(uploadsDir, 0o755); err != nil {
-		utils.RespondWithError(w, http.StatusInternalServerError, "Failed to create uploads directory")
-		return
-	}
-
 	// Generate unique filename
 	filename := fmt.Sprintf("%d_%s_%s", user.ID, uuid.New().String(), handler.Filename)
 	filename = sanitizeFilename(filename)
-	filepath := filepath.Join(uploadsDir, filename)
 
-	// Create file
-	dst, err := os.Create(filepath)
+	// Try Pinata IPFS first
+	fileURL, err := uploadToPinata(file, filename)
 	if err != nil {
-		utils.RespondWithError(w, http.StatusInternalServerError, "Failed to create file")
-		return
-	}
-	defer dst.Close()
+		// Fallback to local storage
+		uploadsDir := os.Getenv("UPLOAD_PATH")
+		if uploadsDir == "" {
+			uploadsDir = "./uploads"
+		}
+		if err := os.MkdirAll(uploadsDir, 0o755); err != nil {
+			utils.RespondWithError(w, http.StatusInternalServerError, "Failed to create uploads directory")
+			return
+		}
 
-	// Copy file contents
-	if _, err = io.Copy(dst, file); err != nil {
-		utils.RespondWithError(w, http.StatusInternalServerError, "Failed to save file")
-		return
-	}
+		filepath := filepath.Join(uploadsDir, filename)
+		dst, err := os.Create(filepath)
+		if err != nil {
+			utils.RespondWithError(w, http.StatusInternalServerError, "Failed to create file")
+			return
+		}
+		defer dst.Close()
 
-	// Return the full URL path for the uploaded file
-	fileURL := fmt.Sprintf("/uploads/%s", filename)
+		if _, err = io.Copy(dst, file); err != nil {
+			utils.RespondWithError(w, http.StatusInternalServerError, "Failed to save file")
+			return
+		}
+
+		fileURL = fmt.Sprintf("/uploads/%s", filename)
+	}
 	utils.RespondWithJSON(w, http.StatusOK, map[string]string{"url": fileURL})
 }
 
@@ -149,6 +153,56 @@ func (h *UploadHandler) UploadFilePublic(w http.ResponseWriter, r *http.Request)
 	// Return the full URL path for the uploaded file
 	fileURL := fmt.Sprintf("/uploads/%s", filename)
 	utils.RespondWithJSON(w, http.StatusOK, map[string]string{"url": fileURL})
+}
+
+// uploadToPinata uploads file to IPFS via Pinata
+func uploadToPinata(file multipart.File, filename string) (string, error) {
+	apiKey := os.Getenv("PINATA_API_KEY")
+	apiSecret := os.Getenv("PINATA_SECRET_API_KEY")
+
+	if apiKey == "" || apiSecret == "" {
+		return "", fmt.Errorf("pinata not configured")
+	}
+
+	var b bytes.Buffer
+	w := multipart.NewWriter(&b)
+
+	fw, err := w.CreateFormFile("file", filename)
+	if err != nil {
+		return "", err
+	}
+
+	if _, err = io.Copy(fw, file); err != nil {
+		return "", err
+	}
+
+	w.Close()
+
+	req, err := http.NewRequest("POST", "https://api.pinata.cloud/pinning/pinFileToIPFS", &b)
+	if err != nil {
+		return "", err
+	}
+
+	req.Header.Set("Content-Type", w.FormDataContentType())
+	req.Header.Set("pinata_api_key", apiKey)
+	req.Header.Set("pinata_secret_api_key", apiSecret)
+
+	client := &http.Client{}
+	resp, err := client.Do(req)
+	if err != nil {
+		return "", err
+	}
+	defer resp.Body.Close()
+
+	var result struct {
+		IpfsHash string `json:"IpfsHash"`
+	}
+
+	if err := json.NewDecoder(resp.Body).Decode(&result); err != nil {
+		return "", err
+	}
+
+	return fmt.Sprintf("https://gateway.pinata.cloud/ipfs/%s", result.IpfsHash), nil
 }
 
 // sanitizeFilename sanitizes a filename
