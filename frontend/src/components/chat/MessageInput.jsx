@@ -93,8 +93,8 @@ export default function MessageInput({ onSendMessage, onTypingChange, disabled, 
 
   const containerStyles = {
     padding: '1rem 1.5rem',
-    borderTop: '1px solid #2A3343',
-    backgroundColor: '#1A2333'
+    borderTop: '1px solid rgb(var(--color-border))',
+    backgroundColor: 'rgb(var(--color-surface))'
   };
 
   const formStyles = {
@@ -107,9 +107,9 @@ export default function MessageInput({ onSendMessage, onTypingChange, disabled, 
   const inputContainerStyles = {
     flex: 1,
     position: 'relative',
-    backgroundColor: '#0F1624',
+    backgroundColor: 'rgb(var(--color-background))',
     borderRadius: '1.5rem',
-    border: '1px solid #2A3343',
+    border: '1px solid rgb(var(--color-border))',
     display: 'flex',
     alignItems: 'flex-end',
     padding: '0.75rem 1rem',
@@ -121,7 +121,7 @@ export default function MessageInput({ onSendMessage, onTypingChange, disabled, 
     backgroundColor: 'transparent',
     border: 'none',
     outline: 'none',
-    color: '#FFFFFF',
+    color: 'rgb(var(--color-text-primary))',
     fontSize: '0.875rem',
     lineHeight: '1.4',
     resize: 'none',
@@ -129,12 +129,12 @@ export default function MessageInput({ onSendMessage, onTypingChange, disabled, 
     maxHeight: '120px',
     fontFamily: 'inherit',
     '::placeholder': {
-      color: '#6C7A89'
+      color: 'rgb(var(--color-text-disabled))'
     }
   };
 
   const emojiButtonStyles = {
-    color: '#B8C1CF',
+    color: 'rgb(var(--color-text-secondary))',
     padding: '0.25rem',
     borderRadius: '0.375rem',
     cursor: 'pointer',
@@ -143,8 +143,8 @@ export default function MessageInput({ onSendMessage, onTypingChange, disabled, 
   };
 
   const sendButtonStyles = {
-    backgroundColor: disabled ? '#2A3343' : '#3A86FF',
-    color: '#FFFFFF',
+    backgroundColor: disabled ? 'rgb(var(--color-border))' : 'rgb(var(--color-primary))',
+    color: 'rgb(var(--color-background))',
     border: 'none',
     borderRadius: '50%',
     width: '2.5rem',
@@ -162,8 +162,8 @@ export default function MessageInput({ onSendMessage, onTypingChange, disabled, 
     bottom: '100%',
     right: 0,
     marginBottom: '0.5rem',
-    backgroundColor: '#1A2333',
-    border: '1px solid #2A3343',
+    backgroundColor: 'rgb(var(--color-surface))',
+    border: '1px solid rgb(var(--color-border))',
     borderRadius: '0.75rem',
     padding: '1rem',
     boxShadow: '0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05)',
@@ -198,7 +198,7 @@ export default function MessageInput({ onSendMessage, onTypingChange, disabled, 
         <div 
           style={{
             ...inputContainerStyles,
-            borderColor: message.trim() ? '#3A86FF' : '#2A3343'
+            borderColor: message.trim() ? 'rgb(var(--color-primary))' : 'rgb(var(--color-border))'
           }}
         >
           <textarea
@@ -216,8 +216,8 @@ export default function MessageInput({ onSendMessage, onTypingChange, disabled, 
             type="button"
             onClick={() => setShowEmojiPicker(!showEmojiPicker)}
             style={emojiButtonStyles}
-            onMouseEnter={(e) => e.target.style.color = '#3A86FF'}
-            onMouseLeave={(e) => e.target.style.color = '#B8C1CF'}
+            onMouseEnter={(e) => e.target.style.color = 'rgb(var(--color-primary))'}
+            onMouseLeave={(e) => e.target.style.color = 'rgb(var(--color-text-secondary))'}
           >
             <Smile style={{ width: '1.25rem', height: '1.25rem' }} />
           </button>
@@ -229,12 +229,12 @@ export default function MessageInput({ onSendMessage, onTypingChange, disabled, 
           style={sendButtonStyles}
           onMouseEnter={(e) => {
             if (!disabled && message.trim()) {
-              e.target.style.backgroundColor = '#2D6FD9';
+              e.target.style.backgroundColor = 'rgb(var(--color-primary-hover))';
             }
           }}
           onMouseLeave={(e) => {
             if (!disabled && message.trim()) {
-              e.target.style.backgroundColor = '#3A86FF';
+              e.target.style.backgroundColor = 'rgb(var(--color-primary))';
             }
           }}
         >
@@ -253,7 +253,7 @@ export default function MessageInput({ onSendMessage, onTypingChange, disabled, 
                   setShowEmojiPicker(false);
                 }}
                 style={emojiItemStyles}
-                onMouseEnter={(e) => e.target.style.backgroundColor = 'rgba(58, 134, 255, 0.1)'}
+                onMouseEnter={(e) => e.target.style.backgroundColor = 'rgba(var(--color-primary), 0.1)'}
                 onMouseLeave={(e) => e.target.style.backgroundColor = 'transparent'}
               >
                 {emoji}
@@ -265,7 +265,7 @@ export default function MessageInput({ onSendMessage, onTypingChange, disabled, 
 
       <style jsx>{`
         textarea::placeholder {
-          color: #6C7A89;
+          color: rgb(var(--color-text-disabled));
         }
       `}</style>
     </div>

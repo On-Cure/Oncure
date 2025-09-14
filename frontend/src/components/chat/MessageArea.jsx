@@ -225,11 +225,11 @@ export default function MessageArea({ conversation, currentUser, onMessagesRead 
   const getHeaderStyles = () => {
     const baseStyles = {
       padding: '1rem',
-      borderBottom: '1px solid #2A3343',
+      borderBottom: '1px solid rgb(var(--color-border))',
       display: 'flex',
       alignItems: 'center',
       gap: '0.75rem',
-      backgroundColor: '#2A3343',
+      backgroundColor: 'rgb(var(--color-border))',
       minHeight: '80px'
     };
 
@@ -263,11 +263,11 @@ export default function MessageArea({ conversation, currentUser, onMessagesRead 
         width: isSmallScreen ? '2rem' : '2.5rem',
         height: isSmallScreen ? '2rem' : '2.5rem',
         borderRadius: '50%',
-        backgroundColor: '#3A86FF',
+        backgroundColor: 'rgb(var(--color-primary))',
         display: 'flex',
         alignItems: 'center',
         justifyContent: 'center',
-        color: '#FFFFFF',
+        color: 'rgb(var(--color-background))',
         fontSize: isSmallScreen ? '0.75rem' : '0.875rem',
         fontWeight: '600',
         position: 'relative'
@@ -285,7 +285,7 @@ export default function MessageArea({ conversation, currentUser, onMessagesRead 
       nameStyles: {
         fontSize: isSmallScreen ? '1rem' : isMediumScreen ? '1.0625rem' : '1.125rem',
         fontWeight: '600',
-        color: '#FFFFFF',
+        color: 'rgb(var(--color-text-primary))',
         marginBottom: '0.125rem',
         display: 'flex',
         alignItems: 'center',
@@ -294,7 +294,7 @@ export default function MessageArea({ conversation, currentUser, onMessagesRead 
       },
       statusStyles: {
         fontSize: isSmallScreen ? '0.75rem' : '0.875rem',
-        color: '#B8C1CF'
+        color: 'rgb(var(--color-text-secondary))'
       }
     };
   };
@@ -308,7 +308,7 @@ export default function MessageArea({ conversation, currentUser, onMessagesRead 
     padding: '1rem 0',
     display: 'flex',
     flexDirection: 'column',
-    backgroundColor: '#1A2333' // Plain chat background - no pattern
+    backgroundColor: 'rgb(var(--color-surface))' // Plain chat background - no pattern
   };
 
   const loadingStyles = {
@@ -316,7 +316,7 @@ export default function MessageArea({ conversation, currentUser, onMessagesRead 
     alignItems: 'center',
     justifyContent: 'center',
     flex: 1,
-    color: '#B8C1CF'
+    color: 'rgb(var(--color-text-secondary))'
   };
 
   const emptyStyles = {
@@ -325,7 +325,7 @@ export default function MessageArea({ conversation, currentUser, onMessagesRead 
     alignItems: 'center',
     justifyContent: 'center',
     flex: 1,
-    color: '#B8C1CF',
+    color: 'rgb(var(--color-text-secondary))',
     textAlign: 'center'
   };
 
@@ -384,7 +384,7 @@ export default function MessageArea({ conversation, currentUser, onMessagesRead 
           </div>
           <div style={statusStyles}>
             {isTyping && conversation.id === conversation.id ? (
-              <span style={{ color: '#06D6A0', fontStyle: 'italic' }}>
+              <span style={{ color: 'rgb(var(--color-success, 6 214 160))', fontStyle: 'italic' }}>
                 typing...
               </span>
             ) : (
@@ -396,7 +396,7 @@ export default function MessageArea({ conversation, currentUser, onMessagesRead 
         </div>
 
         <button style={{
-          color: '#B8C1CF',
+          color: 'rgb(var(--color-text-secondary))',
           padding: '0.5rem',
           borderRadius: '0.375rem',
           transition: 'background-color 0.2s'
@@ -412,8 +412,8 @@ export default function MessageArea({ conversation, currentUser, onMessagesRead 
             <div style={{
               width: '1.5rem',
               height: '1.5rem',
-              border: '2px solid #2A3343',
-              borderTop: '2px solid #3A86FF',
+              border: '2px solid rgb(var(--color-border))',
+              borderTop: '2px solid rgb(var(--color-primary))',
               borderRadius: '50%',
               animation: 'spin 1s linear infinite'
             }}></div>
@@ -422,7 +422,7 @@ export default function MessageArea({ conversation, currentUser, onMessagesRead 
         ) : messageList.length === 0 ? (
           <div style={emptyStyles}>
             <User style={{ width: '3rem', height: '3rem', marginBottom: '1rem', opacity: 0.3 }} />
-            <h3 style={{ fontSize: '1.25rem', fontWeight: '600', marginBottom: '0.5rem', color: '#FFFFFF' }}>
+            <h3 style={{ fontSize: '1.25rem', fontWeight: '600', marginBottom: '0.5rem', color: 'rgb(var(--color-text-primary))' }}>
               No messages yet
             </h3>
             <p style={{ fontSize: '0.875rem' }}>
@@ -458,16 +458,16 @@ export default function MessageArea({ conversation, currentUser, onMessagesRead 
         <div style={{
           padding: '1.5rem',
           textAlign: 'center',
-          color: '#B8C1CF',
-          background: 'rgba(58,134,255,0.05)',
+          color: 'rgb(var(--color-text-secondary))',
+          background: 'rgba(var(--color-primary), 0.05)',
           borderRadius: '0.75rem',
           margin: '1rem 0'
         }}>
           <p style={{marginBottom: '1rem'}}>This is a message request. Accept to reply.</p>
           <button
             style={{
-              background: '#3A86FF',
-              color: '#fff',
+              background: 'rgb(var(--color-primary))',
+              color: 'rgb(var(--color-background))',
               border: 'none',
               borderRadius: '0.5rem',
               padding: '0.75rem 1.5rem',
