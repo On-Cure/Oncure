@@ -59,8 +59,13 @@ func (h *UploadHandler) UploadFile(w http.ResponseWriter, r *http.Request) {
 	filename = sanitizeFilename(filename)
 
 	// Try Pinata IPFS first
+	fmt.Printf("[UPLOAD] Attempting Pinata upload for file: %s\n", filename)
 	fileURL, err := uploadToPinata(file, filename)
 	if err != nil {
+		fmt.Printf("[UPLOAD] Pinata failed: %v, falling back to local storage\n", err)
+		// Reset file pointer for local storage fallback
+		file.Seek(0, 0)
+		
 		// Fallback to local storage
 		uploadsDir := os.Getenv("UPLOAD_PATH")
 		if uploadsDir == "" {
@@ -85,6 +90,9 @@ func (h *UploadHandler) UploadFile(w http.ResponseWriter, r *http.Request) {
 		}
 
 		fileURL = fmt.Sprintf("/uploads/%s", filename)
+		fmt.Printf("[UPLOAD] ⚠️  Using local storage (not persistent): %s\n", fileURL)
+	} else {
+		fmt.Printf("[UPLOAD] ✅ Successfully uploaded to IPFS: %s\n", fileURL)
 	}
 	utils.RespondWithJSON(w, http.StatusOK, map[string]string{"url": fileURL})
 }
@@ -160,26 +168,42 @@ func uploadToPinata(file multipart.File, filename string) (string, error) {
 	apiKey := os.Getenv("PINATA_API_KEY")
 	apiSecret := os.Getenv("PINATA_SECRET_API_KEY")
 
+	fmt.Printf("[PINATA] API Key configured: %t\n", apiKey != "")
+	fmt.Printf("[PINATA] Secret Key configured: %t\n", apiSecret != "")
+
 	if apiKey == "" || apiSecret == "" {
+		fmt.Println("[PINATA] Credentials not configured, falling back to local storage")
 		return "", fmt.Errorf("pinata not configured")
 	}
+
+	// Reset file pointer
+	file.Seek(0, 0)
 
 	var b bytes.Buffer
 	w := multipart.NewWriter(&b)
 
+	// Add metadata
+	metadata := fmt.Sprintf(`{"name":"%s"}`, filename)
+	w.WriteField("pinataMetadata", metadata)
+	w.WriteField("pinataOptions", `{"cidVersion":1}`)
+
 	fw, err := w.CreateFormFile("file", filename)
 	if err != nil {
+		fmt.Printf("[PINATA] Error creating form file: %v\n", err)
 		return "", err
 	}
 
 	if _, err = io.Copy(fw, file); err != nil {
+		fmt.Printf("[PINATA] Error copying file: %v\n", err)
 		return "", err
 	}
 
 	w.Close()
 
+	fmt.Println("[PINATA] Uploading to IPFS...")
 	req, err := http.NewRequest("POST", "https://api.pinata.cloud/pinning/pinFileToIPFS", &b)
 	if err != nil {
+		fmt.Printf("[PINATA] Error creating request: %v\n", err)
 		return "", err
 	}
 
@@ -190,19 +214,31 @@ func uploadToPinata(file multipart.File, filename string) (string, error) {
 	client := &http.Client{}
 	resp, err := client.Do(req)
 	if err != nil {
+		fmt.Printf("[PINATA] Error making request: %v\n", err)
 		return "", err
 	}
 	defer resp.Body.Close()
+
+	fmt.Printf("[PINATA] Response status: %d\n", resp.StatusCode)
+
+	if resp.StatusCode != 200 {
+		body, _ := io.ReadAll(resp.Body)
+		fmt.Printf("[PINATA] Error response: %s\n", string(body))
+		return "", fmt.Errorf("pinata upload failed: %d", resp.StatusCode)
+	}
 
 	var result struct {
 		IpfsHash string `json:"IpfsHash"`
 	}
 
 	if err := json.NewDecoder(resp.Body).Decode(&result); err != nil {
+		fmt.Printf("[PINATA] Error decoding response: %v\n", err)
 		return "", err
 	}
 
-	return fmt.Sprintf("https://gateway.pinata.cloud/ipfs/%s", result.IpfsHash), nil
+	ipfsURL := fmt.Sprintf("https://gateway.pinata.cloud/ipfs/%s", result.IpfsHash)
+	fmt.Printf("[PINATA] ✅ Upload successful! IPFS URL: %s\n", ipfsURL)
+	return ipfsURL, nil
 }
 
 // sanitizeFilename sanitizes a filename
