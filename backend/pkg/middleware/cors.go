@@ -23,12 +23,12 @@ func CORSMiddleware(next http.Handler) http.Handler {
 				w.Header().Set("Access-Control-Allow-Origin", origin)
 			} else {
 				allowedOrigins := []string{
-					"https://oncare19.netlify.app",
-					"https://main--oncare19.netlify.app",
+					"https://oncare19.vercel.app",
+					"https://main--oncare19.vercel.app",
 				}
 				
-				// Check for Netlify deploy previews
-				if strings.Contains(origin, "--oncare19.netlify.app") {
+				// Check for vercel deploy previews
+				if strings.Contains(origin, "--oncare19.vercel.app") {
 					allowedOrigins = append(allowedOrigins, origin)
 				}
 				
