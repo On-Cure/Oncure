@@ -1,13 +1,8 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
-  // Remove static export for dynamic content
   images: {
-    domains: ['localhost'],
+    domains: ['localhost', 'oncure-backend.onrender.com'],
   },
-
-
-
-
 
   // Configure WebSocket if needed
   webpack: (config, { isServer }) => {
@@ -23,11 +18,13 @@ const nextConfig = {
 
   // Configure experimental features
   experimental: {
-    // Enable server actions with the new format
     serverActions: {
       bodySizeLimit: '2mb',
     },
   },
+
+  // Vercel-specific optimizations
+  output: 'standalone',
 };
 
 module.exports = nextConfig;
