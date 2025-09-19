@@ -15,9 +15,11 @@ export default function TipButton({ postId, recipientId, recipientName, onTipSen
 
     setIsLoading(true);
     try {
+      // Convert KSH to HBAR (1 HBAR = 50 KSH)
+      const hbarAmount = parseFloat(amount) / 50;
       const transaction = await tokenomics.sendTip(
         recipientId,
-        parseFloat(amount),
+        hbarAmount,
         message
       );
       
