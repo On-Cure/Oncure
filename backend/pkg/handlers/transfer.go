@@ -7,6 +7,7 @@ import (
 	"strconv"
 
 	"github.com/hezronokwach/soshi/accounts"
+	"github.com/hezronokwach/soshi/pkg/middleware"
 	"github.com/hezronokwach/soshi/pkg/models"
 	"github.com/hezronokwach/soshi/pkg/utils"
 )
@@ -32,7 +33,12 @@ func (h *TransferHandler) TransferHbar(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// Get current user from session
-	userID := r.Context().Value("user_id").(int)
+	user, ok := middleware.GetUserFromContext(r.Context())
+	if !ok {
+		utils.RespondWithError(w, http.StatusUnauthorized, "User not found in context")
+		return
+	}
+	userID := user.ID
 
 	// Get sender wallet
 	senderWallet, err := models.GetUserWallet(h.db, userID)
@@ -89,7 +95,12 @@ func (h *TransferHandler) TransferHbar(w http.ResponseWriter, r *http.Request) {
 
 // GetBalance returns the HBAR balance for the current user
 func (h *TransferHandler) GetBalance(w http.ResponseWriter, r *http.Request) {
-	userID := r.Context().Value("user_id").(int)
+	user, ok := middleware.GetUserFromContext(r.Context())
+	if !ok {
+		utils.RespondWithError(w, http.StatusUnauthorized, "User not found in context")
+		return
+	}
+	userID := user.ID
 
 	// Get user wallet
 	userWallet, err := models.GetUserWallet(h.db, userID)
@@ -148,7 +159,12 @@ func (h *TransferHandler) GetUserBalance(w http.ResponseWriter, r *http.Request)
 
 // GetTransferHistory returns transfer history for the current user
 func (h *TransferHandler) GetTransferHistory(w http.ResponseWriter, r *http.Request) {
-	userID := r.Context().Value("user_id").(int)
+	user, ok := middleware.GetUserFromContext(r.Context())
+	if !ok {
+		utils.RespondWithError(w, http.StatusUnauthorized, "User not found in context")
+		return
+	}
+	userID := user.ID
 
 	// Get transfer history
 	transfers, err := models.GetTransferHistory(h.db, userID, 50)
