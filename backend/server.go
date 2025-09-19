@@ -41,10 +41,10 @@ func main() {
 	messageHandler := handlers.NewMessageHandler(dbConn, hub)
 	activityHandler := handlers.NewActivityHandler(dbConn)
 	uploadHandler := handlers.NewUploadHandler()
-	wsHandler := handlers.NewWebSocketHandler(hub, db)
-	notificationHandler := handlers.NewNotificationHandler(db)
-	verificationHandler := handlers.NewVerificationHandler(db)
-	transferHandler := handlers.NewTransferHandler(db)
+	wsHandler := handlers.NewWebSocketHandler(hub, dbConn)
+	notificationHandler := handlers.NewNotificationHandler(dbConn)
+	verificationHandler := handlers.NewVerificationHandler(dbConn)
+	transferHandler := handlers.NewTransferHandler(dbConn)
 
 	// Create router
 	router := r.NewRouter()

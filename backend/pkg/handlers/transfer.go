@@ -6,10 +6,10 @@ import (
 	"net/http"
 	"strconv"
 
-	"github.com/hezronokwach/soshi/accounts"
-	"github.com/hezronokwach/soshi/pkg/middleware"
-	"github.com/hezronokwach/soshi/pkg/models"
-	"github.com/hezronokwach/soshi/pkg/utils"
+	"github.com/On-cure/Oncure/accounts"
+	"github.com/On-cure/Oncure/pkg/middleware"
+	"github.com/On-cure/Oncure/pkg/models"
+	"github.com/On-cure/Oncure/pkg/utils"
 )
 
 type TransferHandler struct {

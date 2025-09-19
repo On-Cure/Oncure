@@ -5,9 +5,9 @@ import (
 	"fmt"
 	"log"
 
-	accounts "github.com/hezronokwach/soshi/accounts"
-	"github.com/hezronokwach/soshi/pkg/db/sqlite"
-	"github.com/hezronokwach/soshi/pkg/models"
+	accounts "github.com/On-cure/Oncure/accounts"
+	"github.com/On-cure/Oncure/pkg/db/sqlite"
+	"github.com/On-cure/Oncure/pkg/models"
 	"github.com/joho/godotenv"
 )
 

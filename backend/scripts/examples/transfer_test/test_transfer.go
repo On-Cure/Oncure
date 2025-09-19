@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"log"
 
-	"github.com/hezronokwach/soshi/accounts"
+	"github.com/On-cure/Oncure/accounts"
 	"github.com/joho/godotenv"
 )
 
