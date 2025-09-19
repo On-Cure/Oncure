@@ -3,6 +3,7 @@
 import { useState, useCallback } from "react";
 import { useAuth } from "../../hooks/useAuth";
 import { upload, posts } from "../../lib/api";
+import { CANCER_CATEGORIES } from "../../lib/constants";
 import SelectFollowersModal from "./SelectFollowersModal";
 
 export default function CreatePostComponent({ onPostCreated }) {
@@ -10,6 +11,7 @@ export default function CreatePostComponent({ onPostCreated }) {
   const [image, setImage] = useState(null);
   const [imagePreview, setImagePreview] = useState(null);
   const [privacy, setPrivacy] = useState("public");
+  const [category, setCategory] = useState("other");
   const [selectedUsers, setSelectedUsers] = useState([]);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [showFollowersModal, setShowFollowersModal] = useState(false);
@@ -81,6 +83,7 @@ export default function CreatePostComponent({ onPostCreated }) {
         userId: user.id,
         content,
         privacy,
+        category,
         image_url: imageUrl,
         selected_users: privacy === 'private' ? selectedUsers : []
       });
@@ -90,6 +93,7 @@ export default function CreatePostComponent({ onPostCreated }) {
       setImage(null);
       setImagePreview(null);
       setPrivacy("public");
+      setCategory("other");
       setSelectedUsers([]);
 
       // Notify parent with the new post data
@@ -169,6 +173,30 @@ export default function CreatePostComponent({ onPostCreated }) {
             </svg>
             <span className="font-medium">Add Image</span>
           </label>
+
+          {/* Category selector */}
+          <div className="relative">
+            <select
+              value={category}
+              onChange={(e) => setCategory(e.target.value)}
+              className="rounded-lg px-4 py-2 text-sm focus:outline-none focus:ring-2 transition-all duration-normal appearance-none pr-10 font-medium"
+              style={{
+                backgroundColor: 'rgb(var(--color-background))',
+                border: '1px solid rgb(var(--color-border))',
+                color: 'rgb(var(--color-text-primary))',
+                backgroundImage: "url(" + encodeURI("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 24 24' stroke='%23B8C1CF'%3E%3Cpath stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='M19 9l-7 7-7-7'%3E%3C/path%3E%3C/svg%3E") + "" + ")",
+                backgroundPosition: "right 0.75rem center",
+                backgroundRepeat: "no-repeat",
+                backgroundSize: "1.25em 1.25em"
+              }}
+            >
+              {CANCER_CATEGORIES.filter(cat => cat.value !== 'all').map(cat => (
+                <option key={cat.value} value={cat.value} style={{backgroundColor: 'rgb(var(--color-surface))', color: 'rgb(var(--color-text-primary))'}}>
+                  {cat.emoji} {cat.label}
+                </option>
+              ))}
+            </select>
+          </div>
 
           {/* Privacy selector */}
           <div className="relative">

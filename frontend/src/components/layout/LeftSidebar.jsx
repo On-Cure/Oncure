@@ -106,12 +106,12 @@ export default function LeftSidebar() {
           <h3 className="text-sm font-display font-semibold mb-3 px-4 uppercase tracking-wider" style={{color: 'rgb(var(--color-text-secondary))'}}>Discover</h3>
 
           <Link
-            href="/groups"
+            href="/communities"
             className="flex items-center gap-3 px-4 py-3 rounded-lg font-medium transition-all duration-normal hover:scale-105"
             style={{color: 'rgb(var(--color-text-primary))'}}
           >
             <Users className="w-5 h-5" style={{color: 'rgb(var(--color-primary))'}} />
-            <span>Groups</span>
+            <span>Communities</span>
           </Link>  
 
           <Link

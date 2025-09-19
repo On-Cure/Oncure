@@ -114,8 +114,13 @@ export const auth = {
 
 // Posts API
 export const posts = {
-  getPosts: async (page = 1, limit = 10) => {
-    const data = await fetchAPI(`/api/posts?page=${page}&limit=${limit}`);
+  getPosts: async (page = 1, limit = 10, category = null) => {
+    let url = `/api/posts?page=${page}&limit=${limit}`;
+    if (category && category !== 'all') {
+      url += `&category=${encodeURIComponent(category)}`;
+    }
+    
+    const data = await fetchAPI(url);
 
     // Normalize response: if backend returns array directly, wrap it in an object
     if (Array.isArray(data)) {
@@ -257,15 +262,15 @@ export const comments = {
     }),
 }
 
-// Groups API
-export const groups = {
-  getGroups: async () => {
-    const data = await fetchAPI("/api/groups");
+// Communities API
+export const communities = {
+  getCommunities: async () => {
+    const data = await fetchAPI("/api/communities");
 
-    // Normalize groups response if it's an array
+    // Normalize communities response if it's an array
     if (Array.isArray(data)) {
       return {
-        groups: data,
+        communities: data,
         total: data.length
       };
     }
@@ -274,68 +279,68 @@ export const groups = {
   },
 
   getAll: async () => {
-    const data = await fetchAPI("/api/groups");
+    const data = await fetchAPI("/api/communities");
 
     // Return array directly for getAll
     if (Array.isArray(data)) {
       return data;
     }
 
-    // If it's an object with groups property, return the groups array
-    return data.groups || [];
+    // If it's an object with communities property, return the communities array
+    return data.communities || [];
   },
 
-  createGroup: (groupData) =>
-    fetchAPI("/api/groups", {
+  createCommunity: (communityData) =>
+    fetchAPI("/api/communities", {
       method: "POST",
-      body: JSON.stringify(groupData),
+      body: JSON.stringify(communityData),
     }),
 
-  getGroup: (groupId) => fetchAPI(`/api/groups/${groupId}`),
+  getCommunity: (communityId) => fetchAPI(`/api/communities/${communityId}`),
 
-  updateGroup: (groupId, groupData) =>
-    fetchAPI(`/api/groups/${groupId}`, {
+  updateCommunity: (communityId, communityData) =>
+    fetchAPI(`/api/communities/${communityId}`, {
       method: "PUT",
-      body: JSON.stringify(groupData),
+      body: JSON.stringify(communityData),
     }),
 
-  deleteGroup: (groupId) =>
-    fetchAPI(`/api/groups/${groupId}`, {
+  deleteCommunity: (communityId) =>
+    fetchAPI(`/api/communities/${communityId}`, {
       method: "DELETE",
     }),
 
-  joinGroup: (groupId, invitedBy = null) =>
-    fetchAPI(`/api/groups/${groupId}/join`, {
+  joinCommunity: (communityId, invitedBy = null) =>
+    fetchAPI(`/api/communities/${communityId}/join`, {
       method: "POST",
       body: JSON.stringify({ invited_by: invitedBy }),
     }),
 
-  leaveGroup: (groupId) =>
-    fetchAPI(`/api/groups/${groupId}/join`, {
+  leaveCommunity: (communityId) =>
+    fetchAPI(`/api/communities/${communityId}/join`, {
       method: "DELETE",
     }),
 
-  inviteToGroup: (groupId, userId) =>
-    fetchAPI(`/api/groups/${groupId}/invite`, {
+  inviteToCommunity: (communityId, userId) =>
+    fetchAPI(`/api/communities/${communityId}/invite`, {
       method: "POST",
       body: JSON.stringify({ user_id: userId }),
     }),
 
-  updateMember: (groupId, userId, status) =>
-    fetchAPI(`/api/groups/${groupId}/members/${userId}`, {
+  updateMember: (communityId, userId, status) =>
+    fetchAPI(`/api/communities/${communityId}/members/${userId}`, {
       method: "PUT",
       body: JSON.stringify({ status }),
     }),
 
-  removeMember: (groupId, userId) =>
-    fetchAPI(`/api/groups/${groupId}/members/${userId}`, {
+  removeMember: (communityId, userId) =>
+    fetchAPI(`/api/communities/${communityId}/members/${userId}`, {
       method: "DELETE",
     }),
 
-  getPosts: async (groupId, page = 1, limit = 10) => {
-    const data = await fetchAPI(`/api/groups/${groupId}/posts?page=${page}&limit=${limit}`);
+  getPosts: async (communityId, page = 1, limit = 10) => {
+    const data = await fetchAPI(`/api/communities/${communityId}/posts?page=${page}&limit=${limit}`);
 
-    // Normalize group posts response if it's an array
+    // Normalize community posts response if it's an array
     if (Array.isArray(data)) {
       return {
         posts: data,
@@ -348,22 +353,22 @@ export const groups = {
     return data;
   },
 
-  createPost: (groupId, postData) =>
-    fetchAPI(`/api/groups/${groupId}/posts`, {
+  createPost: (communityId, postData) =>
+    fetchAPI(`/api/communities/${communityId}/posts`, {
       method: "POST",
       body: JSON.stringify(postData),
     }),
 
-  getEvents: (groupId) => fetchAPI(`/api/groups/${groupId}/events`),
+  getEvents: (communityId) => fetchAPI(`/api/communities/${communityId}/events`),
 
-  createEvent: (groupId, eventData) =>
-    fetchAPI(`/api/groups/${groupId}/events`, {
+  createEvent: (communityId, eventData) =>
+    fetchAPI(`/api/communities/${communityId}/events`, {
       method: "POST",
       body: JSON.stringify(eventData),
     }),
 
   respondToEvent: (eventId, response) =>
-    fetchAPI(`/api/groups/events/${eventId}/respond`, {
+    fetchAPI(`/api/communities/events/${eventId}/respond`, {
       method: "POST",
       body: JSON.stringify({ response }),
     }),
@@ -484,11 +489,11 @@ export const messages = {
 
   getUnreadCount: () => fetchAPI("/api/messages/unread-count"),
 
-  // Group chat functions
-  getGroupMessages: (groupId, page = 1, limit = 50) =>
-    fetchAPI(`/api/groups/${groupId}/messages?page=${page}&limit=${limit}`),
+  // Community chat functions
+  getCommunityMessages: (communityId, page = 1, limit = 50) =>
+    fetchAPI(`/api/communities/${communityId}/messages?page=${page}&limit=${limit}`),
 
-  sendGroupMessage: (groupId, content) => fetchAPI(`/api/groups/${groupId}/messages`, {
+  sendCommunityMessage: (communityId, content) => fetchAPI(`/api/communities/${communityId}/messages`, {
     method: "POST",
     body: JSON.stringify({ content })
   }),
@@ -615,10 +620,14 @@ export const connectWebSocket = (onMessage) => {
   return ws
 }
 
+// Keep groups as alias for backward compatibility
+export const groups = communities;
+
 export default {
   auth,
   posts,
   comments,
+  communities,
   groups,
   users,
   messages,

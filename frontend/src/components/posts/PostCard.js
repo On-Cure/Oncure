@@ -3,6 +3,7 @@
 import { useState, useEffect, useRef } from "react";
 import { useAuth } from "../../hooks/useAuth";
 import { upload, posts, comments } from "../../lib/api";
+import { getCategoryLabel } from "../../lib/constants";
 import { getImageUrl } from "../../utils/image";
 import { Edit, Trash2, ThumbsUp, ThumbsDown, MessageSquare, Bookmark, BookmarkCheck, Loader2, ImagePlus, X } from "lucide-react";
 import CommentSection from "../comments/CommentSection";
@@ -315,6 +316,11 @@ export default function PostCard({ post, onDelete, onUpdate }) {
               </span>
             )}
             <span className="truncate">{new Date(post.created_at).toLocaleString()}</span>
+            {post.category && (
+              <span className="ml-1 text-xs px-3 py-1 bg-primary/10 text-primary rounded-full border border-primary/30 backdrop-blur-sm">
+                {getCategoryLabel(post.category)}
+              </span>
+            )}
             {post.privacy !== "public" && (
               <span className="ml-1 text-xs px-3 py-1 bg-surface/70 rounded-full border border-border/50 backdrop-blur-sm">
                 {post.privacy === "almost_private" ? "👥 Almost Private" : "🔒 Private"}

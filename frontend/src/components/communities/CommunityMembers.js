@@ -1,45 +1,40 @@
-// FILE: src/components/groups/GroupMembers.js
-
 'use client';
 import { useState } from 'react';
 import Link from 'next/link';
 import { Card } from '../ui/card';
 import { Button } from '../ui/button';
 import { Input } from '../ui/input';
-import { groups, users } from '../../lib/api';
+import { communities, users } from '../../lib/api';
 import { getImageUrl } from '../../utils/image';
 
-export default function GroupMembers({ params, group, isCreator, pendingMembers, acceptedMembers, fetchGroup }) {
+export default function CommunityMembers({ params, community, isCreator, pendingMembers, acceptedMembers, fetchCommunity }) {
     const [showInviteModal, setShowInviteModal] = useState(false);
     const [searchQuery, setSearchQuery] = useState('');
     const [searchResults, setSearchResults] = useState([]);
     const [inviting, setInviting] = useState(false);
-    // Handle member requests
+
     const handleMemberRequest = async (userId, action) => {
         try {
-            console.log('Updating member with status:', action);
-            await groups.updateMember(params.id, userId, action);
-            fetchGroup(); // Refresh to get updated member list
+            await communities.updateMember(params.id, userId, action);
+            fetchCommunity();
         } catch (error) {
             console.error('Error managing member:', error);
             alert(error.message || 'Failed to update member status');
         }
     };
 
-    // Remove member
     const handleRemoveMember = async (userId) => {
         if (!confirm('Are you sure you want to remove this member?')) return;
 
         try {
-            await groups.removeMember(params.id, userId);
-            fetchGroup(); // Refresh to get updated member list
+            await communities.removeMember(params.id, userId);
+            fetchCommunity();
         } catch (error) {
             console.error('Error removing member:', error);
             alert(error.message || 'Failed to remove member');
         }
     };
 
-    // Search users for invitation
     const searchUsers = async (query) => {
         if (!query.trim()) {
             setSearchResults([]);
@@ -59,16 +54,15 @@ export default function GroupMembers({ params, group, isCreator, pendingMembers,
         }
     };
 
-    // Invite user to group
     const handleInviteUser = async (userId) => {
         setInviting(true);
         try {
-            await groups.inviteToGroup(params.id, userId);
+            await communities.inviteToCommunity(params.id, userId);
             setShowInviteModal(false);
             setSearchQuery('');
             setSearchResults([]);
             alert('Invitation sent successfully!');
-            fetchGroup();
+            fetchCommunity();
         } catch (error) {
             console.error('Error inviting user:', error);
             alert(error.message || 'Failed to send invitation');
@@ -79,7 +73,6 @@ export default function GroupMembers({ params, group, isCreator, pendingMembers,
 
     return (
         <div className="space-y-6">
-            {/* Pending Requests (Only visible to group creator) */}
             {isCreator && pendingMembers.length > 0 && (
                 <Card variant="glassmorphism" className="p-6">
                     <h3 className="font-display font-semibold text-lg mb-4 text-orange-400">
@@ -105,7 +98,7 @@ export default function GroupMembers({ params, group, isCreator, pendingMembers,
                                         >
                                             {member.user?.first_name || member.first_name} {member.user?.last_name || member.last_name}
                                         </Link>
-                                        <p className="text-sm text-blue-300">Wants to join this group</p>
+                                        <p className="text-sm text-blue-300">Wants to join this community</p>
                                     </div>
                                 </div>
                                 <div className="flex gap-2">
@@ -120,7 +113,7 @@ export default function GroupMembers({ params, group, isCreator, pendingMembers,
                                     <Button
                                         size="sm"
                                         variant="outline"
-                                        onClick={() => handleRemoveMember(member.user_id)} // Handle decline as member removal
+                                        onClick={() => handleRemoveMember(member.user_id)}
                                         className="text-red-400 border-red-400 hover:bg-red-900/20 hover:scale-105 transition-all duration-normal"
                                     >
                                         Decline
@@ -132,13 +125,12 @@ export default function GroupMembers({ params, group, isCreator, pendingMembers,
                 </Card>
             )}
 
-            {/* Accepted Members */}
             <Card variant="glassmorphism" className="p-6">
                 <div className="flex items-center justify-between mb-4">
                     <h3 className="font-display font-semibold text-lg text-text-primary">
                         Members ({acceptedMembers.length})
                     </h3>
-                    {(isCreator || acceptedMembers.some(m => m.user_id === group.creator_id)) && (
+                    {(isCreator || acceptedMembers.some(m => m.user_id === community.creator_id)) && (
                         <Button
                             size="sm"
                             variant="primary"
@@ -163,7 +155,6 @@ export default function GroupMembers({ params, group, isCreator, pendingMembers,
                                             </span>
                                         </div>
                                     )}
-                                    {/* Online indicator - randomly show some as online for demo */}
                                     {Math.random() > 0.5 && (
                                         <div className="absolute -bottom-0.5 -right-0.5 w-3 h-3 bg-green-500 border-2 border-gray-800 rounded-full"></div>
                                     )}
@@ -180,27 +171,28 @@ export default function GroupMembers({ params, group, isCreator, pendingMembers,
                                             <span className="text-xs text-green-400 font-medium">• Online</span>
                                         )}
                                     </div>
-                                    {member.user_id === group.creator_id && (
+                                    {member.user_id === community.creator_id && (
                                         <p className="text-xs text-blue-300 font-medium">Creator</p>
                                     )}
                                 </div>
                             </div>
-                            {isCreator && member.user_id !== group.creator_id && (
-                                <Button
-                                    size="sm"
-                                    variant="outline"
-                                    onClick={() => handleRemoveMember(member.user_id)}
-                                    className="text-red-400 border-red-400 hover:bg-red-900/20"
-                                >
-                                    Remove
-                                </Button>
+                            {isCreator && member.user_id !== community.creator_id && (
+                                <div className="flex gap-2">
+                                    <Button
+                                        size="sm"
+                                        variant="outline"
+                                        onClick={() => handleRemoveMember(member.user_id)}
+                                        className="text-red-400 border-red-400 hover:bg-red-900/20"
+                                    >
+                                        Remove
+                                    </Button>
+                                </div>
                             )}
                         </div>
                     ))}
                 </div>
             </Card>
 
-            {/* Invite Modal */}
             {showInviteModal && (
                 <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
                     <Card variant="glassmorphism" className="w-full max-w-md p-6">
