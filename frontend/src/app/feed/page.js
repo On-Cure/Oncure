@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from "react";
 import { useAuth } from "../../hooks/useAuth";
-import { posts as postsAPI, users as usersAPI, activity as activityAPI, groups } from "../../lib/api";
+import { posts as postsAPI, users as usersAPI, activity as activityAPI, communities } from "../../lib/api";
 import CreatePostComponent from "../../components/posts/CreatePostComponent";
 import PostCard from "../../components/posts/PostCard";
 import CategoryFilter from "../../components/posts/CategoryFilter";
@@ -37,27 +37,27 @@ function FeedContent() {
   // Fetch community posts from user's groups
   const fetchCommunityPosts = async () => {
     try {
-      const userGroups = await groups.getGroups();
-      const groupsArray = Array.isArray(userGroups) ? userGroups : userGroups.groups || [];
+      const userCommunities = await communities.getCommunities();
+      const communitiesArray = Array.isArray(userCommunities) ? userCommunities : userCommunities.communities || [];
       
       let allCommunityPosts = [];
       
-      for (const group of groupsArray) {
+      for (const community of communitiesArray) {
         try {
-          const groupDetail = await groups.getGroup(group.id);
-          if (groupDetail?.members && Array.isArray(groupDetail.members)) {
-            const userMembership = groupDetail.members.find(
+          const communityDetail = await communities.getCommunity(community.id);
+          if (communityDetail?.members && Array.isArray(communityDetail.members)) {
+            const userMembership = communityDetail.members.find(
               member => parseInt(member.user_id) === parseInt(user.id)
             );
             
             if (userMembership && userMembership.status === 'accepted') {
-              const groupPosts = await groups.getPosts(group.id, 1, 10);
-              const postsArray = Array.isArray(groupPosts) ? groupPosts : groupPosts.posts || [];
+              const communityPosts = await communities.getPosts(community.id, 1, 10);
+              const postsArray = Array.isArray(communityPosts) ? communityPosts : communityPosts.posts || [];
               allCommunityPosts = [...allCommunityPosts, ...postsArray];
             }
           }
         } catch (error) {
-          console.error(`Error fetching posts for group ${group.id}:`, error);
+          console.error(`Error fetching posts for community ${community.id}:`, error);
         }
       }
       

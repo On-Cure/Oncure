@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from "react";
 import { useAuth } from "../../hooks/useAuth";
-import { groups } from "../../lib/api";
+import { communities } from "../../lib/api";
 import { Card } from "../../components/ui/card";
 import { Button } from "../../components/ui/button";
 import { Input } from "../../components/ui/input";
@@ -39,8 +39,8 @@ function CommunitiesContent() {
   const fetchCommunities = async () => {
     try {
       setLoading(true);
-      const data = await groups.getGroups();
-      const communitiesArray = Array.isArray(data) ? data : data.groups || [];
+      const data = await communities.getCommunities();
+      const communitiesArray = Array.isArray(data) ? data : data.communities || [];
       
       await categorizeCommunities(communitiesArray);
     } catch (error) {
@@ -58,7 +58,7 @@ function CommunitiesContent() {
     await Promise.all(
       communitiesArray.map(async (community) => {
         try {
-          const communityDetail = await groups.getGroup(community.id);
+          const communityDetail = await communities.getCommunity(community.id);
           if (communityDetail?.members && Array.isArray(communityDetail.members)) {
             const userMembership = communityDetail.members.find(
               member => parseInt(member.user_id) === parseInt(user.id)
@@ -96,7 +96,7 @@ function CommunitiesContent() {
   const handleCreateCommunity = async (e) => {
     e.preventDefault();
     try {
-      const newCommunityData = await groups.createGroup(newCommunity);
+      const newCommunityData = await communities.createCommunity(newCommunity);
       setNewCommunity({ title: '', description: '', category: 'Support Groups' });
       setShowCreateForm(false);
       
@@ -121,7 +121,7 @@ function CommunitiesContent() {
   const handleJoinCommunity = async (communityId) => {
     try {
       setMembershipStates(prev => ({ ...prev, [communityId]: 'pending' }));
-      await groups.joinGroup(communityId);
+      await communities.joinCommunity(communityId);
       
       setTimeout(() => {
         fetchCommunities();
@@ -139,7 +139,7 @@ function CommunitiesContent() {
     }
     
     try {
-      await groups.deleteGroup(communityId);
+      await communities.deleteCommunity(communityId);
       setMyCommunities(prev => prev.filter(c => c.id !== communityId));
       alert('Community deleted successfully.');
     } catch (error) {
@@ -174,7 +174,7 @@ function CommunitiesContent() {
     const buttonState = getJoinButtonState(community);
     
     if (buttonState.action === 'view') {
-      window.location.href = `/groups/${community.id}`;
+      window.location.href = `/communities/${community.id}`;
     } else if (buttonState.action === 'join') {
       handleJoinCommunity(community.id);
     }

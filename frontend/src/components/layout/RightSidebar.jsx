@@ -4,7 +4,7 @@ import { useState, useEffect } from "react";
 import Link from "next/link";
 import { User, Users, Plus } from "lucide-react";
 import { useAuth } from "../../hooks/useAuth";
-import { users, groups } from "../../lib/api";
+import { users, communities } from "../../lib/api";
 import FollowButton from "../connections/FollowButton";
 import { getImageUrl } from "../../utils/image";
 import VerificationBadge from "../ui/VerificationBadge";
@@ -29,7 +29,7 @@ export default function RightSidebar() {
       setLoading(true);
       await Promise.all([
         fetchOnlineUsers(),
-        fetchGroupsData()
+        fetchCommunitiesData()
       ]);
     } catch (error) {
       console.error('Error fetching sidebar data:', error);
@@ -63,45 +63,45 @@ export default function RightSidebar() {
     }
   };
 
-  // Fetch and categorize groups based on user membership
-  const fetchGroupsData = async () => {
+  // Fetch and categorize communities based on user membership
+  const fetchCommunitiesData = async () => {
     try {
-      const data = await groups.getGroups();
-      const groupsArray = Array.isArray(data) ? data : data.groups || [];
+      const data = await communities.getCommunities();
+      const communitiesArray = Array.isArray(data) ? data : data.communities || [];
 
       const userMemberGroups = [];
       const nonMemberGroups = [];
 
-      // Process all groups in a single loop
-      for (const group of groupsArray) {
+      // Process all communities in a single loop
+      for (const community of communitiesArray) {
         try {
-          const groupDetail = await groups.getGroup(group.id);
-          if (groupDetail?.members && Array.isArray(groupDetail.members)) {
-            const userMembership = groupDetail.members.find(
+          const communityDetail = await communities.getCommunity(community.id);
+          if (communityDetail?.members && Array.isArray(communityDetail.members)) {
+            const userMembership = communityDetail.members.find(
               member => parseInt(member.user_id) === parseInt(user.id)
             );
 
-            const groupData = {
-              id: group.id,
-              name: group.title,
-              members: group.member_count || 0,
-              category: group.category || 'General'
+            const communityData = {
+              id: community.id,
+              name: community.title,
+              members: community.member_count || 0,
+              category: community.category || 'General'
             };
 
             if (userMembership && userMembership.status === 'accepted') {
-              // User is a member - add to user groups with unread count
+              // User is a member - add to user communities with unread count
               const unreadCount = 0; // Replace with actual unread count from the API
               userMemberGroups.push({
-                ...groupData,
+                ...communityData,
                 unread: unreadCount
               });
             } else {
-              // User is not a member or not accepted - add to suggested groups
-              nonMemberGroups.push(groupData);
+              // User is not a member or not accepted - add to suggested communities
+              nonMemberGroups.push(communityData);
             }
           }
         } catch (error) {
-          console.error(`Error fetching details for group ${group.id}:`, error);
+          console.error(`Error fetching details for community ${community.id}:`, error);
         }
       }
 
@@ -110,7 +110,7 @@ export default function RightSidebar() {
       setSuggestedGroups(nonMemberGroups.slice(0, 4));
 
     } catch (error) {
-      console.error('Error fetching groups data:', error);
+      console.error('Error fetching communities data:', error);
     }
   };
 
@@ -135,14 +135,14 @@ export default function RightSidebar() {
     }
   };
 
-  // Handle join group action
-  const handleJoinGroup = async (groupId) => {
+  // Handle join community action
+  const handleJoinCommunity = async (communityId) => {
     try {
-      await groups.joinGroup(groupId);
-      // Refresh the groups data to update both lists
-      fetchGroupsData();
+      await communities.joinCommunity(communityId);
+      // Refresh the communities data to update both lists
+      fetchCommunitiesData();
     } catch (error) {
-      console.error('Error joining group:', error);
+      console.error('Error joining community:', error);
       alert('Failed to send join request. Please try again.');
     }
   };
@@ -368,20 +368,20 @@ export default function RightSidebar() {
             </div>
 
             <div>
-              {userGroups.map(group => (
-                <Link key={group.id} href={`/groups/${group.id}`} style={{ textDecoration: 'none' }}>
+              {userGroups.map(community => (
+                <Link key={community.id} href={`/communities/${community.id}`} style={{ textDecoration: 'none' }}>
                   <div style={groupItemStyles}>
                     <div style={groupHeaderStyles}>
                       <div style={groupAvatarStyles}>
                         <Users style={{ width: '1.25rem', height: '1.25rem' }} />
                       </div>
                       <div style={groupInfoStyles}>
-                        <p style={groupNameStyles}>{group.name}</p>
-                        <p style={groupMetaStyles}>{group.category} • {group.members.toLocaleString()} members</p>
+                        <p style={groupNameStyles}>{community.name}</p>
+                        <p style={groupMetaStyles}>{community.category} • {community.members.toLocaleString()} members</p>
                       </div>
-                      {group.unread > 0 && (
+                      {community.unread > 0 && (
                         <div style={unreadBadgeStyles}>
-                          {group.unread}
+                          {community.unread}
                         </div>
                       )}
                     </div>
@@ -485,18 +485,18 @@ export default function RightSidebar() {
             </div>
 
             <div>
-              {suggestedGroups.map(group => (
-                <div key={group.id} style={groupItemStyles}>
+              {suggestedGroups.map(community => (
+                <div key={community.id} style={groupItemStyles}>
                   <div style={groupHeaderStyles}>
                     <div style={groupAvatarStyles}>
                       <Users style={{ width: '1.25rem', height: '1.25rem' }} />
                     </div>
                     <div style={groupInfoStyles}>
-                      <p style={groupNameStyles}>{group.name}</p>
-                      <p style={groupMetaStyles}>{group.category} • {group.members.toLocaleString()} members</p>
+                      <p style={groupNameStyles}>{community.name}</p>
+                      <p style={groupMetaStyles}>{community.category} • {community.members.toLocaleString()} members</p>
                     </div>
                   </div>
-                  <button style={joinButtonStyles} onClick={() => handleJoinGroup(group.id)}>
+                  <button style={joinButtonStyles} onClick={() => handleJoinCommunity(community.id)}>
                     Join Community
                   </button>
                 </div>
