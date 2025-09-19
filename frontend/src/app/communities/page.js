@@ -157,6 +157,14 @@ function CommunitiesContent() {
     );
   };
 
+  // Check if user can create communities (verified mentors and coaches)
+  const canCreateCommunity = () => {
+    if (!user) return false;
+    const isVerified = user.verification_status === 'verified';
+    const isMentorOrCoach = user.role === 'mentor' || user.role === 'coach';
+    return isVerified && isMentorOrCoach;
+  };
+
   const getJoinButtonState = (community) => {
     const membershipStatus = membershipStates[community.id];
     
@@ -205,16 +213,37 @@ function CommunitiesContent() {
                 Connect with supportive communities on your healing journey
               </p>
             </div>
-            <Button
-              onClick={() => setShowCreateForm(!showCreateForm)}
-              variant="primary"
-              size="lg"
-              className="w-full sm:w-auto"
-            >
-              <Plus className="w-5 h-5" />
-              {showCreateForm ? 'Cancel' : 'Create Community'}
-            </Button>
+            {canCreateCommunity() && (
+              <Button
+                onClick={() => setShowCreateForm(!showCreateForm)}
+                variant="primary"
+                size="lg"
+                className="w-full sm:w-auto bg-primary hover:bg-primary-hover text-white"
+                style={{
+                  backgroundColor: 'rgb(var(--color-primary))',
+                  color: 'white'
+                }}
+              >
+                <Plus className="w-5 h-5" />
+                {showCreateForm ? 'Cancel' : 'Create Community'}
+              </Button>
+            )}
           </div>
+
+          {/* Info message for non-verified users */}
+          {!canCreateCommunity() && (
+            <div className="mb-6 p-4 rounded-lg border border-border bg-surface/50">
+              <p className="text-sm text-text-secondary">
+                <strong>Want to create a community?</strong> Only verified mentors and coaches can create and manage communities. 
+                {user?.role !== 'mentor' && user?.role !== 'coach' && (
+                  <span> Consider applying to become a mentor or coach.</span>
+                )}
+                {(user?.role === 'mentor' || user?.role === 'coach') && user?.verification_status !== 'verified' && (
+                  <span> Please complete your verification process.</span>
+                )}
+              </p>
+            </div>
+          )}
 
           {/* Community Tabs */}
           <div className="flex gap-1 p-1 rounded-lg mb-6" style={{backgroundColor: 'rgba(var(--color-surface), 0.8)', border: '1px solid rgb(var(--color-border))'}}>
@@ -250,7 +279,7 @@ function CommunitiesContent() {
         </div>
 
         {/* Create Community Form */}
-        {showCreateForm && (
+        {showCreateForm && canCreateCommunity() && (
           <Card variant="glassmorphism" className="p-8 mb-8">
             <div className="mb-6">
               <h2 className="text-2xl font-display font-bold text-text-primary mb-2">Create New Community</h2>
