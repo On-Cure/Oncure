@@ -6,10 +6,11 @@ import (
 	"net/http"
 	"strconv"
 
-	md "github.com/hezronokwach/soshi/pkg/middleware"
-	"github.com/hezronokwach/soshi/pkg/models"
-	"github.com/hezronokwach/soshi/pkg/utils"
-	"github.com/hezronokwach/soshi/pkg/websocket"
+	"github.com/On-cure/Oncure/pkg/db"
+	md "github.com/On-cure/Oncure/pkg/middleware"
+	"github.com/On-cure/Oncure/pkg/models"
+	"github.com/On-cure/Oncure/pkg/utils"
+	"github.com/On-cure/Oncure/pkg/websocket"
 )
 
 type UserHandler struct {
@@ -137,7 +138,7 @@ func (h *UserHandler) UpdateProfilePrivacy(w http.ResponseWriter, r *http.Reques
 	}
 
 	// Update privacy setting
-	_, err := h.db.Exec(`
+	_, err := db.Exec(h.db, `
 		INSERT OR REPLACE INTO user_profiles (user_id, is_public, updated_at)
 		VALUES (?, ?, CURRENT_TIMESTAMP)
 	`, user.ID, privacyData.IsPublic)

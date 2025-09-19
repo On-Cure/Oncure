@@ -3,12 +3,14 @@ package handlers
 import (
 	"database/sql"
 	"encoding/json"
+	"log"
 	"net/http"
+	"os"
 	"time"
 
-	"github.com/hezronokwach/soshi/accounts"
-	"github.com/hezronokwach/soshi/pkg/models"
-	"github.com/hezronokwach/soshi/pkg/utils"
+	"github.com/On-cure/Oncure/accounts"
+	"github.com/On-cure/Oncure/pkg/models"
+	"github.com/On-cure/Oncure/pkg/utils"
 
 	"github.com/google/uuid"
 )
@@ -108,10 +110,12 @@ func (h *AuthHandler) Login(w http.ResponseWriter, r *http.Request) {
 	// Authenticate user
 	user, err := models.AuthenticateUser(h.db, req.Email, req.Password)
 	if err != nil {
+		log.Printf("Authentication error for %s: %v", req.Email, err)
 		utils.RespondWithError(w, http.StatusInternalServerError, "Authentication error")
 		return
 	}
 	if user == nil {
+		log.Printf("Invalid credentials for %s", req.Email)
 		utils.RespondWithError(w, http.StatusUnauthorized, "Invalid email or password")
 		return
 	}
@@ -120,19 +124,26 @@ func (h *AuthHandler) Login(w http.ResponseWriter, r *http.Request) {
 	sessionToken := uuid.New().String()
 	err = models.CreateSession(h.db, user.ID, sessionToken)
 	if err != nil {
+		log.Printf("Failed to create session for user %d: %v", user.ID, err)
 		utils.RespondWithError(w, http.StatusInternalServerError, "Failed to create session")
 		return
 	}
 
-	// Set session cookie with debug logging
+	// Set session cookie with proper cross-origin settings
+	isProduction := os.Getenv("DATABASE_URL") != ""
 	cookie := &http.Cookie{
 		Name:     "session_token",
 		Value:    sessionToken,
 		Path:     "/",
 		Expires:  time.Now().Add(7 * 24 * time.Hour),
 		HttpOnly: true,
-		SameSite: http.SameSiteNoneMode,
-		Secure:   true,
+		SameSite: func() http.SameSite {
+			if isProduction {
+				return http.SameSiteNoneMode
+			}
+			return http.SameSiteLaxMode
+		}(),
+		Secure: isProduction,
 	}
 	http.SetCookie(w, cookie)
 	
@@ -164,14 +175,20 @@ func (h *AuthHandler) Logout(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// Clear cookie
+	isProduction := os.Getenv("DATABASE_URL") != ""
 	http.SetCookie(w, &http.Cookie{
 		Name:     "session_token",
 		Value:    "",
 		Path:     "/",
 		Expires:  time.Now().Add(-time.Hour),
 		HttpOnly: true,
-		SameSite: http.SameSiteNoneMode,
-		Secure:   true,
+		SameSite: func() http.SameSite {
+			if isProduction {
+				return http.SameSiteNoneMode
+			}
+			return http.SameSiteLaxMode
+		}(),
+		Secure: isProduction,
 	})
 
 	utils.RespondWithJSON(w, http.StatusOK, map[string]string{"message": "Logged out successfully"})

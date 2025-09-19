@@ -1,4 +1,4 @@
-module github.com/hezronokwach/soshi
+module github.com/On-cure/Oncure
 
 go 1.21
 

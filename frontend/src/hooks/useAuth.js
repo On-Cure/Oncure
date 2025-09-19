@@ -74,8 +74,12 @@ export function AuthProvider({ children }) {
       if (userData && (userData.id || userData.user)) {
         const user = userData.user || userData;
         setUser(user);
-        // Force a hard redirect to ensure it works
-        window.location.href = '/feed';
+        
+        // Wait a bit for cookie to be set, then redirect
+        setTimeout(() => {
+          router.push('/feed');
+        }, 100);
+        
         return true;
       }
 

@@ -76,11 +76,12 @@ export default function GroupPostComments({ groupId, groupPostId, onCommentAdded
       console.log(`Fetching group post comments for post ${groupPostId}, page ${pageNum}`);
       
       // First fetch top-level comments
+      const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8080';
       const [commentsRes, repliesRes] = await Promise.all([
-        fetch(`http://localhost:8080/api/groups/${groupId}/posts/${groupPostId}/comments?page=${pageNum}&parentId=`, {
+        fetch(`${apiUrl}/api/groups/${groupId}/posts/${groupPostId}/comments?page=${pageNum}&parentId=`, {
           credentials: 'include'
         }),
-        fetch(`http://localhost:8080/api/groups/${groupId}/posts/${groupPostId}/comments?parentId=all`, {
+        fetch(`${apiUrl}/api/groups/${groupId}/posts/${groupPostId}/comments?parentId=all`, {
           credentials: 'include'
         }) // Special case to get all replies
       ]);
@@ -154,7 +155,8 @@ export default function GroupPostComments({ groupId, groupPostId, onCommentAdded
       
       console.log('Sending group comment data:', requestBody);
       
-      const res = await fetch(`http://localhost:8080/api/groups/${groupId}/posts/${groupPostId}/comments`, {
+      const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8080';
+      const res = await fetch(`${apiUrl}/api/groups/${groupId}/posts/${groupPostId}/comments`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         credentials: 'include',

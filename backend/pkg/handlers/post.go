@@ -6,9 +6,9 @@ import (
 	"net/http"
 	"strconv"
 
-	md "github.com/hezronokwach/soshi/pkg/middleware"
-	"github.com/hezronokwach/soshi/pkg/models"
-	"github.com/hezronokwach/soshi/pkg/utils"
+	md "github.com/On-cure/Oncure/pkg/middleware"
+	"github.com/On-cure/Oncure/pkg/models"
+	"github.com/On-cure/Oncure/pkg/utils"
 )
 
 type PostHandler struct {

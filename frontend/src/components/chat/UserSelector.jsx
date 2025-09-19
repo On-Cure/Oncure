@@ -64,9 +64,9 @@ export default function UserSelector({ onUserSelect, onClose }) {
   };
 
   const modalStyles = {
-    backgroundColor: '#1A2333',
+    backgroundColor: 'rgb(var(--color-surface))',
     borderRadius: '1rem',
-    border: '1px solid #2A3343',
+    border: '1px solid rgb(var(--color-border))',
     width: '100%',
     maxWidth: '500px',
     maxHeight: '80vh',
@@ -77,7 +77,7 @@ export default function UserSelector({ onUserSelect, onClose }) {
 
   const headerStyles = {
     padding: '1.5rem',
-    borderBottom: '1px solid #2A3343',
+    borderBottom: '1px solid rgb(var(--color-border))',
     display: 'flex',
     alignItems: 'center',
     justifyContent: 'space-between'
@@ -86,12 +86,12 @@ export default function UserSelector({ onUserSelect, onClose }) {
   const titleStyles = {
     fontSize: '1.25rem',
     fontWeight: '600',
-    color: '#FFFFFF',
+    color: 'rgb(var(--color-text-primary))',
     fontFamily: "'Outfit', sans-serif"
   };
 
   const closeButtonStyles = {
-    color: '#B8C1CF',
+    color: 'rgb(var(--color-text-secondary))',
     padding: '0.5rem',
     borderRadius: '0.375rem',
     cursor: 'pointer',
@@ -100,7 +100,7 @@ export default function UserSelector({ onUserSelect, onClose }) {
 
   const searchContainerStyles = {
     padding: '1rem 1.5rem',
-    borderBottom: '1px solid #2A3343'
+    borderBottom: '1px solid rgb(var(--color-border))'
   };
 
   const searchInputContainerStyles = {
@@ -111,11 +111,11 @@ export default function UserSelector({ onUserSelect, onClose }) {
 
   const searchInputStyles = {
     width: '100%',
-    backgroundColor: '#0F1624',
-    border: '1px solid #2A3343',
+    backgroundColor: 'rgb(var(--color-background))',
+    border: '1px solid rgb(var(--color-border))',
     borderRadius: '0.5rem',
     padding: '0.75rem 1rem 0.75rem 2.5rem',
-    color: '#FFFFFF',
+    color: 'rgb(var(--color-text-primary))',
     fontSize: '0.875rem',
     outline: 'none',
     transition: 'border-color 0.2s'
@@ -124,7 +124,7 @@ export default function UserSelector({ onUserSelect, onClose }) {
   const searchIconStyles = {
     position: 'absolute',
     left: '0.75rem',
-    color: '#6C7A89',
+    color: 'rgb(var(--color-text-disabled))',
     width: '1.25rem',
     height: '1.25rem'
   };
@@ -142,7 +142,7 @@ export default function UserSelector({ onUserSelect, onClose }) {
   const sectionTitleStyles = {
     fontSize: '0.875rem',
     fontWeight: '600',
-    color: '#B8C1CF',
+    color: 'rgb(var(--color-text-secondary))',
     marginBottom: '0.75rem',
     textTransform: 'uppercase',
     letterSpacing: '0.05em'
@@ -169,11 +169,11 @@ export default function UserSelector({ onUserSelect, onClose }) {
     width: '2.5rem',
     height: '2.5rem',
     borderRadius: '50%',
-    backgroundColor: '#3A86FF',
+    backgroundColor: 'rgb(var(--color-primary))',
     display: 'flex',
     alignItems: 'center',
     justifyContent: 'center',
-    color: '#FFFFFF',
+    color: 'rgb(var(--color-background))',
     fontSize: '0.875rem',
     fontWeight: '600',
     flexShrink: 0
@@ -194,25 +194,25 @@ export default function UserSelector({ onUserSelect, onClose }) {
   const nameStyles = {
     fontSize: '1rem',
     fontWeight: '500',
-    color: '#FFFFFF',
+    color: 'rgb(var(--color-text-primary))',
     marginBottom: '0.125rem'
   };
 
   const usernameStyles = {
     fontSize: '0.875rem',
-    color: '#B8C1CF'
+    color: 'rgb(var(--color-text-secondary))'
   };
 
   const onlineIndicatorStyles = {
     width: '0.5rem',
     height: '0.5rem',
     borderRadius: '50%',
-    backgroundColor: '#06D6A0'
+    backgroundColor: 'rgb(var(--color-success, 6 214 160))'
   };
 
   const emptyStyles = {
     textAlign: 'center',
-    color: '#6C7A89',
+    color: 'rgb(var(--color-text-disabled))',
     fontSize: '0.875rem',
     padding: '1rem'
   };
@@ -222,7 +222,7 @@ export default function UserSelector({ onUserSelect, onClose }) {
     alignItems: 'center',
     justifyContent: 'center',
     padding: '2rem',
-    color: '#B8C1CF'
+    color: 'rgb(var(--color-text-secondary))'
   };
 
   return (
@@ -234,7 +234,7 @@ export default function UserSelector({ onUserSelect, onClose }) {
           <button
             onClick={onClose}
             style={closeButtonStyles}
-            onMouseEnter={(e) => e.target.style.backgroundColor = 'rgba(184, 193, 207, 0.1)'}
+            onMouseEnter={(e) => e.target.style.backgroundColor = 'rgba(var(--color-text-secondary), 0.1)'}
             onMouseLeave={(e) => e.target.style.backgroundColor = 'transparent'}
           >
             <X style={{ width: '1.25rem', height: '1.25rem' }} />
@@ -251,8 +251,8 @@ export default function UserSelector({ onUserSelect, onClose }) {
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
               style={searchInputStyles}
-              onFocus={(e) => e.target.style.borderColor = '#3A86FF'}
-              onBlur={(e) => e.target.style.borderColor = '#2A3343'}
+              onFocus={(e) => e.target.style.borderColor = 'rgb(var(--color-primary))'}
+              onBlur={(e) => e.target.style.borderColor = 'rgb(var(--color-border))'}
             />
           </div>
         </div>
@@ -264,8 +264,8 @@ export default function UserSelector({ onUserSelect, onClose }) {
               <div style={{
                 width: '1.5rem',
                 height: '1.5rem',
-                border: '2px solid #2A3343',
-                borderTop: '2px solid #3A86FF',
+                border: '2px solid rgb(var(--color-border))',
+                borderTop: '2px solid rgb(var(--color-primary))',
                 borderRadius: '50%',
                 animation: 'spin 1s linear infinite'
               }}></div>
@@ -284,8 +284,8 @@ export default function UserSelector({ onUserSelect, onClose }) {
                         style={userItemStyles}
                         onClick={() => onUserSelect(user)}
                         onMouseEnter={(e) => {
-                          e.target.style.backgroundColor = 'rgba(58, 134, 255, 0.1)';
-                          e.target.style.borderColor = 'rgba(58, 134, 255, 0.3)';
+                          e.target.style.backgroundColor = 'rgba(var(--color-primary), 0.1)';
+                          e.target.style.borderColor = 'rgba(var(--color-primary), 0.3)';
                         }}
                         onMouseLeave={(e) => {
                           e.target.style.backgroundColor = 'transparent';
@@ -338,8 +338,8 @@ export default function UserSelector({ onUserSelect, onClose }) {
                         style={userItemStyles}
                         onClick={() => onUserSelect(user)}
                         onMouseEnter={(e) => {
-                          e.target.style.backgroundColor = 'rgba(58, 134, 255, 0.1)';
-                          e.target.style.borderColor = 'rgba(58, 134, 255, 0.3)';
+                          e.target.style.backgroundColor = 'rgba(var(--color-primary), 0.1)';
+                          e.target.style.borderColor = 'rgba(var(--color-primary), 0.3)';
                         }}
                         onMouseLeave={(e) => {
                           e.target.style.backgroundColor = 'transparent';

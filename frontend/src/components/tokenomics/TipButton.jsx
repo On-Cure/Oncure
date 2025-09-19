@@ -57,7 +57,7 @@ export default function TipButton({ postId, recipientId, recipientName, onTipSen
             <div className="space-y-4">
               <div>
                 <label className="block text-sm font-medium mb-2" style={{color: 'rgb(var(--color-text-secondary))'}}>
-                  Amount (HBAR)
+                  Amount (KSH)
                 </label>
                 <input
                   type="number"
@@ -75,7 +75,7 @@ export default function TipButton({ postId, recipientId, recipientName, onTipSen
                 />
                 {amount && (
                   <p className="text-xs mt-1" style={{color: 'rgb(var(--color-text-secondary))'}}>
-                    ≈ {(parseFloat(amount) * 50).toFixed(2)} KSH
+                    ≈ {(parseFloat(amount) / 50).toFixed(4)} HBAR
                   </p>
                 )}
               </div>

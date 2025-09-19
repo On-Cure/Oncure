@@ -4,6 +4,8 @@ import (
 	"database/sql"
 	"errors"
 	"time"
+
+	"github.com/On-cure/Oncure/pkg/db"
 )
 
 type Message struct {
@@ -19,12 +21,12 @@ type Message struct {
 }
 
 // CreatePrivateMessage creates a new private message between users
-func CreatePrivateMessage(db *sql.DB, senderId int, receiverId int, content string) (*Message, error) {
+func CreatePrivateMessage(database *sql.DB, senderId int, receiverId int, content string) (*Message, error) {
 	// Allow sending messages to any user; message requests are handled at the conversation level
 	// (Old restriction removed to support message requests)
 
 	// Create message
-	result, err := db.Exec(
+	result, err := db.Exec(database,
 		`INSERT INTO messages (sender_id, receiver_id, content) VALUES (?, ?, ?)`,
 		senderId, receiverId, content,
 	)
@@ -39,7 +41,7 @@ func CreatePrivateMessage(db *sql.DB, senderId int, receiverId int, content stri
 
 	// Retrieve the created message
 	var message Message
-	err = db.QueryRow(`
+	err = db.QueryRow(database, `
 		SELECT id, sender_id, receiver_id, content, is_read, created_at
 		FROM messages
 		WHERE id = ?
@@ -56,10 +58,10 @@ func CreatePrivateMessage(db *sql.DB, senderId int, receiverId int, content stri
 }
 
 // CreateGroupMessage creates a new message in a group chat
-func CreateGroupMessage(db *sql.DB, senderId int, groupId int, content string) (int, error) {
+func CreateGroupMessage(database *sql.DB, senderId int, groupId int, content string) (int, error) {
 	// Check if user is a member of the group
 	var status string
-	err := db.QueryRow(
+	err := db.QueryRow(database,
 		"SELECT status FROM group_members WHERE group_id = ? AND user_id = ?",
 		groupId, senderId,
 	).Scan(&status)
@@ -74,7 +76,7 @@ func CreateGroupMessage(db *sql.DB, senderId int, groupId int, content string) (
 	}
 
 	// Create message
-	result, err := db.Exec(
+	result, err := db.Exec(database,
 		`INSERT INTO messages (sender_id, group_id, content) VALUES (?, ?, ?)`,
 		senderId, groupId, content,
 	)
@@ -91,11 +93,11 @@ func CreateGroupMessage(db *sql.DB, senderId int, groupId int, content string) (
 }
 
 // GetPrivateMessages retrieves private messages between two users
-func GetPrivateMessages(db *sql.DB, userId1 int, userId2 int, page int, limit int) ([]Message, error) {
+func GetPrivateMessages(database *sql.DB, userId1 int, userId2 int, page int, limit int) ([]Message, error) {
 	offset := (page - 1) * limit
 	messages := []Message{}
 
-	rows, err := db.Query(`
+	rows, err := db.Query(database, `
 		SELECT m.id, m.sender_id, m.receiver_id, m.content, m.is_read, m.created_at,
 		s.id, s.email, s.first_name, s.last_name, s.avatar, s.nickname,
 		r.id, r.email, r.first_name, r.last_name, r.avatar, r.nickname
@@ -131,11 +133,21 @@ func GetPrivateMessages(db *sql.DB, userId1 int, userId2 int, page int, limit in
 	}
 
 	// Mark messages as read
-	_, err = db.Exec(`
-		UPDATE messages 
-		SET is_read = 1 
-		WHERE receiver_id = ? AND sender_id = ? AND is_read = 0
-	`, userId1, userId2)
+	var updateQuery string
+	if db.IsPostgreSQL() {
+		updateQuery = `
+			UPDATE messages 
+			SET is_read = TRUE 
+			WHERE receiver_id = ? AND sender_id = ? AND is_read = FALSE
+		`
+	} else {
+		updateQuery = `
+			UPDATE messages 
+			SET is_read = 1 
+			WHERE receiver_id = ? AND sender_id = ? AND is_read = 0
+		`
+	}
+	_, err = db.Exec(database, updateQuery, userId1, userId2)
 	if err != nil {
 		return nil, err
 	}
@@ -144,10 +156,10 @@ func GetPrivateMessages(db *sql.DB, userId1 int, userId2 int, page int, limit in
 }
 
 // GetGroupMessages retrieves messages in a group chat
-func GetGroupMessages(db *sql.DB, groupId int, userId int, page int, limit int) ([]Message, error) {
+func GetGroupMessages(database *sql.DB, groupId int, userId int, page int, limit int) ([]Message, error) {
 	// Check if user is a member of the group
 	var status string
-	err := db.QueryRow(
+	err := db.QueryRow(database,
 		"SELECT status FROM group_members WHERE group_id = ? AND user_id = ?",
 		groupId, userId,
 	).Scan(&status)
@@ -164,7 +176,7 @@ func GetGroupMessages(db *sql.DB, groupId int, userId int, page int, limit int) 
 	offset := (page - 1) * limit
 	messages := []Message{}
 
-	rows, err := db.Query(`
+	rows, err := db.Query(database, `
 		SELECT m.id, m.sender_id, m.group_id, m.content, m.is_read, m.created_at,
 		s.id, s.email, s.first_name, s.last_name, s.avatar, s.nickname
 		FROM messages m
@@ -208,11 +220,18 @@ type ConversationInfo struct {
 }
 
 // GetUserConversations retrieves a list of users the current user has conversations with
-func GetUserConversations(db *sql.DB, userId int) ([]ConversationInfo, error) {
+func GetUserConversations(database *sql.DB, userId int) ([]ConversationInfo, error) {
 	conversations := []ConversationInfo{}
 
-	// Get users the current user has exchanged messages with
-	rows, err := db.Query(`
+	// Build query with proper boolean handling
+	var isReadCondition string
+	if db.IsPostgreSQL() {
+		isReadCondition = "FALSE"
+	} else {
+		isReadCondition = "0"
+	}
+
+	query := `
 		SELECT DISTINCT
 			CASE
 				WHEN m.sender_id = ? THEN m.receiver_id
@@ -220,7 +239,7 @@ func GetUserConversations(db *sql.DB, userId int) ([]ConversationInfo, error) {
 			END as other_user_id,
 			u.id, u.email, u.first_name, u.last_name, u.avatar, u.nickname,
 			(SELECT COUNT(*) FROM messages
-			 WHERE receiver_id = ? AND sender_id = u.id AND is_read = 0) as unread_count,
+			 WHERE receiver_id = ? AND sender_id = u.id AND is_read = ` + isReadCondition + `) as unread_count,
 			(SELECT content FROM messages
 			 WHERE (sender_id = ? AND receiver_id = u.id) OR (sender_id = u.id AND receiver_id = ?)
 			 ORDER BY created_at DESC LIMIT 1) as last_message,
@@ -231,7 +250,10 @@ func GetUserConversations(db *sql.DB, userId int) ([]ConversationInfo, error) {
 		JOIN users u ON (m.sender_id = u.id OR m.receiver_id = u.id) AND u.id != ?
 		WHERE (m.sender_id = ? OR m.receiver_id = ?) AND m.group_id IS NULL
 		ORDER BY last_message_time DESC
-	`, userId, userId, userId, userId, userId, userId, userId, userId, userId)
+	`
+
+	// Get users the current user has exchanged messages with
+	rows, err := db.Query(database, query, userId, userId, userId, userId, userId, userId, userId, userId, userId)
 	if err != nil {
 		return nil, err
 	}
@@ -267,10 +289,10 @@ func GetUserConversations(db *sql.DB, userId int) ([]ConversationInfo, error) {
 		// If the other user is private and the current user does NOT follow them, mark as request
 		isRequest := false
 		var isOtherUserPublic bool
-		err = db.QueryRow("SELECT COALESCE(is_public, 1) FROM user_profiles WHERE user_id = ?", conversation.User.ID).Scan(&isOtherUserPublic)
+		err = db.QueryRow(database, "SELECT COALESCE(is_public, true) FROM user_profiles WHERE user_id = ?", conversation.User.ID).Scan(&isOtherUserPublic)
 		if err == nil && !isOtherUserPublic {
 			// Check if current user follows the other user
-			status, err := IsFollowing(db, userId, conversation.User.ID)
+			status, err := IsFollowing(database, userId, conversation.User.ID)
 			if err == nil && status != "accepted" {
 				isRequest = true
 			}
@@ -284,14 +306,23 @@ func GetUserConversations(db *sql.DB, userId int) ([]ConversationInfo, error) {
 }
 
 // MarkMessagesAsRead marks all messages from a specific user as read
-func MarkMessagesAsRead(db *sql.DB, recipientID, senderID int) error {
-	query := `
-		UPDATE messages
-		SET is_read = 1
-		WHERE receiver_id = ? AND sender_id = ? AND is_read = 0
-	`
+func MarkMessagesAsRead(database *sql.DB, recipientID, senderID int) error {
+	var query string
+	if db.IsPostgreSQL() {
+		query = `
+			UPDATE messages
+			SET is_read = TRUE
+			WHERE receiver_id = ? AND sender_id = ? AND is_read = FALSE
+		`
+	} else {
+		query = `
+			UPDATE messages
+			SET is_read = 1
+			WHERE receiver_id = ? AND sender_id = ? AND is_read = 0
+		`
+	}
 
-	result, err := db.Exec(query, recipientID, senderID)
+	result, err := db.Exec(database, query, recipientID, senderID)
 	if err != nil {
 		return err
 	}
@@ -308,15 +339,24 @@ func MarkMessagesAsRead(db *sql.DB, recipientID, senderID int) error {
 }
 
 // GetUnreadMessageCount gets the total number of unread messages for a user
-func GetUnreadMessageCount(db *sql.DB, userID int) (int, error) {
+func GetUnreadMessageCount(database *sql.DB, userID int) (int, error) {
 	var count int
-	query := `
-		SELECT COUNT(*)
-		FROM messages
-		WHERE receiver_id = ? AND is_read = 0
-	`
+	var query string
+	if db.IsPostgreSQL() {
+		query = `
+			SELECT COUNT(*)
+			FROM messages
+			WHERE receiver_id = ? AND is_read = FALSE
+		`
+	} else {
+		query = `
+			SELECT COUNT(*)
+			FROM messages
+			WHERE receiver_id = ? AND is_read = 0
+		`
+	}
 
-	err := db.QueryRow(query, userID).Scan(&count)
+	err := db.QueryRow(database, query, userID).Scan(&count)
 	if err != nil {
 		return 0, err
 	}
@@ -325,7 +365,7 @@ func GetUnreadMessageCount(db *sql.DB, userID int) (int, error) {
 }
 
 // GetMessageByID retrieves a message by its ID with sender information
-func GetMessageByID(db *sql.DB, messageID int) (*Message, error) {
+func GetMessageByID(database *sql.DB, messageID int) (*Message, error) {
 	message := &Message{}
 	var sender User
 
@@ -337,7 +377,7 @@ func GetMessageByID(db *sql.DB, messageID int) (*Message, error) {
 		WHERE m.id = ?
 	`
 
-	err := db.QueryRow(query, messageID).Scan(
+	err := db.QueryRow(database, query, messageID).Scan(
 		&message.ID, &message.SenderID, &message.ReceiverID, &message.GroupID,
 		&message.Content, &message.IsRead, &message.CreatedAt,
 		&sender.ID, &sender.Email, &sender.FirstName, &sender.LastName,

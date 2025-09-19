@@ -1,0 +1,1 @@
+-- Revert users role and verification_status to NULL (no-op since we can't safely revert data)

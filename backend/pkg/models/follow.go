@@ -3,15 +3,17 @@ package models
 import (
 	"database/sql"
 	"errors"
+
+	"github.com/On-cure/Oncure/pkg/db"
 )
 
 // GetFollowers retrieves users who are following the specified user
-func GetFollowers(db *sql.DB, userId int) ([]User, error) {
+func GetFollowers(database *sql.DB, userId int) ([]User, error) {
 	followers := []User{}
 
-	rows, err := db.Query(`
+	rows, err := db.Query(database, `
 		SELECT u.id, u.email, u.first_name, u.last_name, u.avatar, u.nickname, u.about_me, 
-		u.created_at, u.updated_at, COALESCE(p.is_public, 1) as is_public
+		u.created_at, u.updated_at, COALESCE(p.is_public, true) as is_public
 		FROM follows f
 		JOIN users u ON f.follower_id = u.id
 		LEFT JOIN user_profiles p ON u.id = p.user_id
@@ -39,12 +41,12 @@ func GetFollowers(db *sql.DB, userId int) ([]User, error) {
 }
 
 // GetFollowing retrieves users that the specified user is following
-func GetFollowing(db *sql.DB, userId int) ([]User, error) {
+func GetFollowing(database *sql.DB, userId int) ([]User, error) {
 	following := []User{}
 
-	rows, err := db.Query(`
+	rows, err := db.Query(database, `
 		SELECT u.id, u.email, u.first_name, u.last_name, u.avatar, u.nickname, u.about_me, 
-		u.created_at, u.updated_at, COALESCE(p.is_public, 1) as is_public
+		u.created_at, u.updated_at, COALESCE(p.is_public, true) as is_public
 		FROM follows f
 		JOIN users u ON f.following_id = u.id
 		LEFT JOIN user_profiles p ON u.id = p.user_id
@@ -72,7 +74,7 @@ func GetFollowing(db *sql.DB, userId int) ([]User, error) {
 }
 
 // FollowUser handles a user following another user
-func FollowUser(db *sql.DB, followerId int, followingId int) error {
+func FollowUser(database *sql.DB, followerId int, followingId int) error {
 	// Check if users are the same
 	if followerId == followingId {
 		return errors.New("cannot follow yourself")
@@ -80,7 +82,7 @@ func FollowUser(db *sql.DB, followerId int, followingId int) error {
 
 	// Check if following user exists
 	var exists bool
-	err := db.QueryRow("SELECT EXISTS(SELECT 1 FROM users WHERE id = ?)", followingId).Scan(&exists)
+	err := db.QueryRow(database, "SELECT EXISTS(SELECT 1 FROM users WHERE id = ?)", followingId).Scan(&exists)
 	if err != nil {
 		return err
 	}
@@ -89,7 +91,7 @@ func FollowUser(db *sql.DB, followerId int, followingId int) error {
 	}
 
 	// Check if already following
-	err = db.QueryRow(
+	err = db.QueryRow(database,
 		"SELECT EXISTS(SELECT 1 FROM follows WHERE follower_id = ? AND following_id = ?)",
 		followerId, followingId,
 	).Scan(&exists)
@@ -102,10 +104,7 @@ func FollowUser(db *sql.DB, followerId int, followingId int) error {
 
 	// Check if user to follow has a public profile
 	var isPublic bool
-	err = db.QueryRow(
-		"SELECT COALESCE(is_public, 1) FROM user_profiles WHERE user_id = ?",
-		followingId,
-	).Scan(&isPublic)
+	err = db.QueryRow(database, "SELECT COALESCE(is_public, true) FROM user_profiles WHERE user_id = ?", followingId).Scan(&isPublic)
 	if err != nil && err != sql.ErrNoRows {
 		return err
 	}
@@ -117,7 +116,7 @@ func FollowUser(db *sql.DB, followerId int, followingId int) error {
 	}
 
 	// Create follow relationship
-	_, err = db.Exec(
+	_, err = db.Exec(database,
 		"INSERT INTO follows (follower_id, following_id, status) VALUES (?, ?, ?)",
 		followerId, followingId, status,
 	)
@@ -125,10 +124,10 @@ func FollowUser(db *sql.DB, followerId int, followingId int) error {
 }
 
 // UnfollowUser handles a user unfollowing another user
-func UnfollowUser(db *sql.DB, followerId int, followingId int) error {
+func UnfollowUser(database *sql.DB, followerId int, followingId int) error {
 	// Check if following exists
 	var exists bool
-	err := db.QueryRow(
+	err := db.QueryRow(database,
 		"SELECT EXISTS(SELECT 1 FROM follows WHERE follower_id = ? AND following_id = ? AND status = 'accepted')",
 		followerId, followingId,
 	).Scan(&exists)
@@ -140,7 +139,7 @@ func UnfollowUser(db *sql.DB, followerId int, followingId int) error {
 	}
 
 	// Delete follow relationship
-	_, err = db.Exec(
+	_, err = db.Exec(database,
 		"DELETE FROM follows WHERE follower_id = ? AND following_id = ?",
 		followerId, followingId,
 	)
@@ -148,10 +147,10 @@ func UnfollowUser(db *sql.DB, followerId int, followingId int) error {
 }
 
 // RespondToFollowRequest handles accepting or declining a follow request
-func RespondToFollowRequest(db *sql.DB, followerId int, followingId int, status string) error {
+func RespondToFollowRequest(database *sql.DB, followerId int, followingId int, status string) error {
 	// Check if request exists
 	var exists bool
-	err := db.QueryRow(
+	err := db.QueryRow(database,
 		"SELECT EXISTS(SELECT 1 FROM follows WHERE follower_id = ? AND following_id = ? AND status = 'pending')",
 		followerId, followingId,
 	).Scan(&exists)
@@ -164,7 +163,7 @@ func RespondToFollowRequest(db *sql.DB, followerId int, followingId int, status 
 
 	// Update status
 	if status == "accepted" || status == "declined" {
-		_, err = db.Exec(
+		_, err = db.Exec(database,
 			"UPDATE follows SET status = ? WHERE follower_id = ? AND following_id = ?",
 			status, followerId, followingId,
 		)
@@ -174,12 +173,12 @@ func RespondToFollowRequest(db *sql.DB, followerId int, followingId int, status 
 }
 
 // GetFollowCounts returns follower, following, and posts counts for a user
-func GetFollowCounts(db *sql.DB, userId int) (map[string]int, error) {
+func GetFollowCounts(database *sql.DB, userId int) (map[string]int, error) {
 	counts := make(map[string]int)
 
 	// Get follower count
 	var followerCount int
-	err := db.QueryRow(
+	err := db.QueryRow(database,
 		"SELECT COUNT(*) FROM follows WHERE following_id = ? AND status = 'accepted'",
 		userId,
 	).Scan(&followerCount)
@@ -190,7 +189,7 @@ func GetFollowCounts(db *sql.DB, userId int) (map[string]int, error) {
 
 	// Get following count
 	var followingCount int
-	err = db.QueryRow(
+	err = db.QueryRow(database,
 		"SELECT COUNT(*) FROM follows WHERE follower_id = ? AND status = 'accepted'",
 		userId,
 	).Scan(&followingCount)
@@ -201,7 +200,7 @@ func GetFollowCounts(db *sql.DB, userId int) (map[string]int, error) {
 
 	// Get posts count
 	var postsCount int
-	err = db.QueryRow(
+	err = db.QueryRow(database,
 		"SELECT COUNT(*) FROM posts WHERE user_id = ?",
 		userId,
 	).Scan(&postsCount)
@@ -214,9 +213,9 @@ func GetFollowCounts(db *sql.DB, userId int) (map[string]int, error) {
 }
 
 // IsFollowing checks if user A is following user B
-func IsFollowing(db *sql.DB, followerId int, followingId int) (string, error) {
+func IsFollowing(database *sql.DB, followerId int, followingId int) (string, error) {
 	var status string
-	err := db.QueryRow(
+	err := db.QueryRow(database,
 		"SELECT status FROM follows WHERE follower_id = ? AND following_id = ?",
 		followerId, followingId,
 	).Scan(&status)
@@ -230,11 +229,11 @@ func IsFollowing(db *sql.DB, followerId int, followingId int) (string, error) {
 }
 
 // GetFollowersWithCursor retrieves followers with pagination
-func GetFollowersWithCursor(db *sql.DB, userId int, limit int, cursor string) ([]User, string, error) {
+func GetFollowersWithCursor(database *sql.DB, userId int, limit int, cursor string) ([]User, string, error) {
 	followers := []User{}
 	query := `
 		SELECT u.id, u.email, u.first_name, u.last_name, u.avatar, u.nickname, u.about_me, 
-		u.created_at, u.updated_at, COALESCE(p.is_public, 1) as is_public, f.created_at as follow_date
+		u.created_at, u.updated_at, COALESCE(p.is_public, true) as is_public, f.created_at as follow_date
 		FROM follows f
 		JOIN users u ON f.follower_id = u.id
 		LEFT JOIN user_profiles p ON u.id = p.user_id
@@ -250,7 +249,7 @@ func GetFollowersWithCursor(db *sql.DB, userId int, limit int, cursor string) ([
 	query += " ORDER BY f.created_at DESC LIMIT ?"
 	args = append(args, limit+1) // Get one extra to check if there are more
 
-	rows, err := db.Query(query, args...)
+	rows, err := db.Query(database, query, args...)
 	if err != nil {
 		return nil, "", err
 	}
@@ -282,11 +281,11 @@ func GetFollowersWithCursor(db *sql.DB, userId int, limit int, cursor string) ([
 }
 
 // GetFollowingWithCursor retrieves following with pagination
-func GetFollowingWithCursor(db *sql.DB, userId int, limit int, cursor string) ([]User, string, error) {
+func GetFollowingWithCursor(database *sql.DB, userId int, limit int, cursor string) ([]User, string, error) {
 	following := []User{}
 	query := `
 		SELECT u.id, u.email, u.first_name, u.last_name, u.avatar, u.nickname, u.about_me, 
-		u.created_at, u.updated_at, COALESCE(p.is_public, 1) as is_public, f.created_at as follow_date
+		u.created_at, u.updated_at, COALESCE(p.is_public, true) as is_public, f.created_at as follow_date
 		FROM follows f
 		JOIN users u ON f.following_id = u.id
 		LEFT JOIN user_profiles p ON u.id = p.user_id
@@ -302,7 +301,7 @@ func GetFollowingWithCursor(db *sql.DB, userId int, limit int, cursor string) ([
 	query += " ORDER BY f.created_at DESC LIMIT ?"
 	args = append(args, limit+1) // Get one extra to check if there are more
 
-	rows, err := db.Query(query, args...)
+	rows, err := db.Query(database, query, args...)
 	if err != nil {
 		return nil, "", err
 	}
@@ -334,10 +333,10 @@ func GetFollowingWithCursor(db *sql.DB, userId int, limit int, cursor string) ([
 }
 
 // CancelFollowRequest cancels a pending follow request
-func CancelFollowRequest(db *sql.DB, followerId int, followingId int) error {
+func CancelFollowRequest(database *sql.DB, followerId int, followingId int) error {
 	// Check if pending request exists
 	var exists bool
-	err := db.QueryRow(
+	err := database.QueryRow(
 		"SELECT EXISTS(SELECT 1 FROM follows WHERE follower_id = ? AND following_id = ? AND status = 'pending')",
 		followerId, followingId,
 	).Scan(&exists)
@@ -349,7 +348,7 @@ func CancelFollowRequest(db *sql.DB, followerId int, followingId int) error {
 	}
 
 	// Delete the request
-	_, err = db.Exec(
+	_, err = database.Exec(
 		"DELETE FROM follows WHERE follower_id = ? AND following_id = ? AND status = 'pending'",
 		followerId, followingId,
 	)
@@ -357,17 +356,17 @@ func CancelFollowRequest(db *sql.DB, followerId int, followingId int) error {
 }
 
 // AcceptFollowRequest accepts a pending follow request
-func AcceptFollowRequest(db *sql.DB, followerId int, followingId int) error {
-	return RespondToFollowRequest(db, followerId, followingId, "accepted")
+func AcceptFollowRequest(database *sql.DB, followerId int, followingId int) error {
+	return RespondToFollowRequest(database, followerId, followingId, "accepted")
 }
 
 
 
 // AcceptMessageRequest sets the follow status to accepted (accepts a message request)
-func AcceptMessageRequest(db *sql.DB, userID, requesterID int) error {
+func AcceptMessageRequest(database *sql.DB, userID, requesterID int) error {
 	// userID is the recipient, requesterID is the sender of the message request
 	// If a follow row exists, update it; otherwise, insert a new one
-	_, err := db.Exec(`
+	_, err := database.Exec(`
 		INSERT INTO follows (follower_id, following_id, status)
 		VALUES (?, ?, 'accepted')
 		ON CONFLICT(follower_id, following_id) DO UPDATE SET status = 'accepted'

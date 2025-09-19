@@ -8,8 +8,8 @@ import (
 	"path/filepath"
 	"strings"
 
-	md "github.com/hezronokwach/soshi/pkg/middleware"
-	"github.com/hezronokwach/soshi/pkg/utils"
+	md "github.com/On-cure/Oncure/pkg/middleware"
+	"github.com/On-cure/Oncure/pkg/utils"
 
 	"github.com/google/uuid"
 )
@@ -52,7 +52,10 @@ func (h *UploadHandler) UploadFile(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// Create uploads directory if it doesn't exist
-	uploadsDir := "./uploads"
+	uploadsDir := os.Getenv("UPLOAD_PATH")
+	if uploadsDir == "" {
+		uploadsDir = "./uploads"
+	}
 	if err := os.MkdirAll(uploadsDir, 0o755); err != nil {
 		utils.RespondWithError(w, http.StatusInternalServerError, "Failed to create uploads directory")
 		return

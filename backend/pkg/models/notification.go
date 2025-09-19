@@ -3,6 +3,8 @@ package models
 import (
 	"database/sql"
 	"time"
+
+	"github.com/On-cure/Oncure/pkg/db"
 )
 
 type Notification struct {
@@ -16,8 +18,8 @@ type Notification struct {
 }
 
 // CreateNotification creates a new notification
-func CreateNotification(db *sql.DB, userId int, notificationType string, message string, relatedId int) (int, error) {
-	result, err := db.Exec(
+func CreateNotification(database *sql.DB, userId int, notificationType string, message string, relatedId int) (int, error) {
+	result, err := db.Exec(database,
 		`INSERT INTO notifications (user_id, type, message, related_id) VALUES (?, ?, ?, ?)`,
 		userId, notificationType, message, relatedId,
 	)
@@ -34,11 +36,11 @@ func CreateNotification(db *sql.DB, userId int, notificationType string, message
 }
 
 // GetUserNotifications retrieves notifications for a user
-func GetUserNotifications(db *sql.DB, userId int, page int, limit int) ([]Notification, error) {
+func GetUserNotifications(database *sql.DB, userId int, page int, limit int) ([]Notification, error) {
 	offset := (page - 1) * limit
 	notifications := []Notification{}
 
-	rows, err := db.Query(`
+	rows, err := db.Query(database, `
 		SELECT id, user_id, type, message, related_id, is_read, created_at
 		FROM notifications
 		WHERE user_id = ?
@@ -66,29 +68,38 @@ func GetUserNotifications(db *sql.DB, userId int, page int, limit int) ([]Notifi
 }
 
 // MarkNotificationAsRead marks a notification as read
-func MarkNotificationAsRead(db *sql.DB, notificationId int, userId int) error {
-	_, err := db.Exec(
-		"UPDATE notifications SET is_read = 1 WHERE id = ? AND user_id = ?",
-		notificationId, userId,
-	)
+func MarkNotificationAsRead(database *sql.DB, notificationId int, userId int) error {
+	var query string
+	if db.IsPostgreSQL() {
+		query = "UPDATE notifications SET is_read = TRUE WHERE id = ? AND user_id = ?"
+	} else {
+		query = "UPDATE notifications SET is_read = 1 WHERE id = ? AND user_id = ?"
+	}
+	_, err := db.Exec(database, query, notificationId, userId)
 	return err
 }
 
 // MarkAllNotificationsAsRead marks all notifications for a user as read
-func MarkAllNotificationsAsRead(db *sql.DB, userId int) error {
-	_, err := db.Exec(
-		"UPDATE notifications SET is_read = 1 WHERE user_id = ?",
-		userId,
-	)
+func MarkAllNotificationsAsRead(database *sql.DB, userId int) error {
+	var query string
+	if db.IsPostgreSQL() {
+		query = "UPDATE notifications SET is_read = TRUE WHERE user_id = ?"
+	} else {
+		query = "UPDATE notifications SET is_read = 1 WHERE user_id = ?"
+	}
+	_, err := db.Exec(database, query, userId)
 	return err
 }
 
 // GetUnreadNotificationCount gets the count of unread notifications for a user
-func GetUnreadNotificationCount(db *sql.DB, userId int) (int, error) {
+func GetUnreadNotificationCount(database *sql.DB, userId int) (int, error) {
 	var count int
-	err := db.QueryRow(
-		"SELECT COUNT(*) FROM notifications WHERE user_id = ? AND is_read = 0",
-		userId,
-	).Scan(&count)
+	var query string
+	if db.IsPostgreSQL() {
+		query = "SELECT COUNT(*) FROM notifications WHERE user_id = ? AND is_read = FALSE"
+	} else {
+		query = "SELECT COUNT(*) FROM notifications WHERE user_id = ? AND is_read = 0"
+	}
+	err := db.QueryRow(database, query, userId).Scan(&count)
 	return count, err
 }

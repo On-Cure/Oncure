@@ -5,6 +5,7 @@ import (
 	"errors"
 	"time"
 
+	"github.com/On-cure/Oncure/pkg/db"
 	"golang.org/x/crypto/bcrypt"
 )
 
@@ -40,10 +41,10 @@ type VerificationRequest struct {
 }
 
 // CreateUser creates a new user in the database
-func CreateUser(db *sql.DB, user User) (int, error) {
+func CreateUser(database *sql.DB, user User) (int, error) {
 	// Check if user with email already exists
 	var exists bool
-	err := db.QueryRow("SELECT EXISTS(SELECT 1 FROM users WHERE email = ?)", user.Email).Scan(&exists)
+	err := db.QueryRow(database, "SELECT EXISTS(SELECT 1 FROM users WHERE email = ?)", user.Email).Scan(&exists)
 	if err != nil {
 		return 0, err
 	}
@@ -58,33 +59,39 @@ func CreateUser(db *sql.DB, user User) (int, error) {
 	}
 
 	// Begin transaction
-	tx, err := db.Begin()
+	tx, err := database.Begin()
 	if err != nil {
 		return 0, err
 	}
 	defer tx.Rollback()
 
 	// Insert user
-	result, err := tx.Exec(
-		`INSERT INTO users (email, password, first_name, last_name, date_of_birth, avatar, nickname, about_me, role)
-		VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)`,
-		user.Email, string(hashedPassword), user.FirstName, user.LastName, user.DateOfBirth, user.Avatar, user.Nickname, user.AboutMe, user.Role,
-	)
-	if err != nil {
-		return 0, err
+	var userID int
+	if db.IsPostgreSQL() {
+		// PostgreSQL with RETURNING
+		err = tx.QueryRow(
+			`INSERT INTO users (email, password, first_name, last_name, date_of_birth, avatar, nickname, about_me, role)
+			VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9) RETURNING id`,
+			user.Email, string(hashedPassword), user.FirstName, user.LastName, user.DateOfBirth, user.Avatar, user.Nickname, user.AboutMe, user.Role,
+		).Scan(&userID)
+	} else {
+		// SQLite with LastInsertId
+		result, err := tx.Exec(
+			`INSERT INTO users (email, password, first_name, last_name, date_of_birth, avatar, nickname, about_me, role)
+			VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+			user.Email, string(hashedPassword), user.FirstName, user.LastName, user.DateOfBirth, user.Avatar, user.Nickname, user.AboutMe, user.Role,
+		)
+		if err == nil {
+			id, _ := result.LastInsertId()
+			userID = int(id)
+		}
 	}
-
-	// Get user ID
-	userId, err := result.LastInsertId()
 	if err != nil {
 		return 0, err
 	}
 
 	// Create user profile (default to public)
-	_, err = tx.Exec(
-		`INSERT INTO user_profiles (user_id, is_public) VALUES (?, ?)`,
-		userId, true,
-	)
+	_, err = db.TxExec(tx, `INSERT INTO user_profiles (user_id, is_public) VALUES (?, ?)`, userID, true)
 	if err != nil {
 		return 0, err
 	}
@@ -94,22 +101,19 @@ func CreateUser(db *sql.DB, user User) (int, error) {
 		return 0, err
 	}
 
-	return int(userId), nil
+	return userID, nil
 }
 
 // GetUserByEmail retrieves a user by email
-func GetUserByEmail(db *sql.DB, email string) (*User, error) {
+func GetUserByEmail(database *sql.DB, email string) (*User, error) {
 	user := &User{}
-	err := db.QueryRow(
-		`SELECT u.id, u.email, u.password, u.first_name, u.last_name, u.date_of_birth, 
+	err := db.QueryRow(database, `SELECT u.id, u.email, u.password, u.first_name, u.last_name, u.date_of_birth, 
 		u.avatar, u.nickname, u.about_me, COALESCE(u.role, 'user') as role, 
 		COALESCE(u.verification_status, 'unverified') as verification_status, u.verified_at,
-		u.created_at, u.updated_at, COALESCE(p.is_public, 1) as is_public
+		u.created_at, u.updated_at, COALESCE(p.is_public, true) as is_public
 		FROM users u
 		LEFT JOIN user_profiles p ON u.id = p.user_id
-		WHERE u.email = ?`,
-		email,
-	).Scan(
+		WHERE u.email = ?`, email).Scan(
 		&user.ID, &user.Email, &user.Password, &user.FirstName, &user.LastName, &user.DateOfBirth,
 		&user.Avatar, &user.Nickname, &user.AboutMe, &user.Role, &user.VerificationStatus, &user.VerifiedAt,
 		&user.CreatedAt, &user.UpdatedAt, &user.IsPublic,
@@ -124,18 +128,15 @@ func GetUserByEmail(db *sql.DB, email string) (*User, error) {
 }
 
 // GetUserById retrieves a user by ID
-func GetUserById(db *sql.DB, id int) (*User, error) {
+func GetUserById(database *sql.DB, id int) (*User, error) {
 	user := &User{}
-	err := db.QueryRow(
-		`SELECT u.id, u.email, u.first_name, u.last_name, u.date_of_birth, 
+	err := db.QueryRow(database, `SELECT u.id, u.email, u.first_name, u.last_name, u.date_of_birth, 
 		u.avatar, u.nickname, u.about_me, COALESCE(u.role, 'user') as role,
 		COALESCE(u.verification_status, 'unverified') as verification_status, u.verified_at,
-		u.created_at, u.updated_at, COALESCE(p.is_public, 1) as is_public
+		u.created_at, u.updated_at, COALESCE(p.is_public, true) as is_public
 		FROM users u
 		LEFT JOIN user_profiles p ON u.id = p.user_id
-		WHERE u.id = ?`,
-		id,
-	).Scan(
+		WHERE u.id = ?`, id).Scan(
 		&user.ID, &user.Email, &user.FirstName, &user.LastName, &user.DateOfBirth,
 		&user.Avatar, &user.Nickname, &user.AboutMe, &user.Role, &user.VerificationStatus, &user.VerifiedAt,
 		&user.CreatedAt, &user.UpdatedAt, &user.IsPublic,
@@ -150,8 +151,8 @@ func GetUserById(db *sql.DB, id int) (*User, error) {
 }
 
 // AuthenticateUser authenticates a user with email and password
-func AuthenticateUser(db *sql.DB, email, password string) (*User, error) {
-	user, err := GetUserByEmail(db, email)
+func AuthenticateUser(database *sql.DB, email, password string) (*User, error) {
+	user, err := GetUserByEmail(database, email)
 	if err != nil {
 		return nil, err
 	}
@@ -169,8 +170,8 @@ func AuthenticateUser(db *sql.DB, email, password string) (*User, error) {
 }
 
 // UpdateUser updates user information
-func UpdateUser(db *sql.DB, user *User) error {
-	_, err := db.Exec(
+func UpdateUser(database *sql.DB, user *User) error {
+	_, err := db.Exec(database,
 		`UPDATE users SET 
 		first_name = ?, last_name = ?, date_of_birth = ?, 
 		avatar = ?, nickname = ?, about_me = ?, updated_at = CURRENT_TIMESTAMP
@@ -182,12 +183,12 @@ func UpdateUser(db *sql.DB, user *User) error {
 }
 
 // GetSuggestedUsers returns all users in the database (except current user)
-func GetSuggestedUsers(db *sql.DB, userID int) ([]map[string]interface{}, error) {
+func GetSuggestedUsers(database *sql.DB, userID int) ([]map[string]interface{}, error) {
 	query := `
 		SELECT u.id, u.email, u.first_name, u.last_name, u.date_of_birth, 
 		       u.avatar, u.nickname, u.about_me, COALESCE(u.role, 'user') as role,
 		       COALESCE(u.verification_status, 'unverified') as verification_status,
-		       u.created_at, u.updated_at, COALESCE(p.is_public, 1) as is_public
+		       u.created_at, u.updated_at, COALESCE(p.is_public, true) as is_public
 		FROM users u
 		LEFT JOIN user_profiles p ON u.id = p.user_id
 		WHERE u.id != ?
@@ -195,7 +196,7 @@ func GetSuggestedUsers(db *sql.DB, userID int) ([]map[string]interface{}, error)
 		LIMIT 20
 	`
 
-	rows, err := db.Query(query, userID)
+	rows, err := db.Query(database, query, userID)
 	if err != nil {
 		return nil, err
 	}
@@ -214,31 +215,31 @@ func GetSuggestedUsers(db *sql.DB, userID int) ([]map[string]interface{}, error)
 		}
 
 		// Check follow status in both directions
-		isFollowing, err := IsFollowing(db, userID, user.ID)
+		isFollowing, err := IsFollowing(database, userID, user.ID)
 		if err != nil {
 			isFollowing = "none"
 		}
-		isFollowedBy, err := IsFollowing(db, user.ID, userID)
+		isFollowedBy, err := IsFollowing(database, user.ID, userID)
 		if err != nil {
 			isFollowedBy = "none"
 		}
 
 		userMap := map[string]interface{}{
-			"id":                   user.ID,
-			"email":                user.Email,
-			"first_name":           user.FirstName,
-			"last_name":            user.LastName,
-			"date_of_birth":        user.DateOfBirth,
-			"avatar":               user.Avatar,
-			"nickname":             user.Nickname,
-			"about_me":             user.AboutMe,
-			"role":                 user.Role,
-			"verification_status":  user.VerificationStatus,
-			"created_at":           user.CreatedAt,
-			"updated_at":           user.UpdatedAt,
-			"is_public":            user.IsPublic,
-			"is_following":         isFollowing == "accepted",
-			"is_followed_by":       isFollowedBy == "accepted",
+			"id":                  user.ID,
+			"email":               user.Email,
+			"first_name":          user.FirstName,
+			"last_name":           user.LastName,
+			"date_of_birth":       user.DateOfBirth,
+			"avatar":              user.Avatar,
+			"nickname":            user.Nickname,
+			"about_me":            user.AboutMe,
+			"role":                user.Role,
+			"verification_status": user.VerificationStatus,
+			"created_at":          user.CreatedAt,
+			"updated_at":          user.UpdatedAt,
+			"is_public":           user.IsPublic,
+			"is_following":        isFollowing == "accepted",
+			"is_followed_by":      isFollowedBy == "accepted",
 		}
 		users = append(users, userMap)
 	}
@@ -247,7 +248,7 @@ func GetSuggestedUsers(db *sql.DB, userID int) ([]map[string]interface{}, error)
 }
 
 // GetUsersByIDs retrieves multiple users by their IDs
-func GetUsersByIDs(db *sql.DB, userIDs []int) ([]User, error) {
+func GetUsersByIDs(database *sql.DB, userIDs []int) ([]User, error) {
 	if len(userIDs) == 0 {
 		return []User{}, nil
 	}
@@ -263,14 +264,14 @@ func GetUsersByIDs(db *sql.DB, userIDs []int) ([]User, error) {
 	query := `
 		SELECT u.id, u.email, u.first_name, u.last_name, u.date_of_birth,
 		       u.avatar, u.nickname, u.about_me, u.created_at, u.updated_at,
-		       COALESCE(p.is_public, 1) as is_public
+		       COALESCE(p.is_public, true) as is_public
 		FROM users u
 		LEFT JOIN user_profiles p ON u.id = p.user_id
 		WHERE u.id IN (` + joinPlaceholders(placeholders) + `)
 		ORDER BY u.first_name, u.last_name
 	`
 
-	rows, err := db.Query(query, args...)
+	rows, err := db.Query(database, query, args...)
 	if err != nil {
 		return nil, err
 	}
@@ -309,19 +310,19 @@ func joinPlaceholders(placeholders []string) string {
 }
 
 // GetUserBySessionToken retrieves a user by their session token
-func GetUserBySessionToken(db *sql.DB, sessionToken string) (*User, error) {
+func GetUserBySessionToken(database *sql.DB, sessionToken string) (*User, error) {
 	query := `
 		SELECT u.id, u.email, u.first_name, u.last_name, u.date_of_birth,
 		       u.avatar, u.nickname, u.about_me, u.created_at, u.updated_at,
-		       COALESCE(p.is_public, 1) as is_public
+		       COALESCE(p.is_public, true) as is_public
 		FROM users u
 		LEFT JOIN user_profiles p ON u.id = p.user_id
 		INNER JOIN sessions s ON u.id = s.user_id
-		WHERE s.token = ? AND s.expires_at > datetime('now')
+		WHERE s.token = ? AND s.expires_at > CURRENT_TIMESTAMP
 	`
 
 	var user User
-	err := db.QueryRow(query, sessionToken).Scan(
+	err := db.QueryRow(database, query, sessionToken).Scan(
 		&user.ID, &user.Email, &user.FirstName, &user.LastName, &user.DateOfBirth,
 		&user.Avatar, &user.Nickname, &user.AboutMe, &user.CreatedAt, &user.UpdatedAt, &user.IsPublic,
 	)
@@ -337,12 +338,12 @@ func GetUserBySessionToken(db *sql.DB, sessionToken string) (*User, error) {
 }
 
 // GetAllUsers returns all users, including private ones, for the sidebar
-func GetAllUsers(db *sql.DB, excludeUserID int) ([]map[string]interface{}, error) {
+func GetAllUsers(database *sql.DB, excludeUserID int) ([]map[string]interface{}, error) {
 	query := `
 		SELECT u.id, u.email, u.first_name, u.last_name, u.date_of_birth, 
 		       u.avatar, u.nickname, u.about_me, COALESCE(u.role, 'user') as role,
 		       COALESCE(u.verification_status, 'unverified') as verification_status,
-		       u.created_at, u.updated_at, COALESCE(p.is_public, 1) as is_public
+		       u.created_at, u.updated_at, COALESCE(p.is_public, true) as is_public
 		FROM users u
 		LEFT JOIN user_profiles p ON u.id = p.user_id
 		WHERE u.id != ?
@@ -350,7 +351,7 @@ func GetAllUsers(db *sql.DB, excludeUserID int) ([]map[string]interface{}, error
 		LIMIT 100
 	`
 
-	rows, err := db.Query(query, excludeUserID)
+	rows, err := db.Query(database, query, excludeUserID)
 	if err != nil {
 		return nil, err
 	}
@@ -368,19 +369,19 @@ func GetAllUsers(db *sql.DB, excludeUserID int) ([]map[string]interface{}, error
 			return nil, err
 		}
 		userMap := map[string]interface{}{
-			"id":                   user.ID,
-			"email":                user.Email,
-			"first_name":           user.FirstName,
-			"last_name":            user.LastName,
-			"date_of_birth":        user.DateOfBirth,
-			"avatar":               user.Avatar,
-			"nickname":             user.Nickname,
-			"about_me":             user.AboutMe,
-			"role":                 user.Role,
-			"verification_status":  user.VerificationStatus,
-			"created_at":           user.CreatedAt,
-			"updated_at":           user.UpdatedAt,
-			"is_public":            user.IsPublic,
+			"id":                  user.ID,
+			"email":               user.Email,
+			"first_name":          user.FirstName,
+			"last_name":           user.LastName,
+			"date_of_birth":       user.DateOfBirth,
+			"avatar":              user.Avatar,
+			"nickname":            user.Nickname,
+			"about_me":            user.AboutMe,
+			"role":                user.Role,
+			"verification_status": user.VerificationStatus,
+			"created_at":          user.CreatedAt,
+			"updated_at":          user.UpdatedAt,
+			"is_public":           user.IsPublic,
 		}
 		users = append(users, userMap)
 	}

@@ -4,6 +4,8 @@ import (
 	"database/sql"
 	"errors"
 	"time"
+
+	dbpkg "github.com/On-cure/Oncure/pkg/db"
 )
 
 type Comment struct {
@@ -22,8 +24,21 @@ type Comment struct {
 }
 
 // CreateComment creates a new comment
-func CreateComment(db *sql.DB, comment Comment) (int, error) {
-	result, err := db.Exec(
+func CreateComment(database *sql.DB, comment Comment) (int, error) {
+	if dbpkg.IsPostgreSQL() {
+		var id int
+		err := database.QueryRow(
+			`INSERT INTO comments (post_id, user_id, parent_id, content, image_url)
+			VALUES ($1, $2, $3, $4, $5) RETURNING id`,
+			comment.PostID, comment.UserID, comment.ParentID, comment.Content, comment.ImageURL,
+		).Scan(&id)
+		if err != nil {
+			return 0, err
+		}
+		return id, nil
+	}
+
+	result, err := database.Exec(
 		`INSERT INTO comments (post_id, user_id, parent_id, content, image_url)
 		VALUES (?, ?, ?, ?, ?)`,
 		comment.PostID, comment.UserID, comment.ParentID, comment.Content, comment.ImageURL,
@@ -31,21 +46,19 @@ func CreateComment(db *sql.DB, comment Comment) (int, error) {
 	if err != nil {
 		return 0, err
 	}
-
-	commentId, err := result.LastInsertId()
+	insertID, err := result.LastInsertId()
 	if err != nil {
 		return 0, err
 	}
-
-	return int(commentId), nil
+	return int(insertID), nil
 }
 
 // GetCommentById retrieves a comment by ID
-func GetCommentById(db *sql.DB, commentId int) (*Comment, error) {
+func GetCommentById(database *sql.DB, commentId int) (*Comment, error) {
 	comment := &Comment{}
 
 	// Get comment data
-	err := db.QueryRow(
+	err := database.QueryRow(
 		`SELECT c.id, c.post_id, c.user_id, c.parent_id, c.content, c.image_url, 
 		COALESCE(c.like_count, 0) as like_count, COALESCE(c.dislike_count, 0) as dislike_count, 
 		c.created_at, c.updated_at
@@ -64,7 +77,7 @@ func GetCommentById(db *sql.DB, commentId int) (*Comment, error) {
 	}
 
 	// Get comment user
-	comment.User, err = GetUserById(db, comment.UserID)
+	comment.User, err = GetUserById(database, comment.UserID)
 	if err != nil {
 		return nil, err
 	}
@@ -73,7 +86,7 @@ func GetCommentById(db *sql.DB, commentId int) (*Comment, error) {
 }
 
 // GetPostComments retrieves comments for a post
-func GetPostComments(db *sql.DB, postId int, options map[string]interface{}) ([]Comment, error) {
+func GetPostComments(database *sql.DB, postId int, options map[string]interface{}) ([]Comment, error) {
 	comments := []Comment{}
 
 	// Set defaults
@@ -141,7 +154,7 @@ func GetPostComments(db *sql.DB, postId int, options map[string]interface{}) ([]
 		args = []interface{}{*parentId, limit, offset}
 	}
 
-	rows, err := db.Query(query, args...)
+	rows, err := database.Query(dbpkg.Placeholder(query), args...)
 	if err != nil {
 		return nil, err
 	}
@@ -166,8 +179,8 @@ func GetPostComments(db *sql.DB, postId int, options map[string]interface{}) ([]
 		if parentId == nil {
 			// Get reply count
 			var replyCount int
-			err := db.QueryRow(
-				"SELECT COUNT(*) FROM comments WHERE parent_id = ?",
+			err := database.QueryRow(dbpkg.Placeholder(
+				"SELECT COUNT(*) FROM comments WHERE parent_id = ?"),
 				comment.ID,
 			).Scan(&replyCount)
 			if err != nil {
@@ -177,7 +190,7 @@ func GetPostComments(db *sql.DB, postId int, options map[string]interface{}) ([]
 			// If there are replies, get the first few
 			if replyCount > 0 {
 				replyLimit := 3 // Just get first few replies
-				replies, err := GetPostComments(db, postId, map[string]interface{}{
+				replies, err := GetPostComments(database, postId, map[string]interface{}{
 					"parentId": &comment.ID,
 					"limit":    replyLimit,
 					"page":     1,
@@ -196,10 +209,10 @@ func GetPostComments(db *sql.DB, postId int, options map[string]interface{}) ([]
 }
 
 // UpdateComment updates a comment
-func UpdateComment(db *sql.DB, commentId int, updates map[string]interface{}, userId int) error {
+func UpdateComment(database *sql.DB, commentId int, updates map[string]interface{}, userId int) error {
 	// Check if user owns the comment
 	var commentUserId int
-	err := db.QueryRow("SELECT user_id FROM comments WHERE id = ?", commentId).Scan(&commentUserId)
+	err := database.QueryRow(dbpkg.Placeholder("SELECT user_id FROM comments WHERE id = ?"), commentId).Scan(&commentUserId)
 	if err != nil {
 		if err == sql.ErrNoRows {
 			return errors.New("comment not found")
@@ -212,20 +225,20 @@ func UpdateComment(db *sql.DB, commentId int, updates map[string]interface{}, us
 	}
 
 	// Update comment
-	_, err = db.Exec(
-		`UPDATE comments SET content = ?, image_url = ?, updated_at = CURRENT_TIMESTAMP WHERE id = ?`,
+	_, err = database.Exec(dbpkg.Placeholder(
+		`UPDATE comments SET content = ?, image_url = ?, updated_at = CURRENT_TIMESTAMP WHERE id = ?`),
 		updates["content"], updates["image_url"], commentId,
 	)
 	return err
 }
 
 // DeleteComment deletes a comment
-func DeleteComment(db *sql.DB, commentId int, userId int, postOwnerId int) error {
+func DeleteComment(database *sql.DB, commentId int, userId int, postOwnerId int) error {
 	// Check if comment exists
 	var commentUserId int
 	var postId int
-	err := db.QueryRow(
-		"SELECT user_id, post_id FROM comments WHERE id = ?",
+	err := database.QueryRow(dbpkg.Placeholder(
+		"SELECT user_id, post_id FROM comments WHERE id = ?"),
 		commentId,
 	).Scan(&commentUserId, &postId)
 	if err != nil {
@@ -242,14 +255,14 @@ func DeleteComment(db *sql.DB, commentId int, userId int, postOwnerId int) error
 	}
 
 	// Delete comment (cascade will handle replies)
-	_, err = db.Exec("DELETE FROM comments WHERE id = ?", commentId)
+	_, err = database.Exec(dbpkg.Placeholder("DELETE FROM comments WHERE id = ?"), commentId)
 	return err
 }
 
 // AddReplyReaction adds or updates a reaction to a comment
-func AddReplyReaction(db *sql.DB, commentId int, userId int, reactionType string) (map[string]interface{}, error) {
+func AddReplyReaction(database *sql.DB, commentId int, userId int, reactionType string) (map[string]interface{}, error) {
 	// Begin transaction
-	tx, err := db.Begin()
+	tx, err := database.Begin()
 	if err != nil {
 		return nil, err
 	}
@@ -257,7 +270,7 @@ func AddReplyReaction(db *sql.DB, commentId int, userId int, reactionType string
 
 	// Check if comment exists
 	var exists bool
-	err = tx.QueryRow("SELECT EXISTS(SELECT 1 FROM comments WHERE id = ?)", commentId).Scan(&exists)
+	err = tx.QueryRow(dbpkg.Placeholder("SELECT EXISTS(SELECT 1 FROM comments WHERE id = ?)"), commentId).Scan(&exists)
 	if err != nil {
 		return nil, err
 	}
@@ -267,8 +280,8 @@ func AddReplyReaction(db *sql.DB, commentId int, userId int, reactionType string
 
 	// Check existing reaction
 	var existingType string
-	err = tx.QueryRow(
-		"SELECT reaction_type FROM comment_reactions WHERE comment_id = ? AND user_id = ?",
+	err = tx.QueryRow(dbpkg.Placeholder(
+		"SELECT reaction_type FROM comment_reactions WHERE comment_id = ? AND user_id = ?"),
 		commentId, userId,
 	).Scan(&existingType)
 
@@ -278,8 +291,8 @@ func AddReplyReaction(db *sql.DB, commentId int, userId int, reactionType string
 		// Reaction exists
 		if existingType == reactionType {
 			// Remove reaction if same type
-			_, err = tx.Exec(
-				"DELETE FROM comment_reactions WHERE comment_id = ? AND user_id = ?",
+			_, err = tx.Exec(dbpkg.Placeholder(
+				"DELETE FROM comment_reactions WHERE comment_id = ? AND user_id = ?"),
 				commentId, userId,
 			)
 			if err != nil {
@@ -288,8 +301,8 @@ func AddReplyReaction(db *sql.DB, commentId int, userId int, reactionType string
 			changes[existingType+"_count"] = -1
 		} else {
 			// Update reaction type
-			_, err = tx.Exec(
-				"UPDATE comment_reactions SET reaction_type = ? WHERE comment_id = ? AND user_id = ?",
+			_, err = tx.Exec(dbpkg.Placeholder(
+				"UPDATE comment_reactions SET reaction_type = ? WHERE comment_id = ? AND user_id = ?"),
 				reactionType, commentId, userId,
 			)
 			if err != nil {
@@ -300,8 +313,8 @@ func AddReplyReaction(db *sql.DB, commentId int, userId int, reactionType string
 		}
 	} else if err == sql.ErrNoRows {
 		// Add new reaction
-		_, err = tx.Exec(
-			"INSERT INTO comment_reactions (comment_id, user_id, reaction_type) VALUES (?, ?, ?)",
+		_, err = tx.Exec(dbpkg.Placeholder(
+			"INSERT INTO comment_reactions (comment_id, user_id, reaction_type) VALUES (?, ?, ?)"),
 			commentId, userId, reactionType,
 		)
 		if err != nil {
@@ -314,8 +327,8 @@ func AddReplyReaction(db *sql.DB, commentId int, userId int, reactionType string
 
 	// Update counts in comments table
 	for column, change := range changes {
-		_, err = tx.Exec(
-			"UPDATE comments SET "+column+" = COALESCE("+column+", 0) + ? WHERE id = ?",
+		_, err = tx.Exec(dbpkg.Placeholder(
+			"UPDATE comments SET "+column+" = COALESCE("+column+", 0) + ? WHERE id = ?"),
 			change, commentId,
 		)
 		if err != nil {
@@ -330,8 +343,8 @@ func AddReplyReaction(db *sql.DB, commentId int, userId int, reactionType string
 
 	// Get updated counts
 	var likeCount, dislikeCount int
-	err = db.QueryRow(
-		"SELECT COALESCE(like_count, 0), COALESCE(dislike_count, 0) FROM comments WHERE id = ?",
+	err = database.QueryRow(dbpkg.Placeholder(
+		"SELECT COALESCE(like_count, 0), COALESCE(dislike_count, 0) FROM comments WHERE id = ?"),
 		commentId,
 	).Scan(&likeCount, &dislikeCount)
 	if err != nil {
@@ -340,8 +353,8 @@ func AddReplyReaction(db *sql.DB, commentId int, userId int, reactionType string
 
 	// Get user reaction
 	var userReaction *string
-	err = db.QueryRow(
-		"SELECT reaction_type FROM comment_reactions WHERE comment_id = ? AND user_id = ?",
+	err = database.QueryRow(dbpkg.Placeholder(
+		"SELECT reaction_type FROM comment_reactions WHERE comment_id = ? AND user_id = ?"),
 		commentId, userId,
 	).Scan(&userReaction)
 	if err != nil && err != sql.ErrNoRows {
@@ -356,11 +369,11 @@ func AddReplyReaction(db *sql.DB, commentId int, userId int, reactionType string
 }
 
 // GetReactions gets reaction counts and user reaction for a comment
-func GetReplyReactions(db *sql.DB, commentId int, userId int) (map[string]interface{}, error) {
+func GetReplyReactions(database *sql.DB, commentId int, userId int) (map[string]interface{}, error) {
 	// Get comment counts
 	var likeCount, dislikeCount int
-	err := db.QueryRow(
-		"SELECT COALESCE(like_count, 0), COALESCE(dislike_count, 0) FROM comments WHERE id = ?",
+	err := database.QueryRow(dbpkg.Placeholder(
+		"SELECT COALESCE(like_count, 0), COALESCE(dislike_count, 0) FROM comments WHERE id = ?"),
 		commentId,
 	).Scan(&likeCount, &dislikeCount)
 	if err != nil {
@@ -372,8 +385,8 @@ func GetReplyReactions(db *sql.DB, commentId int, userId int) (map[string]interf
 
 	// Get user reaction
 	var userReaction *string
-	err = db.QueryRow(
-		"SELECT reaction_type FROM comment_reactions WHERE comment_id = ? AND user_id = ?",
+	err = database.QueryRow(dbpkg.Placeholder(
+		"SELECT reaction_type FROM comment_reactions WHERE comment_id = ? AND user_id = ?"),
 		commentId, userId,
 	).Scan(&userReaction)
 	if err != nil && err != sql.ErrNoRows {

@@ -126,10 +126,11 @@ export default function AccountPage() {
               <div className="flex items-center gap-4">
                 <div>
                   <p className="text-2xl font-bold text-primary">
-                    {balance ? `${balance.hbar.toFixed(2)} HBAR` : "0.00 HBAR"}
+                    
+                    {balance ? `${balance.ksh.toLocaleString()} KSH` : "0 KSH"}
                   </p>
                   <p className="text-text-secondary">
-                    ≈ {balance ? `${balance.ksh.toLocaleString()} KSH` : "0 KSH"}
+                    ≈ {balance ? `${balance.hbar.toFixed(2)} HBAR` : "0.00 HBAR"}
                   </p>
                 </div>
               </div>
@@ -140,14 +141,26 @@ export default function AccountPage() {
           <div className="flex gap-4">
             <button
               onClick={() => setShowDeposit(true)}
-              className="flex-1 flex items-center justify-center gap-2 px-4 py-3 bg-success hover:bg-success/80 text-white font-medium rounded-lg transition-normal"
+              className="flex-1 flex items-center justify-center gap-2 px-4 py-3 font-medium rounded-lg transition-normal"
+              style={{
+                backgroundColor: 'rgb(var(--color-success))',
+                color: 'rgb(var(--color-background))'
+              }}
+              onMouseEnter={(e) => e.target.style.backgroundColor = 'rgb(var(--color-success-dark))'}
+              onMouseLeave={(e) => e.target.style.backgroundColor = 'rgb(var(--color-success))'}
             >
               <ArrowDownCircle size={20} />
               Deposit
             </button>
             <button
               onClick={() => setShowWithdraw(true)}
-              className="flex-1 flex items-center justify-center gap-2 px-4 py-3 bg-error hover:bg-error/80 text-white font-medium rounded-lg transition-normal"
+              className="flex-1 flex items-center justify-center gap-2 px-4 py-3 font-medium rounded-lg transition-normal"
+              style={{
+                backgroundColor: 'rgb(var(--color-error))',
+                color: 'rgb(var(--color-background))'
+              }}
+              onMouseEnter={(e) => e.target.style.backgroundColor = 'rgb(var(--color-error-dark))'}
+              onMouseLeave={(e) => e.target.style.backgroundColor = 'rgb(var(--color-error))'}
             >
               <ArrowUpCircle size={20} />
               Withdraw
@@ -179,10 +192,10 @@ export default function AccountPage() {
                   <div className="text-right">
                     <p className={`font-semibold ${getTransactionColor(tx.type)}`}>
                       {tx.type.includes('sent') || tx.type === 'withdrawal' ? '-' : '+'}
-                      {tx.amount} HBAR
+                      {tx.ksh_amount?.toLocaleString()} KSH
                     </p>
                     <p className="text-sm text-text-secondary">
-                      ≈ {tx.ksh_amount?.toLocaleString()} KSH
+                      ≈ {tx.amount} HBAR
                     </p>
                   </div>
                 </div>
@@ -230,7 +243,13 @@ export default function AccountPage() {
                 <button
                   onClick={handleDeposit}
                   disabled={!depositAmount || parseFloat(depositAmount) <= 0 || isProcessing}
-                  className="flex-1 px-4 py-2 bg-success hover:bg-success/80 text-white font-medium rounded-lg transition-normal disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+                  className="flex-1 px-4 py-2 font-medium rounded-lg transition-normal disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+                  style={{
+                    backgroundColor: 'rgb(var(--color-success))',
+                    color: 'rgb(var(--color-background))'
+                  }}
+                  onMouseEnter={(e) => !e.target.disabled && (e.target.style.backgroundColor = 'rgb(var(--color-success-dark))')}
+                  onMouseLeave={(e) => !e.target.disabled && (e.target.style.backgroundColor = 'rgb(var(--color-success))')}
                 >
                   {isProcessing ? (
                     <>
@@ -289,7 +308,13 @@ export default function AccountPage() {
                 <button
                   onClick={handleWithdraw}
                   disabled={!withdrawAmount || parseFloat(withdrawAmount) <= 0 || isProcessing}
-                  className="flex-1 px-4 py-2 bg-error hover:bg-error/80 text-white font-medium rounded-lg transition-normal disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+                  className="flex-1 px-4 py-2 font-medium rounded-lg transition-normal disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+                  style={{
+                    backgroundColor: 'rgb(var(--color-error))',
+                    color: 'rgb(var(--color-background))'
+                  }}
+                  onMouseEnter={(e) => !e.target.disabled && (e.target.style.backgroundColor = 'rgb(var(--color-error-dark))')}
+                  onMouseLeave={(e) => !e.target.disabled && (e.target.style.backgroundColor = 'rgb(var(--color-error))')}
                 >
                   {isProcessing ? (
                     <>

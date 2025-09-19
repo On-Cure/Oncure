@@ -4,7 +4,7 @@ import (
 	"net/http"
 	"regexp"
 
-	"github.com/hezronokwach/soshi/pkg/middleware"
+	"github.com/On-cure/Oncure/pkg/middleware"
 )
 
 // Router struct to handle routing logic
@@ -54,31 +54,6 @@ func (r *Router) AddRoute(method, pattern string, handler http.HandlerFunc) {
 
 // ServeHTTP implements http.Handler
 func (r *Router) ServeHTTP(w http.ResponseWriter, req *http.Request) {
-	// Add CORS headers
-	allowedOrigins := []string{
-		"http://localhost:3000",
-		"https://oncare19.netlify.app",
-	}
-	origin := req.Header.Get("Origin")
-	allowedOrigin := "http://localhost:3000" // default
-	for _, allowed := range allowedOrigins {
-		if origin == allowed {
-			allowedOrigin = origin
-			break
-		}
-	}
-	w.Header().Set("Access-Control-Allow-Origin", allowedOrigin)
-	w.Header().Set("Access-Control-Allow-Methods", "GET, POST, PUT, DELETE, OPTIONS")
-	w.Header().Set("Access-Control-Allow-Headers", "Accept, Authorization, Content-Type, X-CSRF-Token, Cookie")
-	w.Header().Set("Access-Control-Expose-Headers", "Link, Set-Cookie")
-	w.Header().Set("Access-Control-Allow-Credentials", "true")
-	w.Header().Set("Access-Control-Max-Age", "86400")
-
-	// Handle preflight requests
-	if req.Method == "OPTIONS" {
-		w.WriteHeader(http.StatusOK)
-		return
-	}
 
 	// Find matching route
 	for _, route := range r.routes {

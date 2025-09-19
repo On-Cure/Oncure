@@ -5,8 +5,8 @@ import (
 	"log"
 	"net/http"
 
-	"github.com/hezronokwach/soshi/pkg/models"
-	"github.com/hezronokwach/soshi/pkg/websocket"
+	"github.com/On-cure/Oncure/pkg/models"
+	"github.com/On-cure/Oncure/pkg/websocket"
 
 	websocketG "github.com/gorilla/websocket"
 )

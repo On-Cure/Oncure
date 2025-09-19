@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import { useAuth } from '../../../hooks/useAuth';
+import { posts as postsAPI } from '../../../lib/api';
 import PostCard from '../../../components/posts/PostCard';
 import { Loader2 } from 'lucide-react';
 
@@ -19,27 +20,22 @@ export default function SavedPostsPage() {
   const fetchSavedPosts = async (page = 1) => {
     try {
       setIsLoading(true);
-      const response = await fetch(
-        `/api/posts/saved?page=${page}&limit=${pagination.limit}`,
-        { credentials: 'include' }
-      );
-
-      if (!response.ok) {
-        throw new Error('Failed to fetch saved posts');
-      }
-
-      const data = await response.json();
+      const data = await postsAPI.getSavedPosts(page, pagination.limit);
       
-      setPosts(prev => page === 1 ? data.posts : [...prev, ...data.posts]);
+      setPosts(prev => page === 1 ? (data.posts || []) : [...prev, ...(data.posts || [])]);
       setPagination(prev => ({
         ...prev,
         page,
-        hasMore: data.hasMore,
+        hasMore: data.hasMore || false,
       }));
       setError(null);
     } catch (err) {
       console.error('Error fetching saved posts:', err);
-      setError('Failed to load saved posts. Please try again later.');
+      if (err.message.includes('Unauthorized')) {
+        setError('Please log in to view saved posts');
+      } else {
+        setError('Failed to load saved posts. Please try again later.');
+      }
     } finally {
       setIsLoading(false);
     }

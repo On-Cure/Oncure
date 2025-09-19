@@ -80,7 +80,8 @@ export default function GroupPosts({ params, group, fetchGroup }) {
 
     const handlePostReaction = async (postId, type) => {
         try {
-            const res = await fetch(`http://localhost:8080/api/groups/${params.id}/posts/${postId}/reactions`, {
+            const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8080';
+            const res = await fetch(`${apiUrl}/api/groups/${params.id}/posts/${postId}/reactions`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 credentials: 'include',
@@ -106,7 +107,8 @@ export default function GroupPosts({ params, group, fetchGroup }) {
     // Load initial reactions for posts
     const loadPostReactions = async (postId) => {
         try {
-            const res = await fetch(`http://localhost:8080/api/groups/${params.id}/posts/${postId}/reactions`, {
+            const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8080';
+            const res = await fetch(`${apiUrl}/api/groups/${params.id}/posts/${postId}/reactions`, {
                 method: 'GET',
                 credentials: 'include'
             });

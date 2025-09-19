@@ -88,3 +88,7 @@ jspm_packages/
 # vendor/
 
 .amazonq
+
+*/soshi.db
+
+FINAL_DATABASE_FIX_SUMMARY.md

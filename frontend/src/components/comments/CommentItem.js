@@ -7,6 +7,7 @@ import { getImageUrl } from '../../utils/image';
 import CommentForm from './CommentForm';
 import CommentList from './CommentList';
 import VerificationBadge from '../ui/VerificationBadge';
+import { comments } from '../../lib/api';
 
 export default function CommentItem({ comment, postOwnerId, onUpdate, onDelete }) {
   const [isEditing, setIsEditing] = useState(false);
@@ -67,17 +68,7 @@ export default function CommentItem({ comment, postOwnerId, onUpdate, onDelete }
     });
     
     try {
-      const res = await fetch(`/api/comments/${comment.id}/reactions`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          user_id: user.id,
-          reaction_type: type
-        })
-      });
-
-      if (!res.ok) throw new Error('Failed to update reaction');
-      const data = await res.json();
+      const data = await comments.addReaction(comment.id, type);
       setReactions(data);
     } catch (error) {
       console.error('Error updating reaction:', error);
@@ -88,17 +79,10 @@ export default function CommentItem({ comment, postOwnerId, onUpdate, onDelete }
 
   const handleEdit = async (data) => {
     try {
-      const res = await fetch(`/api/comments/${comment.id}`, {
-        method: 'PUT',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          userId: user.id,
-          ...data
-        })
+      const updatedComment = await comments.updateComment(comment.id, {
+        userId: user.id,
+        ...data
       });
-
-      if (!res.ok) throw new Error('Failed to update comment');
-      const updatedComment = await res.json();
       onUpdate(comment.id, updatedComment);
       setIsEditing(false);
     } catch (error) {
@@ -112,22 +96,7 @@ export default function CommentItem({ comment, postOwnerId, onUpdate, onDelete }
 
     try {
       setIsDeleting(true);
-      const res = await fetch(
-        `/api/comments/${comment.id}?userId=${user.id}&postOwnerId=${postOwnerId}`,
-        { 
-          method: 'DELETE',
-          headers: {
-            'Content-Type': 'application/json'
-          }
-        }
-      );
-
-      const data = await res.json();
-      
-      if (!res.ok) {
-        throw new Error(data.error || 'Failed to delete comment');
-      }
-      
+      await comments.deleteComment(comment.id);
       onDelete(comment.id);
     } catch (error) {
       console.error('Error deleting comment:', error);
@@ -150,15 +119,7 @@ export default function CommentItem({ comment, postOwnerId, onUpdate, onDelete }
 
       console.log('Sending reply data:', requestBody);
       
-      const res = await fetch(`/api/posts/${comment.post_id}/comments`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(requestBody)
-      });
-
-      if (!res.ok) throw new Error('Failed to create reply');
-      
-      const newReply = await res.json();
+      const newReply = await comments.createComment(comment.post_id, requestBody);
       console.log('Created new reply:', newReply);
       
       // Update local state with the new reply
@@ -189,12 +150,10 @@ export default function CommentItem({ comment, postOwnerId, onUpdate, onDelete }
     try {
       console.log(`Fetching replies for comment ${comment.id}`);
       setIsLoadingReplies(true);
-      const res = await fetch(`/api/posts/${comment.post_id}/comments?parentId=${comment.id}`);
-      if (!res.ok) throw new Error('Failed to fetch replies');
-      const data = await res.json();
+      const data = await comments.getPostComments(comment.post_id, 1, 20, comment.id);
       console.log(`Fetched replies for comment ${comment.id}:`, data);
       // Ensure replies are sorted by date (newest first)
-      const sortedReplies = [...data].sort((b, a) => new Date(a.created_at) - new Date(b.created_at));
+      const sortedReplies = [...data.comments].sort((b, a) => new Date(a.created_at) - new Date(b.created_at));
       setReplies(sortedReplies);
       setShowReplies(true);
     } catch (error) {
