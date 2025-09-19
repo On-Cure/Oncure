@@ -2,31 +2,70 @@
 
 import { useState, useEffect } from "react";
 import { useAuth } from "../../hooks/useAuth";
-import { posts as postsAPI, users as usersAPI, activity as activityAPI } from "../../lib/api";
+import { posts as postsAPI, users as usersAPI, activity as activityAPI, groups } from "../../lib/api";
 import CreatePostComponent from "../../components/posts/CreatePostComponent";
 import PostCard from "../../components/posts/PostCard";
+import CategoryFilter from "../../components/posts/CategoryFilter";
 import ClientAuthGuard from "../../components/auth/ClientAuthGuard";
 import { Home, TrendingUp, Users, MessageCircle, Loader2 } from 'lucide-react';
 
 function FeedContent() {
   const [posts, setPosts] = useState([]);
+  const [communityPosts, setCommunityPosts] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
   const [page, setPage] = useState(1);
   const [networkCount, setNetworkCount] = useState(0);
   const [engagementCount, setEngagementCount] = useState(0);
   const [countsLoading, setCountsLoading] = useState(true);
+  const [activeTab, setActiveTab] = useState('current');
+  const [selectedCategory, setSelectedCategory] = useState('all');
   const { user } = useAuth();
 
   // Fetch posts
   const fetchPosts = async () => {
     try {
       // Using API client - now returns normalized {posts: [...]} structure
-      const data = await postsAPI.getPosts(page, 10);
+      const data = await postsAPI.getPosts(page, 10, selectedCategory);
       setPosts(prev => page === 1 ? data.posts : [...prev, ...data.posts]);
       setIsLoading(false);
     } catch (error) {
       console.error("Error fetching posts:", error);
       setIsLoading(false);
+    }
+  };
+
+  // Fetch community posts from user's groups
+  const fetchCommunityPosts = async () => {
+    try {
+      const userGroups = await groups.getGroups();
+      const groupsArray = Array.isArray(userGroups) ? userGroups : userGroups.groups || [];
+      
+      let allCommunityPosts = [];
+      
+      for (const group of groupsArray) {
+        try {
+          const groupDetail = await groups.getGroup(group.id);
+          if (groupDetail?.members && Array.isArray(groupDetail.members)) {
+            const userMembership = groupDetail.members.find(
+              member => parseInt(member.user_id) === parseInt(user.id)
+            );
+            
+            if (userMembership && userMembership.status === 'accepted') {
+              const groupPosts = await groups.getPosts(group.id, 1, 10);
+              const postsArray = Array.isArray(groupPosts) ? groupPosts : groupPosts.posts || [];
+              allCommunityPosts = [...allCommunityPosts, ...postsArray];
+            }
+          }
+        } catch (error) {
+          console.error(`Error fetching posts for group ${group.id}:`, error);
+        }
+      }
+      
+      // Sort by creation date
+      allCommunityPosts.sort((a, b) => new Date(b.created_at) - new Date(a.created_at));
+      setCommunityPosts(allCommunityPosts);
+    } catch (error) {
+      console.error("Error fetching community posts:", error);
     }
   };
 
@@ -66,9 +105,13 @@ function FeedContent() {
   // Load initial posts
   useEffect(() => {
     if (user) {
+      setPage(1); // Reset page when category changes
       fetchPosts();
+      if (activeTab === 'community') {
+        fetchCommunityPosts();
+      }
     }
-  }, [user, page]);
+  }, [user, page, activeTab, selectedCategory]);
 
   // Load counts only once when user is available
   useEffect(() => {
@@ -89,6 +132,24 @@ function FeedContent() {
     }
   };
 
+  // Filter posts by category (for community posts only, current posts are filtered by API)
+  const getFilteredPosts = () => {
+    const currentPosts = activeTab === 'current' ? posts : communityPosts;
+    if (activeTab === 'current' || selectedCategory === 'all') {
+      return currentPosts;
+    }
+    return currentPosts.filter(post => post.category === selectedCategory);
+  };
+
+  // Handle tab change
+  const handleTabChange = (tab) => {
+    setActiveTab(tab);
+    setPage(1);
+    if (tab === 'community' && communityPosts.length === 0) {
+      fetchCommunityPosts();
+    }
+  };
+
   return (
     <div className="w-full py-4 sm:py-6 lg:py-8">
       {/* Page Header */}
@@ -105,6 +166,38 @@ function FeedContent() {
               Stay connected with your network
             </p>
           </div>
+        </div>
+
+        {/* Feed Tabs */}
+        <div className="flex gap-1 p-1 rounded-lg mb-4" style={{backgroundColor: 'rgba(var(--color-surface), 0.8)', border: '1px solid rgb(var(--color-border))'}}>
+          <button
+            onClick={() => handleTabChange('current')}
+            className={`flex-1 px-4 py-2 rounded-md font-medium transition-all duration-normal ${
+              activeTab === 'current'
+                ? 'text-white shadow-lg'
+                : 'hover:bg-primary/10'
+            }`}
+            style={{
+              backgroundColor: activeTab === 'current' ? 'rgb(var(--color-primary))' : 'transparent',
+              color: activeTab === 'current' ? 'white' : 'rgb(var(--color-text-primary))'
+            }}
+          >
+            Current Feed
+          </button>
+          <button
+            onClick={() => handleTabChange('community')}
+            className={`flex-1 px-4 py-2 rounded-md font-medium transition-all duration-normal ${
+              activeTab === 'community'
+                ? 'text-white shadow-lg'
+                : 'hover:bg-primary/10'
+            }`}
+            style={{
+              backgroundColor: activeTab === 'community' ? 'rgb(var(--color-primary))' : 'transparent',
+              color: activeTab === 'community' ? 'white' : 'rgb(var(--color-text-primary))'
+            }}
+          >
+            Community Feed
+          </button>
         </div>
         
         {/* Quick Stats */}
@@ -142,14 +235,24 @@ function FeedContent() {
         </div>
       </div>
 
-      {/* Create Post Section */}
-      {user && (
+      {/* Create Post Section - Only show on Current Feed */}
+      {user && activeTab === 'current' && (
         <div className="mb-6 sm:mb-8">
           <div className="backdrop-blur-sm rounded-xl p-1 shadow-xl" style={{backgroundColor: 'rgba(var(--color-surface), 0.9)', border: '1px solid rgb(var(--color-border))'}}>
             <CreatePostComponent onPostCreated={handlePostCreated} />
           </div>
         </div>
       )}
+
+      {/* Category Filter */}
+      <div className="mb-6 sm:mb-8">
+        <div className="backdrop-blur-sm rounded-xl p-6 shadow-xl" style={{backgroundColor: 'rgba(var(--color-surface), 0.9)', border: '1px solid rgb(var(--color-border))'}}>
+          <CategoryFilter 
+            selectedCategory={selectedCategory}
+            onCategoryChange={setSelectedCategory}
+          />
+        </div>
+      </div>
 
       {/* Posts List */}
       <div className="space-y-4 sm:space-y-6">
@@ -163,20 +266,32 @@ function FeedContent() {
               <p className="text-sm sm:text-base font-sans" style={{color: 'rgb(var(--color-text-secondary))'}}>Fetching the latest posts from your network</p>
             </div>
           </div>
-        ) : posts.length > 0 ? (
-          posts.map((post) => (
+        ) : getFilteredPosts().length > 0 ? (
+          getFilteredPosts().map((post) => (
             <PostCard
               key={post.id}
               post={post}
               onDelete={(postId) => {
-                setPosts(posts.filter(p => p.id !== postId));
+                if (activeTab === 'current') {
+                  setPosts(posts.filter(p => p.id !== postId));
+                } else {
+                  setCommunityPosts(communityPosts.filter(p => p.id !== postId));
+                }
               }}
               onUpdate={(updatedPost) => {
-                setPosts(prevPosts =>
-                  prevPosts.map(p =>
-                    p.id === updatedPost.id ? { ...p, ...updatedPost } : p
-                  )
-                );
+                if (activeTab === 'current') {
+                  setPosts(prevPosts =>
+                    prevPosts.map(p =>
+                      p.id === updatedPost.id ? { ...p, ...updatedPost } : p
+                    )
+                  );
+                } else {
+                  setCommunityPosts(prevPosts =>
+                    prevPosts.map(p =>
+                      p.id === updatedPost.id ? { ...p, ...updatedPost } : p
+                    )
+                  );
+                }
               }}
             />
           ))
@@ -187,10 +302,13 @@ function FeedContent() {
                 <MessageCircle className="w-8 h-8 sm:w-10 sm:h-10" style={{color: 'rgb(var(--color-background))'}} />
               </div>
               <h3 className="text-xl sm:text-2xl font-bold mb-3 font-display" style={{color: 'rgb(var(--color-text-primary))'}}>
-                No posts yet
+                {activeTab === 'current' ? 'No posts yet' : 'No community posts'}
               </h3>
               <p className="text-sm sm:text-base max-w-md mx-auto mb-4 sm:mb-6 font-sans" style={{color: 'rgb(var(--color-text-secondary))'}}>
-                Be the first to share something with your network! Create a post to get the conversation started.
+                {activeTab === 'current' 
+                  ? 'Be the first to share something with your network! Create a post to get the conversation started.'
+                  : 'Join communities to see posts from your groups here.'
+                }
               </p>
               <div className="flex flex-wrap gap-2 justify-center">
                 <span className="px-3 py-1 rounded-full text-xs sm:text-sm font-medium" style={{backgroundColor: 'rgba(var(--color-primary), 0.2)', color: 'rgb(var(--color-primary))'}}>Share thoughts</span>
@@ -201,8 +319,8 @@ function FeedContent() {
           </div>
         )}
 
-        {/* Load more button */}
-        {posts.length > 0 && posts.length >= 10 && (
+        {/* Load more button - Only for current feed */}
+        {activeTab === 'current' && posts.length > 0 && posts.length >= 10 && (
           <div className="text-center pt-6 sm:pt-8">
             <button
               onClick={() => setPage(prev => prev + 1)}

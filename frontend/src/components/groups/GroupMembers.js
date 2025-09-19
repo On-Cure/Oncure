@@ -186,14 +186,16 @@ export default function GroupMembers({ params, group, isCreator, pendingMembers,
                                 </div>
                             </div>
                             {isCreator && member.user_id !== group.creator_id && (
-                                <Button
-                                    size="sm"
-                                    variant="outline"
-                                    onClick={() => handleRemoveMember(member.user_id)}
-                                    className="text-red-400 border-red-400 hover:bg-red-900/20"
-                                >
-                                    Remove
-                                </Button>
+                                <div className="flex gap-2">
+                                    <Button
+                                        size="sm"
+                                        variant="outline"
+                                        onClick={() => handleRemoveMember(member.user_id)}
+                                        className="text-red-400 border-red-400 hover:bg-red-900/20"
+                                    >
+                                        Remove
+                                    </Button>
+                                </div>
                             )}
                         </div>
                     ))}

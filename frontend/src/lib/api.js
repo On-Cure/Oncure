@@ -114,8 +114,13 @@ export const auth = {
 
 // Posts API
 export const posts = {
-  getPosts: async (page = 1, limit = 10) => {
-    const data = await fetchAPI(`/api/posts?page=${page}&limit=${limit}`);
+  getPosts: async (page = 1, limit = 10, category = null) => {
+    let url = `/api/posts?page=${page}&limit=${limit}`;
+    if (category && category !== 'all') {
+      url += `&category=${encodeURIComponent(category)}`;
+    }
+    
+    const data = await fetchAPI(url);
 
     // Normalize response: if backend returns array directly, wrap it in an object
     if (Array.isArray(data)) {

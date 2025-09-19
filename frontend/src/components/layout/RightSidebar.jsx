@@ -357,12 +357,12 @@ export default function RightSidebar() {
           </div>
         )}
 
-        {/* Your Groups */}
+        {/* Featured Communities */}
         {userGroups.length > 0 && (
           <div className={sectionClasses}>
             <div className={sectionHeaderClasses}>
-              <h3 style={sectionTitleStyles}>Your Groups</h3>
-              <Link href="/groups" style={seeAllLinkStyles}>
+              <h3 style={sectionTitleStyles}>Featured Communities</h3>
+              <Link href="/communities" style={seeAllLinkStyles}>
                 See All
               </Link>
             </div>
@@ -474,12 +474,12 @@ export default function RightSidebar() {
           </div>
         </div>
 
-        {/* Suggested Groups */}
+        {/* Suggested Communities */}
         {suggestedGroups.length > 0 && (
           <div className={sectionClasses}>
             <div className={sectionHeaderClasses}>
-              <h3 style={sectionTitleStyles}>Suggested Groups</h3>
-              <Link href="/discover/groups" style={seeAllLinkStyles}>
+              <h3 style={sectionTitleStyles}>Suggested Communities</h3>
+              <Link href="/communities?tab=discover" style={seeAllLinkStyles}>
                 See All
               </Link>
             </div>
@@ -497,7 +497,7 @@ export default function RightSidebar() {
                     </div>
                   </div>
                   <button style={joinButtonStyles} onClick={() => handleJoinGroup(group.id)}>
-                    Join Group
+                    Join Community
                   </button>
                 </div>
               ))}

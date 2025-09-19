@@ -1,11 +1,11 @@
 // FILE: src/components/groups/GroupPosts.js
 
 'use client';
-import { useState } from 'react';
+import React, { useState } from 'react';
 import { Card } from '../ui/card';
 import { Button } from '../ui/button';
 import { groups, upload } from '../../lib/api';
-import { ImagePlus, X, ThumbsUp, ThumbsDown, MessageSquare } from 'lucide-react';
+import { ImagePlus, X, ThumbsUp, ThumbsDown, MessageSquare, Trash2 } from 'lucide-react';
 import { getImageUrl } from '../../utils/image';
 import GroupPostComments from './GroupPostComments';
 
@@ -16,6 +16,26 @@ export default function GroupPosts({ params, group, fetchGroup }) {
     const [isSubmitting, setIsSubmitting] = useState(false);
     const [expandedComments, setExpandedComments] = useState({});
     const [postReactions, setPostReactions] = useState({});
+    const [user, setUser] = useState(null);
+
+    // Get current user from auth context
+    React.useEffect(() => {
+        const getCurrentUser = async () => {
+            try {
+                const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8080';
+                const res = await fetch(`${apiUrl}/api/auth/session`, {
+                    credentials: 'include'
+                });
+                if (res.ok) {
+                    const userData = await res.json();
+                    setUser(userData);
+                }
+            } catch (error) {
+                console.error('Error getting user:', error);
+            }
+        };
+        getCurrentUser();
+    }, []);
 
     const handleImageChange = (e) => {
         const file = e.target.files[0];
@@ -125,6 +145,30 @@ export default function GroupPosts({ params, group, fetchGroup }) {
         }
     };
 
+    // Delete post (for mentors/creators)
+    const handleDeletePost = async (postId) => {
+        if (!confirm('Are you sure you want to delete this post? This action cannot be undone.')) {
+            return;
+        }
+
+        try {
+            const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8080';
+            const res = await fetch(`${apiUrl}/api/groups/${params.id}/posts/${postId}`, {
+                method: 'DELETE',
+                credentials: 'include'
+            });
+
+            if (!res.ok) {
+                throw new Error('Failed to delete post');
+            }
+
+            fetchGroup(); // Refresh to remove deleted post
+        } catch (error) {
+            console.error('Error deleting post:', error);
+            alert('Failed to delete post. Please try again.');
+        }
+    };
+
     return (
         <div className="space-y-6">
             {/* Create Post Form */}
@@ -222,6 +266,18 @@ export default function GroupPosts({ params, group, fetchGroup }) {
                             </p>
                             <p className="text-sm text-text-secondary">{new Date(post.created_at).toLocaleDateString()}</p>
                         </div>
+                        {/* Delete button for mentors/creators */}
+                        {user && (user.id === group.creator_id || user.id === post.user_id) && (
+                            <Button
+                                size="sm"
+                                variant="ghost"
+                                onClick={() => handleDeletePost(post.id)}
+                                className="text-red-400 hover:text-red-300 hover:bg-red-900/20"
+                                title="Delete post"
+                            >
+                                <Trash2 size={16} />
+                            </Button>
+                        )}
                     </div>
 
                     {/* Post Content */}
