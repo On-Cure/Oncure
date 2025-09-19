@@ -10,13 +10,13 @@ import (
 
 func main() {
 	// Load environment variables
-	if err := godotenv.Load("../../.env"); err != nil {
+	if err := godotenv.Load("../../../.env"); err != nil {
 		log.Printf("Warning: Could not load .env file: %v", err)
 	}
 
 	// Test account IDs (replace with actual account IDs from your database)
 	fromAccount := "0.0.5793590" // Replace with actual account ID  
-	toAccount := "0.0.6874829"   // Replace with actual account ID       
+	toAccount := "0.0.6874833"   // Replace with actual account ID       
 	privateKey := "" // Replace with actual private key
 	amount := 10.0 // 1 HBAR
 

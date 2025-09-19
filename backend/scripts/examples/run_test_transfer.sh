@@ -4,4 +4,4 @@
 cd "$(dirname "$0")/../.."
 
 echo "Running HBAR transfer test..."
-go run scripts/examples/test_transfer.go
+go run scripts/examples/transfer_test/test_transfer.go
