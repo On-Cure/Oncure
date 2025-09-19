@@ -6,6 +6,7 @@ import (
 	"net/http"
 	"time"
 
+	"github.com/hezronokwach/soshi/accounts"
 	"github.com/hezronokwach/soshi/pkg/models"
 	"github.com/hezronokwach/soshi/pkg/utils"
 
@@ -70,9 +71,24 @@ func (h *AuthHandler) Register(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	// Create Hedera wallet for the user
+	accountID, privateKey, err := wallet.CreateUserWallet()
+	if err != nil {
+		utils.RespondWithError(w, http.StatusInternalServerError, "Failed to create wallet: "+err.Error())
+		return
+	}
+
+	// Store wallet information in database
+	err = models.CreateUserWallet(h.db, userId, accountID, privateKey)
+	if err != nil {
+		utils.RespondWithError(w, http.StatusInternalServerError, "Failed to store wallet: "+err.Error())
+		return
+	}
+
 	utils.RespondWithJSON(w, http.StatusCreated, map[string]interface{}{
-		"message": "User registered successfully",
-		"user_id": userId,
+		"message":           "User registered successfully",
+		"user_id":           userId,
+		"hedera_account_id": accountID,
 	})
 }
 
