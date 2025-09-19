@@ -1,36 +1,47 @@
-// FILE: src/components/groups/GroupPosts.js
-
 'use client';
-import { useState } from 'react';
+import React, { useState } from 'react';
 import { Card } from '../ui/card';
 import { Button } from '../ui/button';
-import { groups, upload } from '../../lib/api';
-import { ImagePlus, X, ThumbsUp, ThumbsDown, MessageSquare } from 'lucide-react';
+import { communities, upload } from '../../lib/api';
+import { ImagePlus, X, ThumbsUp, ThumbsDown, MessageSquare, Trash2 } from 'lucide-react';
 import { getImageUrl } from '../../utils/image';
-import GroupPostComments from './GroupPostComments';
+import CommunityPostComments from './CommunityPostComments';
 
-export default function GroupPosts({ params, group, fetchGroup }) {
+export default function CommunityPosts({ params, community, fetchCommunity }) {
     const [newPost, setNewPost] = useState('');
     const [image, setImage] = useState(null);
     const [imagePreview, setImagePreview] = useState(null);
     const [isSubmitting, setIsSubmitting] = useState(false);
     const [expandedComments, setExpandedComments] = useState({});
     const [postReactions, setPostReactions] = useState({});
+    const [user, setUser] = useState(null);
+
+    React.useEffect(() => {
+        const getCurrentUser = async () => {
+            try {
+                const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8080';
+                const res = await fetch(`${apiUrl}/api/auth/session`, {
+                    credentials: 'include'
+                });
+                if (res.ok) {
+                    const userData = await res.json();
+                    setUser(userData);
+                }
+            } catch (error) {
+                console.error('Error getting user:', error);
+            }
+        };
+        getCurrentUser();
+    }, []);
 
     const handleImageChange = (e) => {
         const file = e.target.files[0];
         if (!file) return;
 
-        // Show preview
         const reader = new FileReader();
         reader.onload = (e) => setImagePreview(e.target.result);
         reader.readAsDataURL(file);
         setImage(file);
-    };
-
-    const removeImage = () => {
-        setImage(null);
-        setImagePreview(null);
     };
 
     const handleCreatePost = async (e) => {
@@ -41,21 +52,15 @@ export default function GroupPosts({ params, group, fetchGroup }) {
             setIsSubmitting(true);
             let imageUrl = null;
 
-            // Upload image if provided
             if (image) {
-                try {
-                    const result = await upload.uploadFile(image);
-                    if (!result || !result.url) {
-                        throw new Error('Invalid response from server');
-                    }
-                    imageUrl = result.url;
-                } catch (error) {
-                    console.error('Upload error:', error);
-                    throw new Error(error.message || 'Failed to upload image');
+                const result = await upload.uploadFile(image);
+                if (!result || !result.url) {
+                    throw new Error('Invalid response from server');
                 }
+                imageUrl = result.url;
             }
 
-            await groups.createPost(params.id, {
+            await communities.createPost(params.id, {
                 content: newPost,
                 image_url: imageUrl
             });
@@ -63,7 +68,7 @@ export default function GroupPosts({ params, group, fetchGroup }) {
             setNewPost('');
             setImage(null);
             setImagePreview(null);
-            fetchGroup(); // Refresh to get new post
+            fetchCommunity();
         } catch (error) {
             console.error('Error creating post:', error);
         } finally {
@@ -71,66 +76,48 @@ export default function GroupPosts({ params, group, fetchGroup }) {
         }
     };
 
-    const toggleComments = (postId) => {
-        setExpandedComments(prev => ({
-            ...prev,
-            [postId]: !prev[postId]
-        }));
-    };
-
     const handlePostReaction = async (postId, type) => {
         try {
             const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8080';
-            const res = await fetch(`${apiUrl}/api/groups/${params.id}/posts/${postId}/reactions`, {
+            const res = await fetch(`${apiUrl}/api/communities/${params.id}/posts/${postId}/reactions`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 credentials: 'include',
-                body: JSON.stringify({
-                    reaction_type: type
-                })
+                body: JSON.stringify({ reaction_type: type })
             });
 
-            if (!res.ok) {
-                throw new Error('Failed to update reaction');
-            }
+            if (!res.ok) throw new Error('Failed to update reaction');
 
             const data = await res.json();
-            setPostReactions(prev => ({
-                ...prev,
-                [postId]: data
-            }));
+            setPostReactions(prev => ({ ...prev, [postId]: data }));
         } catch (error) {
             console.error('Error updating post reaction:', error);
         }
     };
 
-    // Load initial reactions for posts
-    const loadPostReactions = async (postId) => {
+    const handleDeletePost = async (postId) => {
+        if (!confirm('Are you sure you want to delete this post? This action cannot be undone.')) return;
+
         try {
             const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8080';
-            const res = await fetch(`${apiUrl}/api/groups/${params.id}/posts/${postId}/reactions`, {
-                method: 'GET',
+            const res = await fetch(`${apiUrl}/api/communities/${params.id}/posts/${postId}`, {
+                method: 'DELETE',
                 credentials: 'include'
             });
 
-            if (res.ok) {
-                const data = await res.json();
-                setPostReactions(prev => ({
-                    ...prev,
-                    [postId]: data
-                }));
-            }
+            if (!res.ok) throw new Error('Failed to delete post');
+            fetchCommunity();
         } catch (error) {
-            console.error('Error loading post reactions:', error);
+            console.error('Error deleting post:', error);
+            alert('Failed to delete post. Please try again.');
         }
     };
 
     return (
         <div className="space-y-6">
-            {/* Create Post Form */}
             <Card variant="glassmorphism" className="p-6">
                 <div className="mb-4">
-                    <h3 className="text-lg font-display font-semibold text-text-primary mb-1">Share with the group</h3>
+                    <h3 className="text-lg font-display font-semibold text-text-primary mb-1">Share with the community</h3>
                     <p className="text-text-secondary text-sm">What would you like to discuss?</p>
                 </div>
                 <form onSubmit={handleCreatePost}>
@@ -143,7 +130,6 @@ export default function GroupPosts({ params, group, fetchGroup }) {
                         disabled={isSubmitting}
                     />
 
-                    {/* Image Preview */}
                     {imagePreview && (
                         <div className="relative mb-4">
                             <img
@@ -153,7 +139,7 @@ export default function GroupPosts({ params, group, fetchGroup }) {
                             />
                             <button
                                 type="button"
-                                onClick={removeImage}
+                                onClick={() => { setImage(null); setImagePreview(null); }}
                                 className="absolute top-3 right-3 p-2 bg-error/90 hover:bg-error text-white rounded-full transition-all duration-normal hover:scale-105 shadow-lg"
                                 disabled={isSubmitting}
                             >
@@ -163,20 +149,17 @@ export default function GroupPosts({ params, group, fetchGroup }) {
                     )}
 
                     <div className="flex items-center justify-between mt-4">
-                        <div className="flex items-center gap-3">
-                            {/* Image Upload */}
-                            <label className="cursor-pointer flex items-center gap-2 px-3 py-2 text-text-secondary hover:text-primary hover:bg-primary/5 rounded-lg transition-all duration-normal hover:scale-105">
-                                <ImagePlus size={18} />
-                                <span className="text-sm font-medium">Add Image</span>
-                                <input
-                                    type="file"
-                                    accept="image/*"
-                                    onChange={handleImageChange}
-                                    className="hidden"
-                                    disabled={isSubmitting}
-                                />
-                            </label>
-                        </div>
+                        <label className="cursor-pointer flex items-center gap-2 px-3 py-2 text-text-secondary hover:text-primary hover:bg-primary/5 rounded-lg transition-all duration-normal hover:scale-105">
+                            <ImagePlus size={18} />
+                            <span className="text-sm font-medium">Add Image</span>
+                            <input
+                                type="file"
+                                accept="image/*"
+                                onChange={handleImageChange}
+                                className="hidden"
+                                disabled={isSubmitting}
+                            />
+                        </label>
 
                         <Button
                             type="submit"
@@ -190,18 +173,11 @@ export default function GroupPosts({ params, group, fetchGroup }) {
                 </form>
             </Card>
 
-            {/* Posts List */}
-            {group.posts?.map((post) => {
-                // Load reactions for this post if not already loaded
-                if (!postReactions[post.id]) {
-                    loadPostReactions(post.id);
-                }
-
+            {community.posts?.map((post) => {
                 const reactions = postReactions[post.id] || { likeCount: 0, dislikeCount: 0, userReaction: null };
 
                 return (
                 <Card key={post.id} variant="glassmorphism" hover className="p-6">
-                    {/* Post Header */}
                     <div className="flex items-center gap-4 mb-4">
                         {(post.user?.avatar || post.avatar) ? (
                             <img
@@ -222,12 +198,21 @@ export default function GroupPosts({ params, group, fetchGroup }) {
                             </p>
                             <p className="text-sm text-text-secondary">{new Date(post.created_at).toLocaleDateString()}</p>
                         </div>
+                        {user && (user.id === community.creator_id || user.id === post.user_id) && (
+                            <Button
+                                size="sm"
+                                variant="ghost"
+                                onClick={() => handleDeletePost(post.id)}
+                                className="text-red-400 hover:text-red-300 hover:bg-red-900/20"
+                                title="Delete post"
+                            >
+                                <Trash2 size={16} />
+                            </Button>
+                        )}
                     </div>
 
-                    {/* Post Content */}
                     <p className="mb-4 text-text-primary whitespace-pre-wrap text-base leading-relaxed">{post.content}</p>
 
-                    {/* Post Image */}
                     {(post.image_path || post.image_url) && (
                         <div className="mb-3">
                             <img
@@ -238,7 +223,6 @@ export default function GroupPosts({ params, group, fetchGroup }) {
                         </div>
                     )}
 
-                    {/* Post Actions */}
                     <div className="flex items-center gap-2 sm:gap-4 py-2 border-t border-border">
                         <button
                             onClick={() => handlePostReaction(post.id, 'like')}
@@ -279,7 +263,7 @@ export default function GroupPosts({ params, group, fetchGroup }) {
                         </button>
 
                         <button
-                            onClick={() => toggleComments(post.id)}
+                            onClick={() => setExpandedComments(prev => ({ ...prev, [post.id]: !prev[post.id] }))}
                             className="flex items-center gap-1 sm:gap-2 p-1 sm:p-1.5 rounded-full text-text-secondary hover:text-primary hover:bg-accent/50 transition-colors"
                             title="Comments"
                         >
@@ -290,15 +274,11 @@ export default function GroupPosts({ params, group, fetchGroup }) {
                         </button>
                     </div>
 
-                    {/* Comments Section */}
                     {expandedComments[post.id] && (
-                        <GroupPostComments
-                            groupId={params.id}
-                            groupPostId={post.id}
-                            onCommentAdded={() => {
-                                // Optionally refresh the group data to update comment counts
-                                console.log('Comment added to post', post.id);
-                            }}
+                        <CommunityPostComments
+                            communityId={params.id}
+                            communityPostId={post.id}
+                            onCommentAdded={() => console.log('Comment added to post', post.id)}
                         />
                     )}
                 </Card>
