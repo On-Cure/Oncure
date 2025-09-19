@@ -142,3 +142,61 @@ func getEncryptionKey() []byte {
 	}
 	return keyBytes[:32]
 }
+
+// Transfer represents a transfer record
+type Transfer struct {
+	ID            int       `json:"id"`
+	FromUserID    int       `json:"from_user_id"`
+	ToUserID      int       `json:"to_user_id"`
+	Amount        float64   `json:"amount"`
+	TransactionID string    `json:"transaction_id,omitempty"`
+	Status        string    `json:"status"`
+	CreatedAt     time.Time `json:"created_at"`
+}
+
+// CreateTransfer records a transfer in the database
+func CreateTransfer(db *sql.DB, fromUserID, toUserID int, amount float64, transactionID string) error {
+	_, err := db.Exec(
+		`INSERT INTO transfers (from_user_id, to_user_id, amount, transaction_id, status)
+		VALUES (?, ?, ?, ?, ?)`,
+		fromUserID, toUserID, amount, transactionID, "completed",
+	)
+	return err
+}
+
+// SyncWalletBalance updates wallet balance from Hedera network
+func SyncWalletBalance(db *sql.DB, userID int, balance float64) error {
+	return UpdateTokenBalance(db, userID, balance)
+}
+
+// GetTransferHistory gets transfer history for a user
+func GetTransferHistory(db *sql.DB, userID int, limit int) ([]Transfer, error) {
+	query := `
+		SELECT id, from_user_id, to_user_id, amount, transaction_id, status, created_at
+		FROM transfers 
+		WHERE from_user_id = ? OR to_user_id = ?
+		ORDER BY created_at DESC
+		LIMIT ?
+	`
+
+	rows, err := db.Query(query, userID, userID, limit)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+
+	var transfers []Transfer
+	for rows.Next() {
+		var t Transfer
+		err := rows.Scan(
+			&t.ID, &t.FromUserID, &t.ToUserID, &t.Amount,
+			&t.TransactionID, &t.Status, &t.CreatedAt,
+		)
+		if err != nil {
+			return nil, err
+		}
+		transfers = append(transfers, t)
+	}
+
+	return transfers, nil
+}

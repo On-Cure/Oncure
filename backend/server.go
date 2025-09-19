@@ -44,6 +44,7 @@ func main() {
 	wsHandler := handlers.NewWebSocketHandler(hub, db)
 	notificationHandler := handlers.NewNotificationHandler(db)
 	verificationHandler := handlers.NewVerificationHandler(db)
+	transferHandler := handlers.NewTransferHandler(db)
 
 	// Create router
 	router := r.NewRouter()
@@ -66,6 +67,7 @@ func main() {
 	r.SetupUploadRoutes(router, uploadHandler, authMiddleware)
 	r.SetupWebSocketRoutes(router, wsHandler)
 	r.SetupVerificationRoutes(router, verificationHandler, authMiddleware)
+	r.SetupTransferRoutes(router, transferHandler, authMiddleware)
 
 	// Apply global middleware and use our router
 	var handler http.Handler = router
