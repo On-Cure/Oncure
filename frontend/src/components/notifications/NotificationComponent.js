@@ -331,7 +331,7 @@ export default function NotificationComponent() {
                 color: 'rgb(var(--color-text-secondary))', 
                 fontFamily: 'Inter, sans-serif' 
               }}>
-                You're all caught up! New notifications will appear here.
+                You&apos;re all caught up! New notifications will appear here.
               </p>
             </div>
           )}
