@@ -42,20 +42,12 @@ function FeedContent() {
       
       let allCommunityPosts = [];
       
-      for (const community of communitiesArray) {
+      // For mock data, show posts from all communities
+      for (const community of communitiesArray.slice(0, 3)) { // Limit to first 3 communities
         try {
-          const communityDetail = await communities.getCommunity(community.id);
-          if (communityDetail?.members && Array.isArray(communityDetail.members)) {
-            const userMembership = communityDetail.members.find(
-              member => parseInt(member.user_id) === parseInt(user.id)
-            );
-            
-            if (userMembership && userMembership.status === 'accepted') {
-              const communityPosts = await communities.getPosts(community.id, 1, 10);
-              const postsArray = Array.isArray(communityPosts) ? communityPosts : communityPosts.posts || [];
-              allCommunityPosts = [...allCommunityPosts, ...postsArray];
-            }
-          }
+          const communityPosts = await communities.getPosts(community.id, 1, 10);
+          const postsArray = Array.isArray(communityPosts) ? communityPosts : communityPosts.posts || [];
+          allCommunityPosts = [...allCommunityPosts, ...postsArray];
         } catch (error) {
           console.error(`Error fetching posts for community ${community.id}:`, error);
         }

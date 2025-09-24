@@ -238,9 +238,11 @@ export default function RightSidebar() {
 
   const groupItemStyles = {
     padding: '0.75rem',
-    backgroundColor: '#0F1624',
+    backgroundColor: 'rgba(var(--color-surface), 0.8)',
+    border: '1px solid rgb(var(--color-border))',
     borderRadius: '0.75rem',
-    marginBottom: '0.75rem'
+    marginBottom: '0.75rem',
+    transition: 'all 0.2s ease'
   };
 
   const groupHeaderStyles = {
@@ -254,11 +256,11 @@ export default function RightSidebar() {
     width: '2.5rem',
     height: '2.5rem',
     borderRadius: '9999px',
-    backgroundColor: '#8338EC',
+    background: 'linear-gradient(135deg, rgb(var(--color-primary)) 0%, rgb(var(--color-secondary)) 100%)',
     display: 'flex',
     alignItems: 'center',
     justifyContent: 'center',
-    color: 'white'
+    color: 'rgb(var(--color-background))'
   };
 
   const groupInfoStyles = {
@@ -268,12 +270,12 @@ export default function RightSidebar() {
   const groupNameStyles = {
     fontSize: '0.875rem',
     fontWeight: '500',
-    color: '#FFFFFF'
+    color: 'rgb(var(--color-text-primary))'
   };
 
   const groupMetaStyles = {
     fontSize: '0.75rem',
-    color: '#B8C1CF'
+    color: 'rgb(var(--color-text-secondary))'
   };
 
   const unreadBadgeStyles = {
@@ -292,14 +294,15 @@ export default function RightSidebar() {
 
   const joinButtonStyles = {
     width: '100%',
-    padding: '0.375rem 0',
-    backgroundColor: 'rgb(var(--color-border))',
-    color: 'rgb(var(--color-text-primary))',
+    padding: '0.5rem 0',
+    background: 'linear-gradient(135deg, rgb(var(--color-primary)) 0%, rgb(var(--color-secondary)) 100%)',
+    color: 'rgb(var(--color-background))',
     border: 'none',
-    borderRadius: '0.375rem',
+    borderRadius: '0.5rem',
     fontSize: '0.875rem',
+    fontWeight: '500',
     cursor: 'pointer',
-    transition: 'background-color 0.2s'
+    transition: 'all 0.2s ease'
   };
 
   if (loading) {
