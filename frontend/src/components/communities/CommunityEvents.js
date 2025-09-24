@@ -138,7 +138,7 @@ export default function CommunityEvents({ params, community, fetchCommunity }) {
                                         variant="ghost"
                                         onClick={() => handleEventResponse(event.id, 'not_going')}
                                     >
-                                        Can't Go
+                                        Can&apos;t Go
                                     </Button>
                                 </div>
                             </Card>

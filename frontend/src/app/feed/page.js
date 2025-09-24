@@ -103,7 +103,7 @@ function FeedContent() {
         fetchCommunityPosts();
       }
     }
-  }, [user, page, activeTab, selectedCategory]);
+  }, [user, page, activeTab, selectedCategory]); // eslint-disable-line react-hooks/exhaustive-deps
 
   // Load counts only once when user is available
   useEffect(() => {
