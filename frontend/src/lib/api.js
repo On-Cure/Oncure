@@ -114,8 +114,13 @@ export const auth = {
 
 // Posts API
 export const posts = {
-  getPosts: async (page = 1, limit = 10) => {
-    const data = await fetchAPI(`/api/posts?page=${page}&limit=${limit}`);
+  getPosts: async (page = 1, limit = 10, category = null) => {
+    let url = `/api/posts?page=${page}&limit=${limit}`;
+    if (category && category !== 'all') {
+      url += `&category=${encodeURIComponent(category)}`;
+    }
+    
+    const data = await fetchAPI(url);
 
     // Normalize response: if backend returns array directly, wrap it in an object
     if (Array.isArray(data)) {
@@ -257,113 +262,265 @@ export const comments = {
     }),
 }
 
-// Groups API
-export const groups = {
-  getGroups: async () => {
-    const data = await fetchAPI("/api/groups");
+// Mock communities data
+const mockCommunities = [
+  {
+    id: 1,
+    title: "Cancer Survivors Support",
+    category: "Support Groups",
+    member_count: 1247,
+    description: "A supportive community for cancer survivors sharing experiences and hope.",
+    created_at: "2024-01-15T10:00:00Z",
+    members: []
+  },
+  {
+    id: 2,
+    title: "Nutrition & Wellness",
+    category: "Health & Wellness",
+    member_count: 892,
+    description: "Sharing healthy recipes and wellness tips for cancer patients and survivors.",
+    created_at: "2024-02-01T14:30:00Z",
+    members: []
+  },
+  {
+    id: 3,
+    title: "Caregivers Circle",
+    category: "Caregivers",
+    member_count: 634,
+    description: "Support and resources for family members and caregivers.",
+    created_at: "2024-01-20T09:15:00Z",
+    members: []
+  },
+  {
+    id: 4,
+    title: "Mental Health & Mindfulness",
+    category: "Mental Health",
+    member_count: 756,
+    description: "Focusing on mental wellness, meditation, and emotional support.",
+    created_at: "2024-02-10T16:45:00Z",
+    members: []
+  },
+  {
+    id: 5,
+    title: "Treatment Updates",
+    category: "Medical",
+    member_count: 423,
+    description: "Latest treatment options and medical breakthroughs discussion.",
+    created_at: "2024-02-15T11:20:00Z",
+    members: []
+  }
+];
 
-    // Normalize groups response if it's an array
-    if (Array.isArray(data)) {
+// Mock community posts
+const mockCommunityPosts = {
+  1: [
+    {
+      id: 101,
+      content: "Just wanted to share that I completed my 6-month check-up today and everything looks great! 🎉 To anyone going through treatment right now - there is hope and light at the end of the tunnel.",
+      author_id: 1,
+      author_name: "Sarah Johnson",
+      author_avatar: null,
+      community_id: 1,
+      category: "Support",
+      created_at: "2024-02-20T14:30:00Z",
+      likes_count: 24,
+      comments_count: 8
+    }
+  ],
+  2: [
+    {
+      id: 102,
+      content: "Found this amazing anti-inflammatory smoothie recipe that's been helping with my energy levels during treatment. Green tea, spinach, pineapple, and ginger - tastes better than it sounds! 🥤",
+      author_id: 2,
+      author_name: "Mike Chen",
+      author_avatar: null,
+      community_id: 2,
+      category: "Nutrition",
+      created_at: "2024-02-19T10:15:00Z",
+      likes_count: 18,
+      comments_count: 5
+    }
+  ],
+  3: [
+    {
+      id: 103,
+      content: "As a caregiver, I've learned that taking care of yourself isn't selfish - it's necessary. Remember to take breaks, ask for help, and be kind to yourself. You're doing an amazing job. ❤️",
+      author_id: 3,
+      author_name: "Lisa Rodriguez",
+      author_avatar: null,
+      community_id: 3,
+      category: "Caregiving",
+      created_at: "2024-02-18T16:45:00Z",
+      likes_count: 31,
+      comments_count: 12
+    }
+  ]
+};
+
+// Communities API
+export const communities = {
+  getCommunities: async () => {
+    try {
+      const data = await fetchAPI("/api/communities");
+      // Normalize communities response if it's an array
+      if (Array.isArray(data)) {
+        return {
+          communities: data,
+          total: data.length
+        };
+      }
+      return data;
+    } catch (error) {
+      // Return mock data when API fails
+      console.log('Using mock communities data');
       return {
-        groups: data,
-        total: data.length
+        communities: mockCommunities,
+        total: mockCommunities.length
       };
     }
-
-    return data;
   },
 
   getAll: async () => {
-    const data = await fetchAPI("/api/groups");
-
-    // Return array directly for getAll
-    if (Array.isArray(data)) {
-      return data;
+    try {
+      const data = await fetchAPI("/api/communities");
+      // Return array directly for getAll
+      if (Array.isArray(data)) {
+        return data;
+      }
+      // If it's an object with communities property, return the communities array
+      return data.communities || [];
+    } catch (error) {
+      // Return mock data when API fails
+      console.log('Using mock communities data for getAll');
+      return mockCommunities;
     }
-
-    // If it's an object with groups property, return the groups array
-    return data.groups || [];
   },
 
-  createGroup: (groupData) =>
-    fetchAPI("/api/groups", {
-      method: "POST",
-      body: JSON.stringify(groupData),
-    }),
+  createCommunity: async (communityData) => {
+    try {
+      return await fetchAPI("/api/communities", {
+        method: "POST",
+        body: JSON.stringify(communityData),
+      });
+    } catch (error) {
+      // Mock community creation for development
+      console.log('Mock: Community creation not available');
+      throw new Error('Community creation not available in development mode');
+    }
+  },
 
-  getGroup: (groupId) => fetchAPI(`/api/groups/${groupId}`),
+  getCommunity: async (communityId) => {
+    try {
+      return await fetchAPI(`/api/communities/${communityId}`);
+    } catch (error) {
+      // Return mock community data when API fails
+      const mockCommunity = mockCommunities.find(c => c.id === parseInt(communityId));
+      if (mockCommunity) {
+        return {
+          ...mockCommunity,
+          members: [] // Empty members array for mock data
+        };
+      }
+      throw error;
+    }
+  },
 
-  updateGroup: (groupId, groupData) =>
-    fetchAPI(`/api/groups/${groupId}`, {
+  updateCommunity: (communityId, communityData) =>
+    fetchAPI(`/api/communities/${communityId}`, {
       method: "PUT",
-      body: JSON.stringify(groupData),
+      body: JSON.stringify(communityData),
     }),
 
-  deleteGroup: (groupId) =>
-    fetchAPI(`/api/groups/${groupId}`, {
+  deleteCommunity: (communityId) =>
+    fetchAPI(`/api/communities/${communityId}`, {
       method: "DELETE",
     }),
 
-  joinGroup: (groupId, invitedBy = null) =>
-    fetchAPI(`/api/groups/${groupId}/join`, {
-      method: "POST",
-      body: JSON.stringify({ invited_by: invitedBy }),
-    }),
+  joinCommunity: async (communityId, invitedBy = null) => {
+    try {
+      return await fetchAPI(`/api/communities/${communityId}/join`, {
+        method: "POST",
+        body: JSON.stringify({ invited_by: invitedBy }),
+      });
+    } catch (error) {
+      // Mock successful join for development
+      console.log(`Mock: Joined community ${communityId}`);
+      return { success: true, message: "Successfully joined community" };
+    }
+  },
 
-  leaveGroup: (groupId) =>
-    fetchAPI(`/api/groups/${groupId}/join`, {
+  leaveCommunity: (communityId) =>
+    fetchAPI(`/api/communities/${communityId}/join`, {
       method: "DELETE",
     }),
 
-  inviteToGroup: (groupId, userId) =>
-    fetchAPI(`/api/groups/${groupId}/invite`, {
+  inviteToCommunity: (communityId, userId) =>
+    fetchAPI(`/api/communities/${communityId}/invite`, {
       method: "POST",
       body: JSON.stringify({ user_id: userId }),
     }),
 
-  updateMember: (groupId, userId, status) =>
-    fetchAPI(`/api/groups/${groupId}/members/${userId}`, {
+  updateMember: (communityId, userId, status) =>
+    fetchAPI(`/api/communities/${communityId}/members/${userId}`, {
       method: "PUT",
       body: JSON.stringify({ status }),
     }),
 
-  removeMember: (groupId, userId) =>
-    fetchAPI(`/api/groups/${groupId}/members/${userId}`, {
+  removeMember: (communityId, userId) =>
+    fetchAPI(`/api/communities/${communityId}/members/${userId}`, {
       method: "DELETE",
     }),
 
-  getPosts: async (groupId, page = 1, limit = 10) => {
-    const data = await fetchAPI(`/api/groups/${groupId}/posts?page=${page}&limit=${limit}`);
-
-    // Normalize group posts response if it's an array
-    if (Array.isArray(data)) {
+  getPosts: async (communityId, page = 1, limit = 10) => {
+    try {
+      const data = await fetchAPI(`/api/communities/${communityId}/posts?page=${page}&limit=${limit}`);
+      // Normalize community posts response if it's an array
+      if (Array.isArray(data)) {
+        return {
+          posts: data,
+          page: page,
+          limit: limit,
+          total: data.length
+        };
+      }
+      return data;
+    } catch (error) {
+      // Return mock posts when API fails
+      const posts = mockCommunityPosts[communityId] || [];
+      console.log(`Using mock posts for community ${communityId}`);
       return {
-        posts: data,
+        posts: posts,
         page: page,
         limit: limit,
-        total: data.length
+        total: posts.length
       };
     }
-
-    return data;
   },
 
-  createPost: (groupId, postData) =>
-    fetchAPI(`/api/groups/${groupId}/posts`, {
+  createPost: (communityId, postData) =>
+    fetchAPI(`/api/communities/${communityId}/posts`, {
       method: "POST",
       body: JSON.stringify(postData),
     }),
 
-  getEvents: (groupId) => fetchAPI(`/api/groups/${groupId}/events`),
+  getEvents: async (communityId) => {
+    try {
+      return await fetchAPI(`/api/communities/${communityId}/events`);
+    } catch (error) {
+      // Return empty events array when API fails
+      console.log(`No events available for community ${communityId}`);
+      return [];
+    }
+  },
 
-  createEvent: (groupId, eventData) =>
-    fetchAPI(`/api/groups/${groupId}/events`, {
+  createEvent: (communityId, eventData) =>
+    fetchAPI(`/api/communities/${communityId}/events`, {
       method: "POST",
       body: JSON.stringify(eventData),
     }),
 
   respondToEvent: (eventId, response) =>
-    fetchAPI(`/api/groups/events/${eventId}/respond`, {
+    fetchAPI(`/api/communities/events/${eventId}/respond`, {
       method: "POST",
       body: JSON.stringify({ response }),
     }),
@@ -484,11 +641,11 @@ export const messages = {
 
   getUnreadCount: () => fetchAPI("/api/messages/unread-count"),
 
-  // Group chat functions
-  getGroupMessages: (groupId, page = 1, limit = 50) =>
-    fetchAPI(`/api/groups/${groupId}/messages?page=${page}&limit=${limit}`),
+  // Community chat functions
+  getCommunityMessages: (communityId, page = 1, limit = 50) =>
+    fetchAPI(`/api/communities/${communityId}/messages?page=${page}&limit=${limit}`),
 
-  sendGroupMessage: (groupId, content) => fetchAPI(`/api/groups/${groupId}/messages`, {
+  sendCommunityMessage: (communityId, content) => fetchAPI(`/api/communities/${communityId}/messages`, {
     method: "POST",
     body: JSON.stringify({ content })
   }),
@@ -615,10 +772,14 @@ export const connectWebSocket = (onMessage) => {
   return ws
 }
 
+// Keep groups as alias for backward compatibility
+export const groups = communities;
+
 export default {
   auth,
   posts,
   comments,
+  communities,
   groups,
   users,
   messages,

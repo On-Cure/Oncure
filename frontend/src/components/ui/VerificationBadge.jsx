@@ -25,11 +25,11 @@ export default function VerificationBadge({
   const getBadgeColor = () => {
     switch (role) {
       case 'coach':
-        return 'text-[#06D6A0]';
+        return 'text-success';
       case 'mentor':
-        return 'text-[#3A86FF]';
+        return 'text-primary';
       default:
-        return 'text-[#B8C1CF]';
+        return 'text-text-secondary';
     }
   };
 
