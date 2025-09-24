@@ -74,14 +74,14 @@ export default function VerificationPage() {
     return (
       <Layout>
       <div className="container mx-auto p-4 max-w-2xl">
-        <div className="bg-[#1A2333] border border-[#2A3343] rounded-lg p-6 text-center">
-          <h2 className="text-2xl font-bold text-[#FFFFFF] mb-4">Verification Status</h2>
-          <p className="text-[#B8C1CF] mb-4">
+        <div className="bg-surface border border-border rounded-lg p-6 text-center">
+          <h2 className="text-2xl font-bold text-text-primary mb-4">Verification Status</h2>
+          <p className="text-text-secondary mb-4">
             Your verification request is currently <strong>{verificationStatus.request.status}</strong>
           </p>
           <button
             onClick={() => router.push('/profile')}
-            className="bg-[#3A86FF] text-white px-6 py-2 rounded-lg hover:bg-[#2A76EF] transition-colors"
+            className="bg-primary text-white px-6 py-2 rounded-lg hover:bg-primary-hover transition-colors"
           >
             Back to Profile
           </button>
