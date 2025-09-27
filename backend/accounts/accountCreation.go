@@ -6,17 +6,17 @@ import (
 	"os"
 
 	hedera "github.com/hashgraph/hedera-sdk-go/v2"
-		"github.com/joho/godotenv"
+		// "github.com/joho/godotenv"
 )
 
 
 
 func SetupClient() (*hedera.Client, error) {
 	// retrieve the private key from .env file using doho/dotenv package
-	err := godotenv.Load()
-	if err != nil {
-		return nil, fmt.Errorf("error loading .env file: %v", err)
-	}
+	// err := godotenv.Load()
+	// if err != nil {
+	// 	return nil, fmt.Errorf("error loading .env file: %v", err)
+	// }
 
 	privateKey := os.Getenv("HEDERA_PRIVATE_KEY")
 	if privateKey == "" {
