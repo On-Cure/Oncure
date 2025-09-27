@@ -31,7 +31,7 @@ func CreateUserWallet(db *sql.DB, userID int, accountID, privateKey string) erro
 
 	_, err = db.Exec(
 		`INSERT INTO user_wallets (user_id, hedera_account_id, encrypted_private_key, token_balance)
-		VALUES (?, ?, ?, ?)`,
+		VALUES ($1, $2, $3, $4)`,
 		userID, accountID, encryptedKey, 0.0,
 	)
 	return err
@@ -42,7 +42,7 @@ func GetUserWallet(db *sql.DB, userID int) (*UserWallet, error) {
 	wallet := &UserWallet{}
 	err := db.QueryRow(
 		`SELECT id, user_id, hedera_account_id, encrypted_private_key, token_balance, created_at, updated_at
-		FROM user_wallets WHERE user_id = ?`,
+		FROM user_wallets WHERE user_id = $1`,
 		userID,
 	).Scan(
 		&wallet.ID, &wallet.UserID, &wallet.HederaAccountID, &wallet.EncryptedPrivateKey,
@@ -60,7 +60,7 @@ func GetUserWallet(db *sql.DB, userID int) (*UserWallet, error) {
 // UpdateTokenBalance updates the token balance for a user's wallet
 func UpdateTokenBalance(db *sql.DB, userID int, balance float64) error {
 	_, err := db.Exec(
-		`UPDATE user_wallets SET token_balance = ?, updated_at = CURRENT_TIMESTAMP WHERE user_id = ?`,
+		`UPDATE user_wallets SET token_balance = $1, updated_at = CURRENT_TIMESTAMP WHERE user_id = $2`,
 		balance, userID,
 	)
 	return err
@@ -158,7 +158,7 @@ type Transfer struct {
 func CreateTransfer(db *sql.DB, fromUserID, toUserID int, amount float64, transactionID string) error {
 	_, err := db.Exec(
 		`INSERT INTO transfers (from_user_id, to_user_id, amount, transaction_id, status)
-		VALUES (?, ?, ?, ?, ?)`,
+		VALUES ($1, $2, $3, $4, $5)`,
 		fromUserID, toUserID, amount, transactionID, "completed",
 	)
 	return err
@@ -174,9 +174,9 @@ func GetTransferHistory(db *sql.DB, userID int, limit int) ([]Transfer, error) {
 	query := `
 		SELECT id, from_user_id, to_user_id, amount, transaction_id, status, created_at
 		FROM transfers 
-		WHERE from_user_id = ? OR to_user_id = ?
+		WHERE from_user_id = $1 OR to_user_id = $2
 		ORDER BY created_at DESC
-		LIMIT ?
+		LIMIT $3
 	`
 
 	rows, err := db.Query(query, userID, userID, limit)
