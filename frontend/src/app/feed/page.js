@@ -7,7 +7,7 @@ import CreatePostComponent from "../../components/posts/CreatePostComponent";
 import PostCard from "../../components/posts/PostCard";
 import CategoryFilter from "../../components/posts/CategoryFilter";
 import ClientAuthGuard from "../../components/auth/ClientAuthGuard";
-import { Home, TrendingUp, Users, MessageCircle, Loader2 } from 'lucide-react';
+import { Home, TrendingUp, Users, MessageCircle, Loader2, ChevronDown, ChevronUp, BarChart3, Plus } from 'lucide-react';
 
 function FeedContent() {
   const [posts, setPosts] = useState([]);
@@ -19,6 +19,8 @@ function FeedContent() {
   const [countsLoading, setCountsLoading] = useState(true);
   const [activeTab, setActiveTab] = useState('current');
   const [selectedCategory, setSelectedCategory] = useState('all');
+  const [showStats, setShowStats] = useState(false);
+  const [showCreatePost, setShowCreatePost] = useState(false);
   const { user } = useAuth();
 
   // Fetch posts
@@ -192,46 +194,78 @@ function FeedContent() {
           </button>
         </div>
         
-        {/* Quick Stats */}
-        <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 sm:gap-4 mt-4 sm:mt-6">
-          <div className="backdrop-blur-sm rounded-lg p-3 sm:p-4 transition-all duration-250 hover:scale-105" style={{backgroundColor: 'rgba(var(--color-surface), 0.8)', border: '1px solid rgb(var(--color-border))'}}>
-            <div className="flex items-center gap-2 mb-2">
-              <TrendingUp size={16} style={{color: 'rgb(var(--color-primary))'}} />
-              <span className="text-sm font-medium font-sans" style={{color: 'rgb(var(--color-text-secondary))'}}>Activity</span>
+        {/* Collapsible Quick Stats */}
+        <div className="backdrop-blur-sm rounded-lg shadow-sm" style={{backgroundColor: 'rgba(var(--color-surface), 0.8)', border: '1px solid rgb(var(--color-border))'}}>
+          <button
+            onClick={() => setShowStats(!showStats)}
+            className="w-full flex items-center justify-between p-3 hover:bg-black/5 transition-colors"
+          >
+            <div className="flex items-center gap-2">
+              <BarChart3 size={16} style={{color: 'rgb(var(--color-primary))'}} />
+              <span className="text-sm font-medium" style={{color: 'rgb(var(--color-text-primary))'}}>Quick Stats</span>
             </div>
-            <p className="text-lg sm:text-xl font-bold font-display" style={{color: 'rgb(var(--color-text-primary))'}}>{posts.length}</p>
-            <p className="text-xs font-sans" style={{color: 'rgb(var(--color-text-disabled))'}}>Posts in feed</p>
-          </div>
+            {showStats ? <ChevronUp size={16} /> : <ChevronDown size={16} />}
+          </button>
           
-          <div className="backdrop-blur-sm rounded-lg p-3 sm:p-4 transition-all duration-250 hover:scale-105" style={{backgroundColor: 'rgba(var(--color-surface), 0.8)', border: '1px solid rgb(var(--color-border))'}}>
-            <div className="flex items-center gap-2 mb-2">
-              <Users size={16} style={{color: 'rgb(var(--color-secondary))'}} />
-              <span className="text-sm font-medium font-sans" style={{color: 'rgb(var(--color-text-secondary))'}}>Network</span>
+          {showStats && (
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 p-3 pt-0">
+              <div className="backdrop-blur-sm rounded-lg p-3 transition-all duration-250 hover:scale-105" style={{backgroundColor: 'rgba(var(--color-surface), 0.8)', border: '1px solid rgb(var(--color-border))'}}>
+                <div className="flex items-center gap-2 mb-2">
+                  <TrendingUp size={16} style={{color: 'rgb(var(--color-primary))'}} />
+                  <span className="text-sm font-medium font-sans" style={{color: 'rgb(var(--color-text-secondary))'}}>Activity</span>
+                </div>
+                <p className="text-lg font-bold font-display" style={{color: 'rgb(var(--color-text-primary))'}}>{posts.length}</p>
+                <p className="text-xs font-sans" style={{color: 'rgb(var(--color-text-disabled))'}}>Posts in feed</p>
+              </div>
+              
+              <div className="backdrop-blur-sm rounded-lg p-3 transition-all duration-250 hover:scale-105" style={{backgroundColor: 'rgba(var(--color-surface), 0.8)', border: '1px solid rgb(var(--color-border))'}}>
+                <div className="flex items-center gap-2 mb-2">
+                  <Users size={16} style={{color: 'rgb(var(--color-secondary))'}} />
+                  <span className="text-sm font-medium font-sans" style={{color: 'rgb(var(--color-text-secondary))'}}>Network</span>
+                </div>
+                <p className="text-lg font-bold font-display" style={{color: 'rgb(var(--color-text-primary))'}}>
+                  {countsLoading ? '...' : networkCount}
+                </p>
+                <p className="text-xs font-sans" style={{color: 'rgb(var(--color-text-disabled))'}}>Connections</p>
+              </div>
+              
+              <div className="backdrop-blur-sm rounded-lg p-3 transition-all duration-250 hover:scale-105" style={{backgroundColor: 'rgba(var(--color-surface), 0.8)', border: '1px solid rgb(var(--color-border))'}}>
+                <div className="flex items-center gap-2 mb-2">
+                  <MessageCircle size={16} style={{color: 'rgb(var(--color-tertiary))'}} />
+                  <span className="text-sm font-medium font-sans" style={{color: 'rgb(var(--color-text-secondary))'}}>Engagement</span>
+                </div>
+                <p className="text-lg font-bold font-display" style={{color: 'rgb(var(--color-text-primary))'}}>
+                  {countsLoading ? '...' : engagementCount}
+                </p>
+                <p className="text-xs font-sans" style={{color: 'rgb(var(--color-text-disabled))'}}>This week</p>
+              </div>
             </div>
-            <p className="text-lg sm:text-xl font-bold font-display" style={{color: 'rgb(var(--color-text-primary))'}}>
-              {countsLoading ? '...' : networkCount}
-            </p>
-            <p className="text-xs font-sans" style={{color: 'rgb(var(--color-text-disabled))'}}>Connections</p>
-          </div>
-          
-          <div className="backdrop-blur-sm rounded-lg p-3 sm:p-4 transition-all duration-250 hover:scale-105" style={{backgroundColor: 'rgba(var(--color-surface), 0.8)', border: '1px solid rgb(var(--color-border))'}}>
-            <div className="flex items-center gap-2 mb-2">
-              <MessageCircle size={16} style={{color: 'rgb(var(--color-tertiary))'}} />
-              <span className="text-sm font-medium font-sans" style={{color: 'rgb(var(--color-text-secondary))'}}>Engagement</span>
-            </div>
-            <p className="text-lg sm:text-xl font-bold font-display" style={{color: 'rgb(var(--color-text-primary))'}}>
-              {countsLoading ? '...' : engagementCount}
-            </p>
-            <p className="text-xs font-sans" style={{color: 'rgb(var(--color-text-disabled))'}}>This week</p>
-          </div>
+          )}
         </div>
       </div>
 
-      {/* Create Post Section - Only show on Current Feed */}
+      {/* Collapsible Create Post Section - Only show on Current Feed */}
       {user && activeTab === 'current' && (
         <div className="mb-6 sm:mb-8">
-          <div className="backdrop-blur-sm rounded-xl p-1 shadow-xl" style={{backgroundColor: 'rgba(var(--color-surface), 0.9)', border: '1px solid rgb(var(--color-border))'}}>
-            <CreatePostComponent onPostCreated={handlePostCreated} />
+          <div className="backdrop-blur-sm rounded-lg shadow-sm" style={{backgroundColor: 'rgba(var(--color-surface), 0.8)', border: '1px solid rgb(var(--color-border))'}}>
+            <button
+              onClick={() => setShowCreatePost(!showCreatePost)}
+              className="w-full flex items-center justify-between p-3 hover:bg-black/5 transition-colors"
+            >
+              <div className="flex items-center gap-2">
+                <Plus size={16} style={{color: 'rgb(var(--color-primary))'}} />
+                <span className="text-sm font-medium" style={{color: 'rgb(var(--color-text-primary))'}}>Create Post</span>
+              </div>
+              {showCreatePost ? <ChevronUp size={16} /> : <ChevronDown size={16} />}
+            </button>
+            
+            {showCreatePost && (
+              <div className="p-3 pt-0">
+                <div className="backdrop-blur-sm rounded-xl p-1 shadow-xl" style={{backgroundColor: 'rgba(var(--color-surface), 0.9)', border: '1px solid rgb(var(--color-border))'}}>
+                  <CreatePostComponent onPostCreated={handlePostCreated} />
+                </div>
+              </div>
+            )}
           </div>
         </div>
       )}
