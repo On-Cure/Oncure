@@ -293,6 +293,30 @@ docker-compose -f docker-compose.prod.yml up --build -d
 
 ---
 
+## 📚 Documentation
+
+### 🚀 Getting Started
+- **[Project Structure](documentation/PROJECT_STRUCTURE.md)** - Complete project architecture and file organization
+- **[Development Instructions](documentation/instructions.md)** - Detailed development setup and guidelines
+
+### 🛠️ Development Guides
+- **[Style Guide](documentation/style-guide.md)** - UI/UX design standards and component guidelines
+- **[WebSocket Documentation](documentation/private-messaging-websockets.md)** - Real-time messaging implementation
+- **[Group Chat WebSockets](documentation/group-chat-websockets.md)** - Multi-user chat system documentation
+
+### 🚀 Deployment Guides
+- **[Deployment Overview](DEPLOYMENT.md)** - Main deployment documentation
+- **[Render Deployment](RENDER_DEPLOYMENT.md)** - Hybrid deployment (Render + Netlify)
+- **[Native Deployment](DEPLOYMENT_NATIVE.md)** - Local development setup
+- **[Deployment Checklist](DEPLOYMENT_CHECKLIST.md)** - Step-by-step deployment verification
+- **[Deployment Summary](DEPLOYMENT_SUMMARY.md)** - Deployment issues and solutions
+- **[Database Migration](MIGRATION_GUIDE.md)** - SQLite to PostgreSQL migration guide
+
+### 📋 Additional Resources
+- **[Interview Responses](NCIK_Interview_Responses.docx)** - Project interview documentation
+
+---
+
 ## 🤝 Contributing
 
 1. Fork repo
