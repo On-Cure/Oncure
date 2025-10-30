@@ -161,28 +161,28 @@ func CreateInitialTokenSupply(client *hedera.Client, treasuryPrivateKey hedera.P
 }
 
 // TransferHbar transfers HBAR between two accounts
-func TransferHbar(fromAccountID, toAccountID, fromPrivateKey string, amount float64) error {
+func TransferHbar(fromAccountID, toAccountID, fromPrivateKey string, amount float64) (string, error) {
 	client, err := SetupClient()
 	if err != nil {
-		return err
+		return "", err
 	}
 	defer client.Close()
 
 	// Parse account IDs
 	fromID, err := hedera.AccountIDFromString(fromAccountID)
 	if err != nil {
-		return fmt.Errorf("invalid from account ID: %v", err)
+		return "", fmt.Errorf("invalid from account ID: %v", err)
 	}
 
 	toID, err := hedera.AccountIDFromString(toAccountID)
 	if err != nil {
-		return fmt.Errorf("invalid to account ID: %v", err)
+		return "", fmt.Errorf("invalid to account ID: %v", err)
 	}
 
 	// Parse private key
 	privateKey, err := hedera.PrivateKeyFromString(fromPrivateKey)
 	if err != nil {
-		return fmt.Errorf("invalid private key: %v", err)
+		return "", fmt.Errorf("invalid private key: %v", err)
 	}
 
 	// Create transfer transaction
@@ -191,23 +191,23 @@ func TransferHbar(fromAccountID, toAccountID, fromPrivateKey string, amount floa
 		AddHbarTransfer(toID, hedera.NewHbar(amount)).
 		FreezeWith(client)
 	if err != nil {
-		return fmt.Errorf("failed to create transfer transaction: %v", err)
+		return "", fmt.Errorf("failed to create transfer transaction: %v", err)
 	}
 
 	// Sign and execute
 	transferTx = transferTx.Sign(privateKey)
 	response, err := transferTx.Execute(client)
 	if err != nil {
-		return fmt.Errorf("failed to execute transfer: %v", err)
+		return "", fmt.Errorf("failed to execute transfer: %v", err)
 	}
 
 	// Get receipt
 	_, err = response.GetReceipt(client)
 	if err != nil {
-		return fmt.Errorf("transfer failed: %v", err)
+		return "", fmt.Errorf("transfer failed: %v", err)
 	}
 
-	return nil
+	return response.TransactionID.String(), nil
 }
 
 // GetAccountBalance gets the HBAR balance of an account
