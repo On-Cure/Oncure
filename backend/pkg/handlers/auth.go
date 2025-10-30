@@ -80,8 +80,8 @@ func (h *AuthHandler) Register(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	// Store wallet information in database
-	err = models.CreateUserWallet(h.db, userId, accountID, privateKey)
+	// Store wallet information and update balance after successful deposit
+	err = wallet.CreateUserWalletWithDeposit(h.db, userId, accountID, privateKey)
 	if err != nil {
 		utils.RespondWithError(w, http.StatusInternalServerError, "Failed to store wallet: "+err.Error())
 		return
@@ -91,6 +91,7 @@ func (h *AuthHandler) Register(w http.ResponseWriter, r *http.Request) {
 		"message":           "User registered successfully",
 		"user_id":           userId,
 		"hedera_account_id": accountID,
+		"initial_balance":   "5 HBAR",
 	})
 }
 
