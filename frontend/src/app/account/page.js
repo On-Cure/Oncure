@@ -187,6 +187,16 @@ export default function AccountPage() {
                       <p className="text-sm text-text-secondary">
                         {new Date(tx.timestamp).toLocaleString()}
                       </p>
+                      {tx.transaction_hash && tx.transaction_hash !== 'N/A' && (
+                        <a
+                          href={`https://hashscan.io/testnet/transaction/${tx.transaction_hash}`}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="text-xs text-primary hover:text-primary-dark underline"
+                        >
+                          Show on Explorer
+                        </a>
+                      )}
                     </div>
                   </div>
                   <div className="text-right">
