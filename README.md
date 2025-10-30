@@ -80,7 +80,7 @@ onCare blends **community connection, mentorship, and blockchain-powered rewards
 ```bash
 # Clone repository
 git clone https://github.com/On-Cure/Oncure.git
-cd oncare
+cd Oncure
 
 # Make scripts executable
 chmod +x build.sh dev.sh
@@ -109,42 +109,63 @@ npm run dev
 ```bash
 cd backend
 go mod download
-go run main.go
+go run server.go
 ```
 
 ---
 
 ## 📁 Project Structure
-
-```
-soshicare/
-├── frontend/                   
-│   ├── src/                    
-│   │   ├── app/                # Pages & routes
-│   │   ├── components/         # UI components
-│   │   ├── lib/                # Utilities
-│   │   └── types/              # TypeScript types
-│   ├── public/                 # Static assets
-│   └── package.json
-├── backend/                    
-│   ├── pkg/                    
-│   │   ├── db/                 # Database & migrations
-│   │   ├── handlers/           # API handlers
-│   │   ├── middleware/         # Auth & validation
-│   │   ├── models/             # Data models
-│   │   └── websocket/          # WebSocket features
-│   ├── uploads/                # Media uploads
-│   └── server.go
-├── blockchain/                 # Hedera integration layer
-│   ├── tokens/                 # HTS utilities
-│   ├── rewards/                # Reward distribution
-│   └── nfts/                   # NFT achievements
-├── data/                       # SQLite DB storage
-├── docker-compose.yml
-├── build.sh
-├── dev.sh
-└── README.md
-```
+ 
+ ```
+-Oncure/
+-├── frontend/
+-│   ├── src/
+-│   │   ├── app/                # Next.js App Router pages
+-│   │   ├── components/         # UI components
+-│   │   ├── hooks/              # React hooks
+-│   │   ├── lib/                # Utilities
+-│   │   └── contexts/           # React contexts
+-│   ├── public/                 # Static assets (if any)
+-│   └── package.json
+-├── backend/
+-│   ├── pkg/
+-│   │   ├── db/                 # Database & migrations (sqlite/postgres)
+-│   │   ├── handlers/           # API handlers
+-│   │   ├── middleware/         # Auth, CORS, params
+-│   │   ├── models/             # Data models
+-│   │   ├── router/             # Custom router and route setup
+-│   │   └── websocket/          # WebSocket hub and client
+-│   ├── accounts/               # Hedera wallet utilities
+-│   ├── uploads/                # Media uploads
+-│   └── server.go               # Backend entrypoint
+-├── docker-compose.yml
+-├── build.sh
+-├── dev.sh
+-└── README.md
++Oncure/
++├── frontend/
++│   ├── src/
++│   │   ├── app/                # Routes & layouts
++│   │   ├── components/         # UI/components
++│   │   ├── hooks/              # React hooks
++│   │   ├── lib/                # Helpers
++│   │   └── contexts/           # Context providers
++│   └── package.json
++├── backend/
++│   ├── pkg/
++│   │   ├── db/                 # DB init + migrations (sqlite/postgres)
++│   │   ├── handlers/           # HTTP handlers
++│   │   ├── middleware/         # Auth, CORS, params
++│   │   ├── models/             # Persistence models
++│   │   ├── router/             # Routes and router
++│   │   └── websocket/          # Realtime hub
++│   ├── accounts/               # Hedera wallet utils
++│   └── server.go
++├── docker-compose.yml
++├── build.sh
++├── dev.sh
++└── README.md
+ ```
 
 ---
 
@@ -172,46 +193,97 @@ soshicare/
 ---
 
 ## 🌐 API Endpoints
-### Authentication 
-* `POST /api/auth/register`- User registration 
-* `POST /api/auth/login`- User login 
-* `POST /api/auth/logout`- User logout 
-* `GET /api/auth/session`- Check session status
 
-### Users & Profiles 
-* `GET /api/users/profile`- Get user profile 
-- `PUT /api/users/profile`- Update profile 
-- `POST /api/users/follow`- Follow/unfollow user 
-- `GET /api/users/followers`- Get followers list
+### Authentication
+- POST `/api/auth/register`
+- POST `/api/auth/login`
+- POST `/api/auth/logout`
+- GET  `/api/auth/session`
 
-### Posts 
-- `GET /api/posts ` - Get posts feed 
-- `POST /api/posts` - Create new post 
-- `POST /api/posts/:id/comments`- Add comment 
-- `GET /api/posts/:id`- Get specific post 
+### Users
+- GET  `/api/users/profile`
+- PUT  `/api/users/profile`
+- PUT  `/api/users/profile/privacy`
+- GET  `/api/users/followers`
+- GET  `/api/users/following`
+- GET  `/api/users/suggested`
+- GET  `/api/users/online`
+- GET  `/api/users/counts`
+- POST `/api/users/{userID}/follow`
+- DELETE `/api/users/{userID}/follow`
+- DELETE `/api/users/{userID}/follow-request`
+- POST `/api/users/{userID}/accept-follow`
+- GET  `/api/users/{userID}/follow-status`
 
-### Groups 
-- `GET /api/groups`- List all groups 
-- `POST /api/groups`- Create new group 
-- `POST /api/groups/:id/join` - Join group 
-- `POST /api/groups/:id/events` - Create group event 
-### Real-time Features 
--` WebSocket/ws/chat` - Private messaging 
--  `WebSocket/ws/notifications` - Real-time notifications 
-- `WebSocket/ws/groups/:id` - Group chat
+### Posts
+- GET  `/api/posts`
+- GET  `/api/posts/liked`
+- GET  `/api/posts/commented`
+- GET  `/api/posts/saved`
+- POST `/api/posts`
+- PUT  `/api/posts`
+- DELETE `/api/posts`
+- GET  `/api/posts/{postID}/comments`
+- POST `/api/posts/{postID}/comments`
+- GET  `/api/posts/{postID}/reactions`
+- POST `/api/posts/{postID}/reactions`
+- GET  `/api/posts/{postID}/saved`
+- POST `/api/posts/{postID}/save`
+- DELETE `/api/posts/{postID}/save`
 
-### Rewards
+### Groups
+- GET  `/api/groups`
+- POST `/api/groups`
+- GET  `/api/groups/{groupID}`
+- PUT  `/api/groups/{groupID}`
+- DELETE `/api/groups/{groupID}`
+- POST `/api/groups/{groupID}/join`
+- DELETE `/api/groups/{groupID}/join`
+- POST `/api/groups/{groupID}/invite`
+- PUT  `/api/groups/{groupID}/members/{userID}`
+- DELETE `/api/groups/{groupID}/members/{userID}`
+- GET  `/api/groups/{groupID}/posts`
+- POST `/api/groups/{groupID}/posts`
+- GET  `/api/groups/{groupID}/posts/{postID}/reactions`
+- POST `/api/groups/{groupID}/posts/{postID}/reactions`
+- GET  `/api/groups/{groupID}/posts/{groupPostID}/comments`
+- POST `/api/groups/{groupID}/posts/{groupPostID}/comments`
+- GET  `/api/groups/comments/{commentID}`
+- PUT  `/api/groups/comments/{commentID}`
+- DELETE `/api/groups/comments/{commentID}`
+- GET  `/api/groups/comments/{commentID}/reactions`
+- POST `/api/groups/comments/{commentID}/reactions`
+- GET  `/api/groups/{groupID}/events`
+- POST `/api/groups/{groupID}/events`
+- POST `/api/groups/events/{eventID}/respond`
+- GET  `/api/groups/{groupID}/messages`
+- POST `/api/groups/{groupID}/messages`
 
-* `POST /api/rewards/tip` → Tip a user with Hedera tokens
-* `GET /api/rewards/leaderboard` → Weekly contributors ranking
-* `GET /api/rewards/badges` → User NFT badges
+### Messages
+- GET  `/api/messages/conversations`
+- GET  `/api/messages/unread-count`
+- GET  `/api/messages/{userID}`
+- POST `/api/messages/{userID}`
+- PUT  `/api/messages/{userID}/read`
 
-### Healing Journey
+### Notifications
+- GET  `/api/notifications`
+- PUT  `/api/notifications/read`
+- PUT  `/api/notifications/read-all`
+- GET  `/api/notifications/unread-count`
 
-* `POST /api/journey/milestone` → Add milestone
-* `GET /api/journey/:userId` → Get user journey timeline
+### Verification
+- POST `/api/verification/request`
+- GET  `/api/verification/status`
 
-(Other endpoints remain same as base Soshi features: users, posts, groups, chat, etc.)
+### Hedera Transfers
+- POST `/api/transfer/hbar`
+- GET  `/api/transfer/balance`
+- GET  `/api/transfer/balance/user?user_id={id}`
+- GET  `/api/transfer/history`
+
+### WebSocket
+- GET  `/ws`
 
 ---
 
@@ -219,21 +291,21 @@ soshicare/
 
 ### Backend (.env)
 
-#### For Local Development (SQLite)
+#### Local (SQLite by default)
 ```env
 PORT=8080
-DB_PATH=./data/soshicare.db
+# Optional: override SQLite path (defaults to ./backend/soshi.db)
+DB_PATH=./backend/soshi.db
 MIGRATIONS_PATH=file://pkg/db/migrations/sqlite
 JWT_SECRET=your-secret-key
-UPLOAD_PATH=./uploads
+UPLOAD_PATH=./backend/uploads
 
-# Hedera Integration
-HEDERA_ACCOUNT_ID=your-hedera-id
-HEDERA_PRIVATE_KEY=your-private-key
-HEDERA_NETWORK=testnet
+# Hedera (required for wallet/transfers)
+HEDERA_CLIENT_ID=0.0.xxxxxx
+HEDERA_PRIVATE_KEY=302e020100300506032b657004220420...
 ```
 
-#### For Production (PostgreSQL)
+#### Production (PostgreSQL)
 ```env
 PORT=8080
 DATABASE_URL=postgres://username:password@host:port/database?sslmode=require
@@ -241,10 +313,9 @@ MIGRATIONS_PATH=file://pkg/db/migrations/postgres
 JWT_SECRET=your-secret-key
 UPLOAD_PATH=./uploads
 
-# Hedera Integration
-HEDERA_ACCOUNT_ID=your-hedera-id
-HEDERA_PRIVATE_KEY=your-private-key
-HEDERA_NETWORK=testnet
+# Hedera (required for wallet/transfers)
+HEDERA_CLIENT_ID=0.0.xxxxxx
+HEDERA_PRIVATE_KEY=302e020100300506032b657004220420...
 ```
 
 ### Frontend (.env.local)
@@ -282,10 +353,10 @@ NEXT_PUBLIC_HEDERA_NETWORK=testnet
    - Add environment variable: `NEXT_PUBLIC_API_URL=<your-render-backend-url>`
 
 ### Docker Deployment (Alternative)
-
-```bash
-docker-compose -f docker-compose.prod.yml up --build -d
-```
+ 
+ ```bash
+docker compose up --build -d
+ ```
 
 * Configure reverse proxy (nginx/caddy)
 * Add SSL certificates
