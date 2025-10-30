@@ -1,11 +1,13 @@
 package wallet
 
 import (
+	"database/sql"
 	"fmt"
 	"log"
 	"os"
 
 	hedera "github.com/hashgraph/hedera-sdk-go/v2"
+	"github.com/On-cure/Oncure/pkg/models"
 		// "github.com/joho/godotenv"
 )
 
@@ -50,9 +52,11 @@ func CreateWallet(client *hedera.Client) (string, string, error) {
 	}
 	publicKey := privateKey.PublicKey()
 
-	// Create a new account without specifying an initial balance
+	// Create a new account with initial 5 HBAR balance
 	transaction, err := hedera.NewAccountCreateTransaction().
 		SetKey(publicKey).
+		SetInitialBalance(hedera.NewHbar(5)).
+		SetAccountMemo("OnCure user account").
 		Execute(client)
 	if err != nil {
 		return "", "", err
@@ -63,7 +67,20 @@ func CreateWallet(client *hedera.Client) (string, string, error) {
 		return "", "", err
 	}
 
+	log.Printf("Created new account %s with 5 HBAR initial balance", receipt.AccountID.String())
 	return receipt.AccountID.String(), privateKey.String(), nil
+}
+
+// CreateUserWalletWithDeposit creates wallet and updates balance after successful deposit
+func CreateUserWalletWithDeposit(db *sql.DB, userID int, accountID, privateKey string) error {
+	// First create the wallet record
+	err := models.CreateUserWallet(db, userID, accountID, privateKey)
+	if err != nil {
+		return err
+	}
+
+	// Update balance to 5 HBAR after successful deposit
+	return models.UpdateTokenBalance(db, userID, 5.0)
 }
 
 // CreateUserWallet creates a Hedera wallet for a new user
@@ -216,4 +233,49 @@ func GetAccountBalance(accountID string) (float64, error) {
 	}
 
 	return balance.Hbars.As(hedera.HbarUnits.Hbar), nil
+}
+
+// DepositInitialFunds deposits 5 HBAR to a newly created account
+func DepositInitialFunds(toAccountID string) error {
+	client, err := SetupClient()
+	if err != nil {
+		return err
+	}
+	defer client.Close()
+
+	// Get operator account ID from environment
+	operatorIDStr := os.Getenv("HEDERA_CLIENT_ID")
+	if operatorIDStr == "" {
+		return fmt.Errorf("HEDERA_CLIENT_ID not set")
+	}
+
+	// Parse account IDs
+	operatorID, err := hedera.AccountIDFromString(operatorIDStr)
+	if err != nil {
+		return fmt.Errorf("invalid operator account ID: %v", err)
+	}
+
+	toID, err := hedera.AccountIDFromString(toAccountID)
+	if err != nil {
+		return fmt.Errorf("invalid recipient account ID: %v", err)
+	}
+
+	// Create transfer transaction for 5 HBAR
+	transferTx, err := hedera.NewTransferTransaction().
+		AddHbarTransfer(operatorID, hedera.NewHbar(-5)).
+		AddHbarTransfer(toID, hedera.NewHbar(5)).
+		SetTransactionMemo("Initial deposit for new user").
+		Execute(client)
+	if err != nil {
+		return fmt.Errorf("failed to execute initial deposit: %v", err)
+	}
+
+	// Get receipt to confirm transaction
+	_, err = transferTx.GetReceipt(client)
+	if err != nil {
+		return fmt.Errorf("initial deposit failed: %v", err)
+	}
+
+	log.Printf("Successfully deposited 5 HBAR to account %s", toAccountID)
+	return nil
 }
