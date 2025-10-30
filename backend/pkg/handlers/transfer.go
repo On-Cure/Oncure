@@ -62,7 +62,7 @@ func (h *TransferHandler) TransferHbar(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// Perform transfer
-	err = wallet.TransferHbar(
+	transactionID, err := wallet.TransferHbar(
 		senderWallet.HederaAccountID,
 		receiverWallet.HederaAccountID,
 		privateKey,
@@ -74,7 +74,7 @@ func (h *TransferHandler) TransferHbar(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// Record transfer in database
-	err = models.CreateTransfer(h.db, userID, req.ToUserID, req.Amount, "")
+	err = models.CreateTransfer(h.db, userID, req.ToUserID, req.Amount, transactionID)
 	if err != nil {
 		utils.RespondWithError(w, http.StatusInternalServerError, "Failed to record transfer: "+err.Error())
 		return

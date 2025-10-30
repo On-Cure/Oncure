@@ -38,12 +38,12 @@ func main() {
 	}
 
 	// Perform transfer
-	err = wallet.TransferHbar(fromAccount, toAccount, privateKey, amount)
+	txID, err := wallet.TransferHbar(fromAccount, toAccount, privateKey, amount)
 	if err != nil {
 		log.Fatalf("Transfer failed: %v", err)
 	}
 
-	fmt.Printf("✓ Successfully transferred %.8f HBAR\n", amount)
+	fmt.Printf("✓ Successfully transferred %.8f HBAR, transaction id: %s\n", amount, txID)
 
 	// Get final balances
 	fromBalanceAfter, err := wallet.GetAccountBalance(fromAccount)
