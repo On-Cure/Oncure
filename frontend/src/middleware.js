@@ -5,6 +5,7 @@ export function middleware(request) {
   
   // Always allow these paths
   if (
+    pathname === '/landing' ||
     pathname === '/login' ||
     pathname === '/register' ||
     pathname.startsWith('/_next') ||
