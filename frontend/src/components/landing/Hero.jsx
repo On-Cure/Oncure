@@ -6,8 +6,18 @@ import { ArrowRight } from 'lucide-react';
 export default function Hero() {
   return (
     <section className="relative min-h-screen flex items-center pt-16 overflow-hidden">
-      {/* Background gradient */}
-      <div className="absolute inset-0 bg-gradient-to-br from-background via-secondary/20 to-accent/20"></div>
+      {/* Background image with gradient overlay */}
+      <div 
+        className="absolute inset-0"
+        style={{
+          backgroundImage: 'url("/images/hero-bg-light.jpg")',
+          backgroundSize: 'cover',
+          backgroundPosition: 'center',
+          backgroundRepeat: 'no-repeat',
+          opacity: 0.5
+        }}
+      ></div>
+      <div className="absolute inset-0 bg-gradient-to-br from-background/60 via-background/40 to-background/20"></div>
       
       <div className="container mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
         <div className="max-w-4xl mx-auto text-center">
@@ -26,14 +36,14 @@ export default function Hero() {
           <div className="flex flex-col sm:flex-row gap-4 justify-center items-center">
             <Link 
               href="/register"
-              className="inline-flex items-center justify-center bg-primary hover:bg-primary/90 text-primary-foreground text-lg px-8 py-4 rounded-full shadow-lg hover:shadow-xl transition-all font-medium"
+              className="inline-flex items-center justify-center bg-primary hover:bg-primary/90 text-white text-lg px-8 py-4 rounded-full shadow-lg hover:shadow-xl transition-all font-semibold border-2 border-primary/10"
             >
               Join the Community
               <ArrowRight className="ml-2 h-5 w-5" />
             </Link>
             <button 
               onClick={() => document.getElementById('features')?.scrollIntoView({ behavior: 'smooth' })}
-              className="inline-flex items-center justify-center border-2 border-primary text-primary hover:bg-primary hover:text-primary-foreground text-lg px-8 py-4 rounded-full transition-all font-medium"
+              className="inline-flex items-center justify-center bg-background/80 hover:bg-background text-foreground border-2 border-primary/50 hover:border-primary text-lg px-8 py-4 rounded-full transition-all font-semibold backdrop-blur-sm"
             >
               Learn More
             </button>
