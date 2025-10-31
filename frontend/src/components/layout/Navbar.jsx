@@ -154,10 +154,18 @@ export default function Navbar() {
   return (
     <nav style={navbarStyles}>
       <div style={containerStyles}>
-        {/* Logo */}
-        <Link href="/feed" style={logoStyles}>
-          <span style={logoTextStyles}>onCare</span>
-        </Link>
+        <Link href="/feed" className="flex items-center space-x-2">
+            <img 
+              src="/images/oncare-logo2.png" 
+              alt="onCare Logo" 
+              className="h-40 w-auto"
+              onError={(e) => {
+                e.target.onerror = null;
+                e.target.src = "/images/oncare-logo2.png";
+                e.target.className = "h-40 w-40 opacity-50";
+              }}
+            />
+          </Link>
 
         {/* Desktop Navigation */}
         <div className="hidden md:flex" style={desktopNavStyles}>

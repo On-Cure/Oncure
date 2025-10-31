@@ -6,7 +6,17 @@ import { ArrowRight } from 'lucide-react';
 export default function Hero() {
   return (
     <section className="relative min-h-screen flex items-center pt-16 overflow-hidden">
-      {/* Background gradient */}
+      {/* Background image with gradient overlay */}
+      <div 
+        className="absolute inset-0"
+        style={{
+          backgroundImage: 'url("/images/hero-bg-light.jpg")',
+          backgroundSize: 'cover',
+          backgroundPosition: 'center',
+          backgroundRepeat: 'no-repeat',
+          opacity: 0.5
+        }}
+      ></div>
       <div className="absolute inset-0 bg-gradient-to-br from-background via-secondary/20 to-accent/20"></div>
       
       <div className="container mx-auto px-4 sm:px-6 lg:px-8 relative z-10">

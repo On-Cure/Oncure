@@ -11,22 +11,19 @@ export default function LandingNavbar() {
   return (
     <nav className="fixed top-0 left-0 right-0 z-50 bg-background/90 backdrop-blur-md border-b border-border">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="flex justify-between items-center h-16">
+        <div className="flex justify-between items-center h-20 overflow-hidden">
           {/* Logo */}
           <Link href="/landing" className="flex items-center space-x-2">
             <img 
-              src="/images/oncare-logo.png" 
+              src="/images/oncare-logo2.png" 
               alt="onCare Logo" 
-              className="h-8 w-auto"
+              className="h-40 w-auto"
               onError={(e) => {
                 e.target.onerror = null;
                 e.target.src = "/images/oncare-logo2.png";
-                e.target.className = "h-100 w-100 opacity-50";
+                e.target.className = "h-40 w-40 opacity-50";
               }}
             />
-            <span className="text-2xl font-bold bg-gradient-to-r from-primary to-secondary bg-clip-text">
-              onCare
-            </span>
           </Link>
 
           {/* Desktop Navigation */}
