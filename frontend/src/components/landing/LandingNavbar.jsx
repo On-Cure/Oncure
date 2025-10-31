@@ -14,7 +14,17 @@ export default function LandingNavbar() {
         <div className="flex justify-between items-center h-16">
           {/* Logo */}
           <Link href="/landing" className="flex items-center space-x-2">
-            <span className="text-2xl font-bold bg-gradient-to-r from-primary to-secondary bg-clip-text text-transparent">
+            <img 
+              src="/images/oncare-logo.png" 
+              alt="onCare Logo" 
+              className="h-8 w-auto"
+              onError={(e) => {
+                e.target.onerror = null;
+                e.target.src = "/images/oncare-logo2.png";
+                e.target.className = "h-100 w-100 opacity-50";
+              }}
+            />
+            <span className="text-2xl font-bold bg-gradient-to-r from-primary to-secondary bg-clip-text">
               onCare
             </span>
           </Link>

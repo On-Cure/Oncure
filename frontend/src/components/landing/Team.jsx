@@ -1,29 +1,62 @@
-import { Github, Linkedin, Mail } from "lucide-react";
+import { Github, Linkedin, Mail, Twitter } from "lucide-react";
 
 const team = [
   {
+    name: "Doreen Atieno",
+    role: "Product Manager",
+    bio: "I am a Full Stack Software Developer and a blockchain enthusiast.",
+    avatar: "/images/team/doreen.png",
+    social: {
+      github: "https://github.com/Doreen-Onyango",
+      linkedin: "https://linkedin.com/in/doreen-atieno-466104239",
+      twitter: "https://x.com/@DoreenAtieno17",
+      email: "mailto:doreen@oncare.health"
+    }
+  },
+  {
+    name: "Fred Gitonga",
+    role: "Backend Developer",
+    bio: "Writing smart contract with Rust and Solidity, backend development with Go and JS, and emerging tech like blockchain.",
+    avatar: "/images/team/fred.jpg",
+    social: {
+      github: "https://github.com/FredMunene",
+      linkedin: "https://linkedin.com/in/fredgitonga",
+      twitter: "https://x.com/@gitonga2050",
+      email: "mailto:fred@oncare.health"
+    }
+  },
+  {
+    name: "Odinga Valery",
+    role: "Quality Developer",
+    bio: "software developer immersed in full-stack development and the world of web3 developments. Its a pleasure to connect with you!",
+    avatar: "/images/team/vallery.jpg",
+    social: {
+      linkedin: "https://linkedin.com/in/odinga-valery",
+      twitter: "https://twitter.com/@odingaval",
+      email: "mailto:odingaval71@gmail.com"
+    }
+  },
+  {
     name: "Philip Ochieng",
-    role: "Fullstack Developer & Team Lead",
-    bio: "Leading the technical vision with passion for healthcare innovation",
-    avatar: "https://api.dicebear.com/7.x/avataaars/svg?seed=Philip",
+    role: "Frontend Developer",
+    bio: "Full Stack Software Developer with a passion for building user-friendly and efficient web applications onchain.",
+    avatar: "/images/team/philip.jpg",
+    social: {
+      github: "https://github.com/Philip38-hub",
+      linkedin: "https://x.com/@oumaphilp01",
+      email: "mailto:aisha@oncare.health"
+    }
   },
   {
-    name: "Sarah Johnson",
-    role: "UI/UX Designer",
-    bio: "Creating compassionate experiences for healing communities",
-    avatar: "https://api.dicebear.com/7.x/avataaars/svg?seed=Sarah",
-  },
-  {
-    name: "Dr. Michael Chen",
-    role: "Healthcare Advisor",
-    bio: "Ensuring clinical accuracy and patient-centered design",
-    avatar: "https://api.dicebear.com/7.x/avataaars/svg?seed=Michael",
-  },
-  {
-    name: "Aisha Patel",
-    role: "Blockchain Engineer",
-    bio: "Building transparent reward systems on Hedera",
-    avatar: "https://api.dicebear.com/7.x/avataaars/svg?seed=Aisha",
+    name: "Dolphine Akinyi",
+    role: "Social media Manager",
+    bio: "",
+    avatar: "/images/team/dolphine.jpeg",
+    social: {
+      github: "https://github.com/aisha",
+      linkedin: "https://linkedin.com/in/aisha",
+      email: "mailto:aisha@oncare.health"
+    }
   },
 ];
 
@@ -40,7 +73,7 @@ export default function Team() {
           </p>
         </div>
 
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-8">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-8">
           {team.map((member, index) => (
             <div
               key={member.name}
@@ -58,27 +91,48 @@ export default function Team() {
                 <p className="text-primary font-medium mb-3">{member.role}</p>
                 <p className="text-sm text-muted-foreground mb-4">{member.bio}</p>
                 <div className="flex gap-3">
-                  <a
-                    href="#"
-                    className="w-9 h-9 rounded-full bg-secondary hover:bg-primary/10 flex items-center justify-center transition-colors"
-                    aria-label="GitHub profile"
-                  >
-                    <Github className="w-4 h-4" />
-                  </a>
-                  <a
-                    href="#"
-                    className="w-9 h-9 rounded-full bg-secondary hover:bg-primary/10 flex items-center justify-center transition-colors"
-                    aria-label="LinkedIn profile"
-                  >
-                    <Linkedin className="w-4 h-4" />
-                  </a>
-                  <a
-                    href="#"
-                    className="w-9 h-9 rounded-full bg-secondary hover:bg-primary/10 flex items-center justify-center transition-colors"
-                    aria-label="Email contact"
-                  >
-                    <Mail className="w-4 h-4" />
-                  </a>
+                  {member.social.github && (
+                    <a
+                      href={member.social.github}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="w-9 h-9 rounded-full bg-secondary hover:bg-primary/10 flex items-center justify-center transition-colors"
+                      aria-label={`${member.name}'s GitHub`}
+                    >
+                      <Github className="w-4 h-4" />
+                    </a>
+                  )}
+                  {member.social.linkedin && (
+                    <a
+                      href={member.social.linkedin}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="w-9 h-9 rounded-full bg-secondary hover:bg-primary/10 flex items-center justify-center transition-colors"
+                      aria-label={`${member.name}'s LinkedIn`}
+                    >
+                      <Linkedin className="w-4 h-4" />
+                    </a>
+                  )}
+                  {member.social.twitter && (
+                    <a
+                      href={member.social.twitter}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="w-9 h-9 rounded-full bg-secondary hover:bg-primary/10 flex items-center justify-center transition-colors"
+                      aria-label={`${member.name}'s Twitter`}
+                    >
+                      <Twitter className="w-4 h-4" />
+                    </a>
+                  )}
+                  {member.social.email && (
+                    <a
+                      href={member.social.email}
+                      className="w-9 h-9 rounded-full bg-secondary hover:bg-primary/10 flex items-center justify-center transition-colors"
+                      aria-label={`Email ${member.name}`}
+                    >
+                      <Mail className="w-4 h-4" />
+                    </a>
+                  )}
                 </div>
               </div>
             </div>
