@@ -1,6 +1,5 @@
 import { Inter, Outfit } from "next/font/google";
 import "./globals.css";
-import Layout from "../components/layout/Layout";
 import { AuthProvider } from "../hooks/useAuth";
 import { ThemeProvider } from "../contexts/ThemeContext";
 
